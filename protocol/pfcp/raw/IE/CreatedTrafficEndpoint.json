@@ -1,0 +1,19 @@
+{
+  "ie_name": "CreatedTrafficEndpoint",
+  "ie_type_id": 128,
+  "is_grouped": true,
+  "sub_ies": [
+    {
+      "name": "FTEID",
+      "ie_type_id": 21
+    },
+    {
+      "name": "UEIPAddress",
+      "ie_type_id": 93
+    },
+    {
+      "name": "TrafficEndpointID",
+      "ie_type_id": 131
+    }
+  ]
+}

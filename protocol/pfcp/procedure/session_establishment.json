@@ -1,0 +1,29 @@
+{
+  "procedure_id": "PFCP_Session_Establishment",
+  "direction": "SMF/PGW -> UPF/SGW",
+  "dependency_procedure": "PFCP_Association_Setup",
+  "message_flow": [
+    {
+      "seq": 1,
+      "from": "SMF/PGW",
+      "to": "UPF/SGW",
+      "message": "PFCP_Session_Establishment_Request",
+      "mandatory_ies": [
+        "NodeID",
+        "CPFSEID",
+        "CreatePDR",
+        "CreateFAR"
+      ]
+    },
+    {
+      "seq": 2,
+      "from": "UPF/SGW",
+      "to": "SMF/PGW",
+      "message": "PFCP_Session_Establishment_Response",
+      "mandatory_ies": [
+        "NodeID",
+        "Cause"
+      ]
+    }
+  ]
+}

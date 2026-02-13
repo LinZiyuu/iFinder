@@ -1,0 +1,11 @@
+{
+  "ie_name": "QueryURR",
+  "ie_type_id": 77,
+  "is_grouped": true,
+  "sub_ies": [
+    {
+      "name": "URRID",
+      "ie_type_id": 81
+    }
+  ]
+}

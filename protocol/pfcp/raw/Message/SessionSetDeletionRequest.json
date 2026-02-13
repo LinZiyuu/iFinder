@@ -1,0 +1,18 @@
+{
+  "message_name": "SessionSetDeletionRequest",
+  "Direction": "SMF -> UPF",
+  "ies": [
+    {
+      "name": "NodeID",
+      "requirement": "Mandatory",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "FQCSID",
+      "requirement": "Mandatory",
+      "multiplicity": "Single",
+      "is_grouped": false
+    }
+  ]
+}

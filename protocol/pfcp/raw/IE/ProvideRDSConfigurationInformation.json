@@ -1,0 +1,11 @@
+{
+  "ie_name": "ProvideRDSConfigurationInformation",
+  "ie_type_id": 261,
+  "is_grouped": true,
+  "sub_ies": [
+    {
+      "name": "RDSConfigurationInformation",
+      "ie_type_id": 262
+    }
+  ]
+}

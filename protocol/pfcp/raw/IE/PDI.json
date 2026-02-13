@@ -1,0 +1,43 @@
+{
+  "ie_name": "PDI",
+  "ie_type_id": 2,
+  "is_grouped": true,
+  "sub_ies": [
+    {
+      "name": "SourceInterface",
+      "ie_type_id": 20
+    },
+    {
+      "name": "FTEID",
+      "ie_type_id": 21
+    },
+    {
+      "name": "NetworkInstance",
+      "ie_type_id": 22
+    },
+    {
+      "name": "SDFFilter",
+      "ie_type_id": 23
+    },
+    {
+      "name": "ApplicationID",
+      "ie_type_id": 24
+    },
+    {
+      "name": "UEIPAddress",
+      "ie_type_id": 93
+    },
+    {
+      "name": "TrafficEndpointID",
+      "ie_type_id": 131
+    },
+    {
+      "name": "EthernetPacketFilter",
+      "ie_type_id": 132
+    },
+    {
+      "name": "EthernetPDUSessionInformation",
+      "ie_type_id": 142
+    }
+  ]
+}

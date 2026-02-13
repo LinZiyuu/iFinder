@@ -1,0 +1,11 @@
+{
+  "ie_name": "QueryPacketRateStatusWithinSessionModificationRequest",
+  "ie_type_id": 263,
+  "is_grouped": true,
+  "sub_ies": [
+    {
+      "name": "QERID",
+      "ie_type_id": 109
+    }
+  ]
+}

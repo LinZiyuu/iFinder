@@ -1,0 +1,23 @@
+{
+  "ie_name": "OverloadControlInformation",
+  "ie_type_id": 54,
+  "is_grouped": true,
+  "sub_ies": [
+    {
+      "name": "SequenceNumber",
+      "ie_type_id": 52
+    },
+    {
+      "name": "Metric",
+      "ie_type_id": 53
+    },
+    {
+      "name": "Timer",
+      "ie_type_id": 55
+    },
+    {
+      "name": "OCIFlags",
+      "ie_type_id": 110
+    }
+  ]
+}

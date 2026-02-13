@@ -1,0 +1,23 @@
+{
+  "scope_name": "free5gc-pfcp-full",
+  "targets": [
+    {
+      "name": "free5gc-nfs",
+      "target_codebase": "target/free5gc",
+      "scan_dirs": [
+        "NFs/smf/internal/pfcp/",
+        "NFs/smf/pkg/association/",
+        "NFs/upf/internal/pfcp/",
+        "NFs/upf/internal/forwarder/"
+      ]
+    },
+    {
+      "name": "wmnsk-go-pfcp",
+      "target_codebase": "target/go-pfcp",
+      "scan_dirs": [
+        "ie/",
+        "message/"
+      ]
+    }
+  ]
+}

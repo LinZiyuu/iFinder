@@ -1,0 +1,66 @@
+{
+  "ie_name": "UsageReport",
+  "ie_type_id": null,
+  "is_grouped": true,
+  "variants": [
+    {
+      "name": "UsageReportWithinSessionModificationResponse",
+      "ie_type_id": 78
+    },
+    {
+      "name": "UsageReportWithinSessionDeletionResponse",
+      "ie_type_id": 79
+    },
+    {
+      "name": "UsageReportWithinSessionReportRequest",
+      "ie_type_id": 80
+    }
+  ],
+  "description": "Generic Usage Report IE, actual type depends on message context",
+  "sub_ies": [
+    {
+      "name": "UsageReportTrigger",
+      "ie_type_id": 63
+    },
+    {
+      "name": "VolumeMeasurement",
+      "ie_type_id": 66
+    },
+    {
+      "name": "DurationMeasurement",
+      "ie_type_id": 67
+    },
+    {
+      "name": "TimeOfFirstPacket",
+      "ie_type_id": 69
+    },
+    {
+      "name": "TimeOfLastPacket",
+      "ie_type_id": 70
+    },
+    {
+      "name": "StartTime",
+      "ie_type_id": 75
+    },
+    {
+      "name": "EndTime",
+      "ie_type_id": 76
+    },
+    {
+      "name": "URRID",
+      "ie_type_id": 81
+    },
+    {
+      "name": "UsageInformation",
+      "ie_type_id": 90
+    },
+    {
+      "name": "URSEQN",
+      "ie_type_id": 104
+    },
+    {
+      "name": "EthernetTrafficInformation",
+      "ie_type_id": 143
+    }
+  ]
+}

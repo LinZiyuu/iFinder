@@ -1,0 +1,25 @@
+{
+  "procedure_id": "PFCP_PFD_Management",
+  "direction": "SMF/PGW -> UPF/SGW",
+  "dependency_procedure": "PFCP_Association_Setup",
+  "message_flow": [
+    {
+      "seq": 1,
+      "from": "SMF/PGW",
+      "to": "UPF/SGW",
+      "message": "PFCP_PFD_Management_Request",
+      "mandatory_ies": [
+        "ApplicationIDsPFDs"
+      ]
+    },
+    {
+      "seq": 2,
+      "from": "UPF/SGW",
+      "to": "SMF/PGW",
+      "message": "PFCP_PFD_Management_Response",
+      "mandatory_ies": [
+        "Cause"
+      ]
+    }
+  ]
+}

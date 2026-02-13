@@ -1,0 +1,25 @@
+{
+  "procedure_id": "PFCP_Heartbeat",
+  "direction": "SMF/PGW <-> UPF/SGW",
+  "dependency_procedure": "PFCP_Association_Setup",
+  "message_flow": [
+    {
+      "seq": 1,
+      "from": "SMF/PGW or UPF/SGW",
+      "to": "UPF/SGW or SMF/PGW",
+      "message": "PFCP_Heartbeat_Request",
+      "mandatory_ies": [
+        "RecoveryTimeStamp"
+      ]
+    },
+    {
+      "seq": 2,
+      "from": "UPF/SGW or SMF/PGW",
+      "to": "SMF/PGW or UPF/SGW",
+      "message": "PFCP_Heartbeat_Response",
+      "mandatory_ies": [
+        "RecoveryTimeStamp"
+      ]
+    }
+  ]
+}

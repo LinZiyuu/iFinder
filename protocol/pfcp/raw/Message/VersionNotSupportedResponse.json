@@ -1,0 +1,5 @@
+{
+  "message_name": "VersionNotSupportedResponse",
+  "Direction": "UPF -> SMF",
+  "ies": []
+}

@@ -1,0 +1,26 @@
+# Output and results
+outputs/
+
+# Target codebases (cloned externally)
+target/
+
+# Python virtual environment
+iFinder/
+
+# Planning, metadata and skill docs
+plan.md
+.claude/
+skill/
+
+# Python caches
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+*.egg-info/
+
+# IDE / Editor
+.vscode/
+.idea/
+*.swp
+*.swo

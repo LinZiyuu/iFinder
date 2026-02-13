@@ -1,0 +1,31 @@
+{
+  "ie_name": "GTPUPathQoSReport",
+  "ie_type_id": 239,
+  "is_grouped": true,
+  "sub_ies": [
+    {
+      "name": "StartTime",
+      "ie_type_id": 75
+    },
+    {
+      "name": "RemoteGTPUPeer",
+      "ie_type_id": 103
+    },
+    {
+      "name": "EventTimeStamp",
+      "ie_type_id": 156
+    },
+    {
+      "name": "QoSReportTrigger",
+      "ie_type_id": 237
+    },
+    {
+      "name": "QoSInformationInGTPUPathQoSReport",
+      "ie_type_id": 240
+    },
+    {
+      "name": "GTPUPathInterfaceType",
+      "ie_type_id": 241
+    }
+  ]
+}

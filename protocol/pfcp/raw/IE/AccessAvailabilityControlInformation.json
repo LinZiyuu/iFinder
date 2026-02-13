@@ -1,0 +1,11 @@
+{
+  "ie_name": "AccessAvailabilityControlInformation",
+  "ie_type_id": 216,
+  "is_grouped": true,
+  "sub_ies": [
+    {
+      "name": "RequestedAccessAvailabilityInformation",
+      "ie_type_id": 217
+    }
+  ]
+}

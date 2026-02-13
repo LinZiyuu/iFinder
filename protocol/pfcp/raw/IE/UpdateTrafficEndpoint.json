@@ -1,0 +1,39 @@
+{
+  "ie_name": "UpdateTrafficEndpoint",
+  "ie_type_id": 129,
+  "is_grouped": true,
+  "sub_ies": [
+    {
+      "name": "FTEID",
+      "ie_type_id": 21
+    },
+    {
+      "name": "NetworkInstance",
+      "ie_type_id": 22
+    },
+    {
+      "name": "UEIPAddress",
+      "ie_type_id": 93
+    },
+    {
+      "name": "QFI",
+      "ie_type_id": 124
+    },
+    {
+      "name": "TrafficEndpointID",
+      "ie_type_id": 131
+    },
+    {
+      "name": "FramedRoute",
+      "ie_type_id": 153
+    },
+    {
+      "name": "FramedRouting",
+      "ie_type_id": 154
+    },
+    {
+      "name": "FramedIPv6Route",
+      "ie_type_id": 155
+    }
+  ]
+}

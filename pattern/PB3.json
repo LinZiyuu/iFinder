@@ -1,0 +1,5 @@
+{
+  "pattern_id": "PB3",
+  "pattern_name": "Invalid Reference",
+  "pattern_description": "Protocol messages carry object identifiers used as keys into internal tables. Asynchronous callbacks may also store object pointers that become stale when freed. The code does not validate that referenced objects exist, belong to the current scope, and are still alive before use. A crafted message referencing a non-existent or cross-scope object, or a race condition where an object is freed while a callback holds its pointer, can cause Use-After-Free, null pointer dereference, or operations on wrong entries, leading to DoS or other security impact."
+}

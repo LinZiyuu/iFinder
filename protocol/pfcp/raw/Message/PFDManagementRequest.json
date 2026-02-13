@@ -1,0 +1,12 @@
+{
+  "message_name": "PFDManagementRequest",
+  "Direction": "SMF -> UPF",
+  "ies": [
+    {
+      "name": "ApplicationIDsPFDs",
+      "requirement": "Optional",
+      "multiplicity": "List",
+      "is_grouped": true
+    }
+  ]
+}

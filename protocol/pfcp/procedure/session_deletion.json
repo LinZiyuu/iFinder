@@ -1,0 +1,23 @@
+{
+  "procedure_id": "PFCP_Session_Deletion",
+  "direction": "SMF/PGW -> UPF/SGW",
+  "dependency_procedure": "PFCP_Session_Establishment",
+  "message_flow": [
+    {
+      "seq": 1,
+      "from": "SMF/PGW",
+      "to": "UPF/SGW",
+      "message": "PFCP_Session_Deletion_Request",
+      "mandatory_ies": []
+    },
+    {
+      "seq": 2,
+      "from": "UPF/SGW",
+      "to": "SMF/PGW",
+      "message": "PFCP_Session_Deletion_Response",
+      "mandatory_ies": [
+        "Cause"
+      ]
+    }
+  ]
+}

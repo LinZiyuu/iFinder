@@ -1,0 +1,23 @@
+{
+  "ie_name": "QoSMonitoringReport",
+  "ie_type_id": 247,
+  "is_grouped": true,
+  "sub_ies": [
+    {
+      "name": "StartTime",
+      "ie_type_id": 75
+    },
+    {
+      "name": "QFI",
+      "ie_type_id": 124
+    },
+    {
+      "name": "EventTimeStamp",
+      "ie_type_id": 156
+    },
+    {
+      "name": "QoSMonitoringMeasurement",
+      "ie_type_id": 248
+    }
+  ]
+}

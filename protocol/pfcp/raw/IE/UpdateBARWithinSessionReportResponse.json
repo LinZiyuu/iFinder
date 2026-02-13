@@ -1,0 +1,27 @@
+{
+  "ie_name": "UpdateBARWithinSessionReportResponse",
+  "ie_type_id": 12,
+  "is_grouped": true,
+  "sub_ies": [
+    {
+      "name": "DownlinkDataNotificationDelay",
+      "ie_type_id": 46
+    },
+    {
+      "name": "DLBufferingDuration",
+      "ie_type_id": 47
+    },
+    {
+      "name": "DLBufferingSuggestedPacketCount",
+      "ie_type_id": 48
+    },
+    {
+      "name": "BARID",
+      "ie_type_id": 88
+    },
+    {
+      "name": "SuggestedBufferingPacketsCount",
+      "ie_type_id": 140
+    }
+  ]
+}

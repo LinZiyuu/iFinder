@@ -1,0 +1,28 @@
+{
+  "procedure_id": "PFCP_Association_Setup",
+  "direction": "SMF/PGW <-> UPF/SGW",
+  "dependency_procedure": null,
+  "message_flow": [
+    {
+      "seq": 1,
+      "from": "SMF/PGW",
+      "to": "UPF/SGW",
+      "message": "PFCP_Association_Setup_Request",
+      "mandatory_ies": [
+        "NodeID",
+        "RecoveryTimeStamp"
+      ]
+    },
+    {
+      "seq": 2,
+      "from": "UPF/SGW",
+      "to": "SMF/PGW",
+      "message": "PFCP_Association_Setup_Response",
+      "mandatory_ies": [
+        "Cause",
+        "NodeID",
+        "RecoveryTimeStamp"
+      ]
+    }
+  ]
+}

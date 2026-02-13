@@ -1,0 +1,35 @@
+{
+  "ie_name": "UpdateMAR",
+  "ie_type_id": 169,
+  "is_grouped": true,
+  "sub_ies": [
+    {
+      "name": "TGPPAccessForwardingActionInformation",
+      "ie_type_id": 166
+    },
+    {
+      "name": "NonTGPPAccessForwardingActionInformation",
+      "ie_type_id": 167
+    },
+    {
+      "name": "MARID",
+      "ie_type_id": 170
+    },
+    {
+      "name": "SteeringFunctionality",
+      "ie_type_id": 171
+    },
+    {
+      "name": "SteeringMode",
+      "ie_type_id": 172
+    },
+    {
+      "name": "UpdateTGPPAccessForwardingActionInformation",
+      "ie_type_id": 175
+    },
+    {
+      "name": "UpdateNonTGPPAccessForwardingActionInformation",
+      "ie_type_id": 176
+    }
+  ]
+}

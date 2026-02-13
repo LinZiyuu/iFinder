@@ -1,0 +1,27 @@
+{
+  "procedure_id": "PFCP_Node_Report",
+  "direction": "UPF/SGW -> SMF/PGW",
+  "dependency_procedure": "PFCP_Association_Setup",
+  "message_flow": [
+    {
+      "seq": 1,
+      "from": "UPF/SGW",
+      "to": "SMF/PGW",
+      "message": "PFCP_Node_Report_Request",
+      "mandatory_ies": [
+        "NodeID",
+        "NodeReportType"
+      ]
+    },
+    {
+      "seq": 2,
+      "from": "SMF/PGW",
+      "to": "UPF/SGW",
+      "message": "PFCP_Node_Report_Response",
+      "mandatory_ies": [
+        "NodeID",
+        "Cause"
+      ]
+    }
+  ]
+}

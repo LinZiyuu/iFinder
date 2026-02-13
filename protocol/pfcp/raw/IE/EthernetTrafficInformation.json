@@ -1,0 +1,23 @@
+{
+  "ie_name": "EthernetTrafficInformation",
+  "ie_type_id": 143,
+  "is_grouped": true,
+  "sub_ies": [
+    {
+      "name": "CTAG",
+      "ie_type_id": 134
+    },
+    {
+      "name": "STAG",
+      "ie_type_id": 135
+    },
+    {
+      "name": "MACAddressesDetected",
+      "ie_type_id": 144
+    },
+    {
+      "name": "MACAddressesRemoved",
+      "ie_type_id": 145
+    }
+  ]
+}

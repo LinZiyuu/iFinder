@@ -1,0 +1,5 @@
+{
+  "pattern_id": "PA1",
+  "pattern_name": "Malformed Field",
+  "pattern_description": "Protocol messages or embedded structures (e.g., IE, TLV, filters) carry length/size/count fields that the implementation blindly trusts for memory operations without validating against actual payload size or buffer capacity. This leads to: (1) memory operations with untrusted size causing buffer overflow or OOB read/write, (2) fatal error paths (assertion failure, panic) instead of graceful error handling when length validation fails, (3) string operations assuming null termination on network data causing OOB read. Crafted inputs with malformed length fields can crash the component, leading to DoS or other security impact."
+}

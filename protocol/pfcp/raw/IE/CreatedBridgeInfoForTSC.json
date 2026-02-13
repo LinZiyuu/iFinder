@@ -1,0 +1,19 @@
+{
+  "ie_name": "CreatedBridgeInfoForTSC",
+  "ie_type_id": 195,
+  "is_grouped": true,
+  "sub_ies": [
+    {
+      "name": "DSTTPortNumber",
+      "ie_type_id": 196
+    },
+    {
+      "name": "NWTTPortNumber",
+      "ie_type_id": 197
+    },
+    {
+      "name": "TSNBridgeID",
+      "ie_type_id": 198
+    }
+  ]
+}

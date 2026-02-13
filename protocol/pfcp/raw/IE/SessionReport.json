@@ -1,0 +1,19 @@
+{
+  "ie_name": "SessionReport",
+  "ie_type_id": 214,
+  "is_grouped": true,
+  "sub_ies": [
+    {
+      "name": "SRRID",
+      "ie_type_id": 215
+    },
+    {
+      "name": "AccessAvailabilityControlInformation",
+      "ie_type_id": 216
+    },
+    {
+      "name": "QoSMonitoringReport",
+      "ie_type_id": 247
+    }
+  ]
+}

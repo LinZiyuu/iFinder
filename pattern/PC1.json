@@ -1,0 +1,5 @@
+{
+  "pattern_id": "PC1",
+  "pattern_name": "Exhausted Resource",
+  "pattern_description": "The component enforces fixed upper bounds on protocol-related resources (e.g., sessions), but the message handling path does not correctly treat resource exhaustion as a normal error case. Instead of rejecting the request with an appropriate error cause, the implementation crashes when a resource limit is hit (e.g., fatal error on count >= MAX, dereferencing a failed allocation). An attacker can exhaust these object pools by sending resource-creating protocol requests, leading to DoS or other security impact."
+}

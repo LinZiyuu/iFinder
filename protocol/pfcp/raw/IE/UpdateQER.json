@@ -1,0 +1,59 @@
+{
+  "ie_name": "UpdateQER",
+  "ie_type_id": 14,
+  "is_grouped": true,
+  "sub_ies": [
+    {
+      "name": "GateStatus",
+      "ie_type_id": 25
+    },
+    {
+      "name": "MBR",
+      "ie_type_id": 26
+    },
+    {
+      "name": "GBR",
+      "ie_type_id": 27
+    },
+    {
+      "name": "QERCorrelationID",
+      "ie_type_id": 28
+    },
+    {
+      "name": "PacketRate",
+      "ie_type_id": 94
+    },
+    {
+      "name": "DLFlowLevelMarking",
+      "ie_type_id": 97
+    },
+    {
+      "name": "QERID",
+      "ie_type_id": 109
+    },
+    {
+      "name": "RQI",
+      "ie_type_id": 123
+    },
+    {
+      "name": "QFI",
+      "ie_type_id": 124
+    },
+    {
+      "name": "AveragingWindow",
+      "ie_type_id": 157
+    },
+    {
+      "name": "PagingPolicyIndicator",
+      "ie_type_id": 158
+    },
+    {
+      "name": "PacketRateStatus",
+      "ie_type_id": 193
+    },
+    {
+      "name": "QERControlIndications",
+      "ie_type_id": 251
+    }
+  ]
+}

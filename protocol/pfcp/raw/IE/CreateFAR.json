@@ -1,0 +1,39 @@
+{
+  "ie_name": "CreateFAR",
+  "ie_type_id": 3,
+  "is_grouped": true,
+  "sub_ies": [
+    {
+      "name": "ForwardingParameters",
+      "ie_type_id": 4
+    },
+    {
+      "name": "DuplicatingParameters",
+      "ie_type_id": 5
+    },
+    {
+      "name": "NetworkInstance",
+      "ie_type_id": 22
+    },
+    {
+      "name": "ApplyAction",
+      "ie_type_id": 44
+    },
+    {
+      "name": "OuterHeaderCreation",
+      "ie_type_id": 84
+    },
+    {
+      "name": "BARID",
+      "ie_type_id": 88
+    },
+    {
+      "name": "FARID",
+      "ie_type_id": 108
+    },
+    {
+      "name": "RedundantTransmissionForwardingParameters",
+      "ie_type_id": 270
+    }
+  ]
+}

@@ -1,0 +1,84 @@
+{
+  "message_name": "AssociationSetupRequest",
+  "Direction": "SMF <-> UPF", 
+  "ies": [
+    {
+      "name": "NodeID",
+      "requirement": "Mandatory",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "RecoveryTimeStamp",
+      "requirement": "Mandatory",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "UPFunctionFeatures",
+      "requirement": "Optional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "CPFunctionFeatures",
+      "requirement": "Mandatory",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "UserPlaneIPResourceInformation",
+      "requirement": "Optional",
+      "multiplicity": "List",
+      "is_grouped": false
+    },
+    {
+      "name": "AlternativeSMFIPAddress",
+      "requirement": "Optional",
+      "multiplicity": "List",
+      "is_grouped": false
+    },
+    {
+      "name": "SMFSetID",
+      "requirement": "Optional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "PFCPSessionRetentionInformation",
+      "requirement": "Optional",
+      "multiplicity": "Single",
+      "is_grouped": true
+    },
+    {
+      "name": "UEIPAddressPoolInformation",
+      "requirement": "Optional",
+      "multiplicity": "List",
+      "is_grouped": true
+    },
+    {
+      "name": "GTPUPathQoSControlInformation",
+      "requirement": "Optional",
+      "multiplicity": "List",
+      "is_grouped": true
+    },
+    {
+      "name": "ClockDriftControlInformation",
+      "requirement": "Optional",
+      "multiplicity": "List",
+      "is_grouped": true
+    },
+    {
+      "name": "UPFInstanceID",
+      "requirement": "Optional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "PFCPASReqFlags",
+      "requirement": "Optional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    }
+  ]
+}

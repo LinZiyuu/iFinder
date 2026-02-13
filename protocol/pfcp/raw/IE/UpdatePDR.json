@@ -1,0 +1,59 @@
+{
+  "ie_name": "UpdatePDR",
+  "ie_type_id": 9,
+  "is_grouped": true,
+  "sub_ies": [
+    {
+      "name": "PDI",
+      "ie_type_id": 2
+    },
+    {
+      "name": "Precedence",
+      "ie_type_id": 29
+    },
+    {
+      "name": "PDRID",
+      "ie_type_id": 56
+    },
+    {
+      "name": "URRID",
+      "ie_type_id": 81
+    },
+    {
+      "name": "OuterHeaderRemoval",
+      "ie_type_id": 95
+    },
+    {
+      "name": "ActivatePredefinedRules",
+      "ie_type_id": 106
+    },
+    {
+      "name": "DeactivatePredefinedRules",
+      "ie_type_id": 107
+    },
+    {
+      "name": "FARID",
+      "ie_type_id": 108
+    },
+    {
+      "name": "QERID",
+      "ie_type_id": 109
+    },
+    {
+      "name": "ActivationTime",
+      "ie_type_id": 163
+    },
+    {
+      "name": "DeactivationTime",
+      "ie_type_id": 164
+    },
+    {
+      "name": "IPMulticastAddressingInfo",
+      "ie_type_id": 188
+    },
+    {
+      "name": "TransportDelayReporting",
+      "ie_type_id": 271
+    }
+  ]
+}

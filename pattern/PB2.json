@@ -1,0 +1,5 @@
+{
+  "pattern_id": "PB2",
+  "pattern_name": "Invalid State",
+  "pattern_description": "The protocol state machine does not strictly validate that an incoming message (version/type/stage) is allowed in the current protocol state before passing it to state-dependent handlers. A crafted or out-of-sequence message is dispatched into code that assumes certain preconditions hold (e.g., \"session must exist\", \"transaction must be initialized\"). When these assumptions are violated, it can cause crash or unexpected behavior, leading to DoS or other security impact."
+}

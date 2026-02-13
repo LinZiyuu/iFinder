@@ -1,0 +1,23 @@
+{
+  "ie_name": "UEIPAddressPoolInformation",
+  "ie_type_id": 233,
+  "is_grouped": true,
+  "sub_ies": [
+    {
+      "name": "NetworkInstance",
+      "ie_type_id": 22
+    },
+    {
+      "name": "UEIPAddressPoolIdentity",
+      "ie_type_id": 177
+    },
+    {
+      "name": "SNSSAI",
+      "ie_type_id": 257
+    },
+    {
+      "name": "IPVersion",
+      "ie_type_id": 258
+    }
+  ]
+}

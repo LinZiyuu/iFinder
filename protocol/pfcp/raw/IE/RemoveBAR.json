@@ -1,0 +1,11 @@
+{
+  "ie_name": "RemoveBAR",
+  "ie_type_id": 87,
+  "is_grouped": true,
+  "sub_ies": [
+    {
+      "name": "BARID",
+      "ie_type_id": 88
+    }
+  ]
+}

@@ -1,0 +1,3658 @@
+{
+  "generated_at": "2026-02-12T08:43:35.228824+00:00",
+  "source_ie_dir": "protocol/pfcp/raw/IE",
+  "ie_count": 282,
+  "ies": {
+    "APNDNN": {
+      "ie_name": "APNDNN",
+      "ie_type_id": 159,
+      "is_grouped": false,
+      "source_file": "APNDNN.json"
+    },
+    "ATSSSControlParameters": {
+      "ie_name": "ATSSSControlParameters",
+      "ie_type_id": 221,
+      "is_grouped": true,
+      "sub_ies": [
+        {
+          "name": "MPTCPParameters",
+          "ie_type_id": 225
+        },
+        {
+          "name": "ATSSSLLParameters",
+          "ie_type_id": 226
+        },
+        {
+          "name": "PMFParameters",
+          "ie_type_id": 227
+        }
+      ],
+      "source_file": "ATSSSControlParameters.json"
+    },
+    "ATSSSLLControlInformation": {
+      "ie_name": "ATSSSLLControlInformation",
+      "ie_type_id": 223,
+      "is_grouped": false,
+      "source_file": "ATSSSLLControlInformation.json"
+    },
+    "ATSSSLLInformation": {
+      "ie_name": "ATSSSLLInformation",
+      "ie_type_id": 231,
+      "is_grouped": false,
+      "source_file": "ATSSSLLInformation.json"
+    },
+    "ATSSSLLParameters": {
+      "ie_name": "ATSSSLLParameters",
+      "ie_type_id": 226,
+      "is_grouped": true,
+      "sub_ies": [
+        {
+          "name": "ATSSSLLInformation",
+          "ie_type_id": 231
+        }
+      ],
+      "source_file": "ATSSSLLParameters.json"
+    },
+    "AccessAvailabilityControlInformation": {
+      "ie_name": "AccessAvailabilityControlInformation",
+      "ie_type_id": 216,
+      "is_grouped": true,
+      "sub_ies": [
+        {
+          "name": "RequestedAccessAvailabilityInformation",
+          "ie_type_id": 217
+        }
+      ],
+      "source_file": "AccessAvailabilityControlInformation.json"
+    },
+    "AccessAvailabilityInformation": {
+      "ie_name": "AccessAvailabilityInformation",
+      "ie_type_id": 219,
+      "is_grouped": false,
+      "source_file": "AccessAvailabilityInformation.json"
+    },
+    "AccessAvailabilityReport": {
+      "ie_name": "AccessAvailabilityReport",
+      "ie_type_id": 218,
+      "is_grouped": true,
+      "sub_ies": [
+        {
+          "name": "AccessAvailabilityInformation",
+          "ie_type_id": 219
+        }
+      ],
+      "source_file": "AccessAvailabilityReport.json"
+    },
+    "ActivatePredefinedRules": {
+      "ie_name": "ActivatePredefinedRules",
+      "ie_type_id": 106,
+      "is_grouped": false,
+      "source_file": "ActivatePredefinedRules.json"
+    },
+    "ActivationTime": {
+      "ie_name": "ActivationTime",
+      "ie_type_id": 163,
+      "is_grouped": false,
+      "source_file": "ActivationTime.json"
+    },
+    "AdditionalMonitoringTime": {
+      "ie_name": "AdditionalMonitoringTime",
+      "ie_type_id": 147,
+      "is_grouped": true,
+      "sub_ies": [
+        {
+          "name": "MonitoringTime",
+          "ie_type_id": 33
+        },
+        {
+          "name": "SubsequentVolumeThreshold",
+          "ie_type_id": 34
+        },
+        {
+          "name": "SubsequentTimeThreshold",
+          "ie_type_id": 35
+        },
+        {
+          "name": "SubsequentVolumeQuota",
+          "ie_type_id": 121
+        },
+        {
+          "name": "SubsequentTimeQuota",
+          "ie_type_id": 122
+        },
+        {
+          "name": "EventQuota",
+          "ie_type_id": 148
+        },
+        {
+          "name": "EventThreshold",
+          "ie_type_id": 149
+        }
+      ],
+      "source_file": "AdditionalMonitoringTime.json"
+    },
+    "AdditionalUsageReportsInformation": {
+      "ie_name": "AdditionalUsageReportsInformation",
+      "ie_type_id": 126,
+      "is_grouped": false,
+      "source_file": "AdditionalUsageReportsInformation.json"
+    },
+    "AggregatedURRID": {
+      "ie_name": "AggregatedURRID",
+      "ie_type_id": 120,
+      "is_grouped": false,
+      "source_file": "AggregatedURRID.json"
+    },
+    "AggregatedURRs": {
+      "ie_name": "AggregatedURRs",
+      "ie_type_id": 118,
+      "is_grouped": true,
+      "sub_ies": [
+        {
+          "name": "Multiplier",
+          "ie_type_id": 119
+        },
+        {
+          "name": "AggregatedURRID",
+          "ie_type_id": 120
+        }
+      ],
+      "source_file": "AggregatedURRs.json"
+    },
+    "AlternativeSMFIPAddress": {
+      "ie_name": "AlternativeSMFIPAddress",
+      "ie_type_id": 178,
+      "is_grouped": false,
+      "source_file": "AlternativeSMFIPAddress.json"
+    },
+    "ApplicationDetectionInformation": {
+      "ie_name": "ApplicationDetectionInformation",
+      "ie_type_id": 68,
+      "is_grouped": true,
+      "sub_ies": [
+        {
+          "name": "ApplicationID",
+          "ie_type_id": 24
+        },
+        {
+          "name": "PDRID",
+          "ie_type_id": 56
+        },
+        {
+          "name": "ApplicationInstanceID",
+          "ie_type_id": 91
+        },
+        {
+          "name": "FlowInformation",
+          "ie_type_id": 92
+        }
+      ],
+      "source_file": "ApplicationDetectionInformation.json"
+    },
+    "ApplicationID": {
+      "ie_name": "ApplicationID",
+      "ie_type_id": 24,
+      "is_grouped": false,
+      "source_file": "ApplicationID.json"
+    },
+    "ApplicationIDsPFDs": {
+      "ie_name": "ApplicationIDsPFDs",
+      "ie_type_id": 58,
+      "is_grouped": true,
+      "sub_ies": [
+        {
+          "name": "ApplicationID",
+          "ie_type_id": 24
+        },
+        {
+          "name": "PFDContext",
+          "ie_type_id": 59
+        }
+      ],
+      "source_file": "ApplicationIDsPFDs.json"
+    },
+    "ApplicationInstanceID": {
+      "ie_name": "ApplicationInstanceID",
+      "ie_type_id": 91,
+      "is_grouped": false,
+      "source_file": "ApplicationInstanceID.json"
+    },
+    "ApplyAction": {
+      "ie_name": "ApplyAction",
+      "ie_type_id": 44,
+      "is_grouped": false,
+      "source_file": "ApplyAction.json"
+    },
+    "AveragePacketDelay": {
+      "ie_name": "AveragePacketDelay",
+      "ie_type_id": 234,
+      "is_grouped": false,
+      "source_file": "AveragePacketDelay.json"
+    },
+    "AveragingWindow": {
+      "ie_name": "AveragingWindow",
+      "ie_type_id": 157,
+      "is_grouped": false,
+      "source_file": "AveragingWindow.json"
+    },
+    "BARID": {
+      "ie_name": "BARID",
+      "ie_type_id": 88,
+      "is_grouped": false,
+      "source_file": "BARID.json"
+    },
+    "BridgeManagementInformationContainer": {
+      "ie_name": "BridgeManagementInformationContainer",
+      "ie_type_id": 266,
+      "is_grouped": false,
+      "source_file": "BridgeManagementInformationContainer.json"
+    },
+    "CPFSEID": {
+      "ie_name": "CPFSEID",
+      "ie_type_id": 57,
+      "is_grouped": false,
+      "alias_of": "FSEID",
+      "description": "Control Plane F-SEID, same IE type as FSEID",
+      "source_file": "CPFSEID.json"
+    },
+    "CPFunctionFeatures": {
+      "ie_name": "CPFunctionFeatures",
+      "ie_type_id": 89,
+      "is_grouped": false,
+      "source_file": "CPFunctionFeatures.json"
+    },
+    "CPPFCPEntityIPAddress": {
+      "ie_name": "CPPFCPEntityIPAddress",
+      "ie_type_id": 185,
+      "is_grouped": false,
+      "source_file": "CPPFCPEntityIPAddress.json"
+    },
+    "CTAG": {
+      "ie_name": "CTAG",
+      "ie_type_id": 134,
+      "is_grouped": false,
+      "source_file": "CTAG.json"
+    },
+    "Cause": {
+      "ie_name": "Cause",
+      "ie_type_id": 19,
+      "is_grouped": false,
+      "source_file": "Cause.json"
+    },
+    "ClockDriftControlInformation": {
+      "ie_name": "ClockDriftControlInformation",
+      "ie_type_id": 203,
+      "is_grouped": true,
+      "sub_ies": [
+        {
+          "name": "RequestedClockDriftInformation",
+          "ie_type_id": 204
+        },
+        {
+          "name": "TSNTimeDomainNumber",
+          "ie_type_id": 206
+        },
+        {
+          "name": "TimeOffsetThreshold",
+          "ie_type_id": 207
+        },
+        {
+          "name": "CumulativeRateRatioThreshold",
+          "ie_type_id": 208
+        }
+      ],
+      "source_file": "ClockDriftControlInformation.json"
+    },
+    "ClockDriftReport": {
+      "ie_name": "ClockDriftReport",
+      "ie_type_id": 205,
+      "is_grouped": true,
+      "sub_ies": [
+        {
+          "name": "EventTimeStamp",
+          "ie_type_id": 156
+        },
+        {
+          "name": "TSNTimeDomainNumber",
+          "ie_type_id": 206
+        },
+        {
+          "name": "TimeOffsetThreshold",
+          "ie_type_id": 207
+        },
+        {
+          "name": "CumulativeRateRatioThreshold",
+          "ie_type_id": 208
+        }
+      ],
+      "source_file": "ClockDriftReport.json"
+    },
+    "CreateBAR": {
+      "ie_name": "CreateBAR",
+      "ie_type_id": 85,
+      "is_grouped": true,
+      "sub_ies": [
+        {
+          "name": "DownlinkDataNotificationDelay",
+          "ie_type_id": 46
+        },
+        {
+          "name": "BARID",
+          "ie_type_id": 88
+        },
+        {
+          "name": "SuggestedBufferingPacketsCount",
+          "ie_type_id": 140
+        },
+        {
+          "name": "MTEDTControlInformation",
+          "ie_type_id": 249
+        }
+      ],
+      "source_file": "CreateBAR.json"
+    },
+    "CreateBridgeInfoForTSC": {
+      "ie_name": "CreateBridgeInfoForTSC",
+      "ie_type_id": 194,
+      "is_grouped": false,
+      "source_file": "CreateBridgeInfoForTSC.json"
+    },
+    "CreateFAR": {
+      "ie_name": "CreateFAR",
+      "ie_type_id": 3,
+      "is_grouped": true,
+      "sub_ies": [
+        {
+          "name": "ForwardingParameters",
+          "ie_type_id": 4
+        },
+        {
+          "name": "DuplicatingParameters",
+          "ie_type_id": 5
+        },
+        {
+          "name": "NetworkInstance",
+          "ie_type_id": 22
+        },
+        {
+          "name": "ApplyAction",
+          "ie_type_id": 44
+        },
+        {
+          "name": "OuterHeaderCreation",
+          "ie_type_id": 84
+        },
+        {
+          "name": "BARID",
+          "ie_type_id": 88
+        },
+        {
+          "name": "FARID",
+          "ie_type_id": 108
+        },
+        {
+          "name": "RedundantTransmissionForwardingParameters",
+          "ie_type_id": 270
+        }
+      ],
+      "source_file": "CreateFAR.json"
+    },
+    "CreateMAR": {
+      "ie_name": "CreateMAR",
+      "ie_type_id": 165,
+      "is_grouped": true,
+      "sub_ies": [
+        {
+          "name": "TGPPAccessForwardingActionInformation",
+          "ie_type_id": 166
+        },
+        {
+          "name": "NonTGPPAccessForwardingActionInformation",
+          "ie_type_id": 167
+        },
+        {
+          "name": "MARID",
+          "ie_type_id": 170
+        },
+        {
+          "name": "SteeringFunctionality",
+          "ie_type_id": 171
+        },
+        {
+          "name": "SteeringMode",
+          "ie_type_id": 172
+        }
+      ],
+      "source_file": "CreateMAR.json"
+    },
+    "CreatePDR": {
+      "ie_name": "CreatePDR",
+      "ie_type_id": 1,
+      "is_grouped": true,
+      "sub_ies": [
+        {
+          "name": "PDI",
+          "ie_type_id": 2
+        },
+        {
+          "name": "Precedence",
+          "ie_type_id": 29
+        },
+        {
+          "name": "PDRID",
+          "ie_type_id": 56
+        },
+        {
+          "name": "NodeID",
+          "ie_type_id": 60
+        },
+        {
+          "name": "URRID",
+          "ie_type_id": 81
+        },
+        {
+          "name": "OuterHeaderRemoval",
+          "ie_type_id": 95
+        },
+        {
+          "name": "ActivatePredefinedRules",
+          "ie_type_id": 106
+        },
+        {
+          "name": "FARID",
+          "ie_type_id": 108
+        },
+        {
+          "name": "QERID",
+          "ie_type_id": 109
+        },
+        {
+          "name": "APNDNN",
+          "ie_type_id": 159
+        },
+        {
+          "name": "ActivationTime",
+          "ie_type_id": 163
+        },
+        {
+          "name": "DeactivationTime",
+          "ie_type_id": 164
+        },
+        {
+          "name": "MARID",
+          "ie_type_id": 170
+        },
+        {
+          "name": "UEIPAddressPoolIdentity",
+          "ie_type_id": 177
+        },
+        {
+          "name": "PacketReplicationAndDetectionCarryOnInformation",
+          "ie_type_id": 179
+        },
+        {
+          "name": "IPMulticastAddressingInfo",
+          "ie_type_id": 188
+        },
+        {
+          "name": "MPTCPApplicableIndication",
+          "ie_type_id": 265
+        },
+        {
+          "name": "TransportDelayReporting",
+          "ie_type_id": 271
+        }
+      ],
+      "source_file": "CreatePDR.json"
+    },
+    "CreateQER": {
+      "ie_name": "CreateQER",
+      "ie_type_id": 7,
+      "is_grouped": true,
+      "sub_ies": [
+        {
+          "name": "GateStatus",
+          "ie_type_id": 25
+        },
+        {
+          "name": "MBR",
+          "ie_type_id": 26
+        },
+        {
+          "name": "GBR",
+          "ie_type_id": 27
+        },
+        {
+          "name": "QERCorrelationID",
+          "ie_type_id": 28
+        },
+        {
+          "name": "PacketRate",
+          "ie_type_id": 94
+        },
+        {
+          "name": "DLFlowLevelMarking",
+          "ie_type_id": 97
+        },
+        {
+          "name": "QERID",
+          "ie_type_id": 109
+        },
+        {
+          "name": "RQI",
+          "ie_type_id": 123
+        },
+        {
+          "name": "QFI",
+          "ie_type_id": 124
+        },
+        {
+          "name": "AveragingWindow",
+          "ie_type_id": 157
+        },
+        {
+          "name": "PagingPolicyIndicator",
+          "ie_type_id": 158
+        },
+        {
+          "name": "PacketRateStatus",
+          "ie_type_id": 193
+        },
+        {
+          "name": "QERControlIndications",
+          "ie_type_id": 251
+        }
+      ],
+      "source_file": "CreateQER.json"
+    },
+    "CreateSRR": {
+      "ie_name": "CreateSRR",
+      "ie_type_id": 212,
+      "is_grouped": true,
+      "sub_ies": [
+        {
+          "name": "SRRID",
+          "ie_type_id": 215
+        },
+        {
+          "name": "AccessAvailabilityControlInformation",
+          "ie_type_id": 216
+        },
+        {
+          "name": "QoSMonitoringPerQoSFlowControlInformation",
+          "ie_type_id": 242
+        }
+      ],
+      "source_file": "CreateSRR.json"
+    },
+    "CreateTrafficEndpoint": {
+      "ie_name": "CreateTrafficEndpoint",
+      "ie_type_id": 127,
+      "is_grouped": true,
+      "sub_ies": [
+        {
+          "name": "FTEID",
+          "ie_type_id": 21
+        },
+        {
+          "name": "NetworkInstance",
+          "ie_type_id": 22
+        },
+        {
+          "name": "UEIPAddress",
+          "ie_type_id": 93
+        },
+        {
+          "name": "QFI",
+          "ie_type_id": 124
+        },
+        {
+          "name": "TrafficEndpointID",
+          "ie_type_id": 131
+        },
+        {
+          "name": "EthernetPDUSessionInformation",
+          "ie_type_id": 142
+        },
+        {
+          "name": "FramedRoute",
+          "ie_type_id": 153
+        },
+        {
+          "name": "FramedRouting",
+          "ie_type_id": 154
+        },
+        {
+          "name": "FramedIPv6Route",
+          "ie_type_id": 155
+        }
+      ],
+      "source_file": "CreateTrafficEndpoint.json"
+    },
+    "CreateURR": {
+      "ie_name": "CreateURR",
+      "ie_type_id": 6,
+      "is_grouped": true,
+      "sub_ies": [
+        {
+          "name": "VolumeThreshold",
+          "ie_type_id": 31
+        },
+        {
+          "name": "TimeThreshold",
+          "ie_type_id": 32
+        },
+        {
+          "name": "MonitoringTime",
+          "ie_type_id": 33
+        },
+        {
+          "name": "SubsequentVolumeThreshold",
+          "ie_type_id": 34
+        },
+        {
+          "name": "SubsequentTimeThreshold",
+          "ie_type_id": 35
+        },
+        {
+          "name": "InactivityDetectionTime",
+          "ie_type_id": 36
+        },
+        {
+          "name": "ReportingTriggers",
+          "ie_type_id": 37
+        },
+        {
+          "name": "MeasurementMethod",
+          "ie_type_id": 62
+        },
+        {
+          "name": "MeasurementPeriod",
+          "ie_type_id": 64
+        },
+        {
+          "name": "QuotaHoldingTime",
+          "ie_type_id": 71
+        },
+        {
+          "name": "DroppedDLTrafficThreshold",
+          "ie_type_id": 72
+        },
+        {
+          "name": "VolumeQuota",
+          "ie_type_id": 73
+        },
+        {
+          "name": "TimeQuota",
+          "ie_type_id": 74
+        },
+        {
+          "name": "URRID",
+          "ie_type_id": 81
+        },
+        {
+          "name": "LinkedURRID",
+          "ie_type_id": 82
+        },
+        {
+          "name": "MeasurementInformation",
+          "ie_type_id": 100
+        },
+        {
+          "name": "FARID",
+          "ie_type_id": 108
+        },
+        {
+          "name": "TimeQuotaMechanism",
+          "ie_type_id": 115
+        },
+        {
+          "name": "AggregatedURRs",
+          "ie_type_id": 118
+        },
+        {
+          "name": "SubsequentVolumeQuota",
+          "ie_type_id": 121
+        },
+        {
+          "name": "SubsequentTimeQuota",
+          "ie_type_id": 122
+        },
+        {
+          "name": "EthernetInactivityTimer",
+          "ie_type_id": 146
+        },
+        {
+          "name": "AdditionalMonitoringTime",
+          "ie_type_id": 147
+        },
+        {
+          "name": "EventQuota",
+          "ie_type_id": 148
+        },
+        {
+          "name": "EventThreshold",
+          "ie_type_id": 149
+        },
+        {
+          "name": "SubsequentEventQuota",
+          "ie_type_id": 150
+        },
+        {
+          "name": "SubsequentEventThreshold",
+          "ie_type_id": 151
+        },
+        {
+          "name": "QuotaValidityTime",
+          "ie_type_id": 181
+        },
+        {
+          "name": "NumberOfReports",
+          "ie_type_id": 182
+        }
+      ],
+      "source_file": "CreateURR.json"
+    },
+    "CreatedBridgeInfoForTSC": {
+      "ie_name": "CreatedBridgeInfoForTSC",
+      "ie_type_id": 195,
+      "is_grouped": true,
+      "sub_ies": [
+        {
+          "name": "DSTTPortNumber",
+          "ie_type_id": 196
+        },
+        {
+          "name": "NWTTPortNumber",
+          "ie_type_id": 197
+        },
+        {
+          "name": "TSNBridgeID",
+          "ie_type_id": 198
+        }
+      ],
+      "source_file": "CreatedBridgeInfoForTSC.json"
+    },
+    "CreatedPDR": {
+      "ie_name": "CreatedPDR",
+      "ie_type_id": 8,
+      "is_grouped": true,
+      "sub_ies": [
+        {
+          "name": "FTEID",
+          "ie_type_id": 21
+        },
+        {
+          "name": "PDRID",
+          "ie_type_id": 56
+        },
+        {
+          "name": "UEIPAddress",
+          "ie_type_id": 93
+        }
+      ],
+      "source_file": "CreatedPDR.json"
+    },
+    "CreatedTrafficEndpoint": {
+      "ie_name": "CreatedTrafficEndpoint",
+      "ie_type_id": 128,
+      "is_grouped": true,
+      "sub_ies": [
+        {
+          "name": "FTEID",
+          "ie_type_id": 21
+        },
+        {
+          "name": "UEIPAddress",
+          "ie_type_id": 93
+        },
+        {
+          "name": "TrafficEndpointID",
+          "ie_type_id": 131
+        }
+      ],
+      "source_file": "CreatedTrafficEndpoint.json"
+    },
+    "CreatedUpdatedTrafficEndpoint": {
+      "ie_name": "CreatedUpdatedTrafficEndpoint",
+      "ie_type_id": 128,
+      "is_grouped": true,
+      "alias_of": "CreatedTrafficEndpoint",
+      "description": "Created or Updated Traffic Endpoint in Session Modification Response, same IE type as CreatedTrafficEndpoint",
+      "sub_ies": [
+        {
+          "name": "TrafficEndpointID",
+          "ie_type_id": 131
+        },
+        {
+          "name": "FTEID",
+          "ie_type_id": 21
+        },
+        {
+          "name": "UEIPAddress",
+          "ie_type_id": 93
+        }
+      ],
+      "source_file": "CreatedUpdatedTrafficEndpoint.json"
+    },
+    "CumulativeRateRatioMeasurement": {
+      "ie_name": "CumulativeRateRatioMeasurement",
+      "ie_type_id": 210,
+      "is_grouped": false,
+      "source_file": "CumulativeRateRatioMeasurement.json"
+    },
+    "CumulativeRateRatioThreshold": {
+      "ie_name": "CumulativeRateRatioThreshold",
+      "ie_type_id": 208,
+      "is_grouped": false,
+      "source_file": "CumulativeRateRatioThreshold.json"
+    },
+    "DLBufferingDuration": {
+      "ie_name": "DLBufferingDuration",
+      "ie_type_id": 47,
+      "is_grouped": false,
+      "source_file": "DLBufferingDuration.json"
+    },
+    "DLBufferingSuggestedPacketCount": {
+      "ie_name": "DLBufferingSuggestedPacketCount",
+      "ie_type_id": 48,
+      "is_grouped": false,
+      "source_file": "DLBufferingSuggestedPacketCount.json"
+    },
+    "DLDataPacketsSize": {
+      "ie_name": "DLDataPacketsSize",
+      "ie_type_id": 250,
+      "is_grouped": false,
+      "source_file": "DLDataPacketsSize.json"
+    },
+    "DLFlowLevelMarking": {
+      "ie_name": "DLFlowLevelMarking",
+      "ie_type_id": 97,
+      "is_grouped": false,
+      "source_file": "DLFlowLevelMarking.json"
+    },
+    "DSTTPortNumber": {
+      "ie_name": "DSTTPortNumber",
+      "ie_type_id": 196,
+      "is_grouped": false,
+      "source_file": "DSTTPortNumber.json"
+    },
+    "DataNetworkAccessIdentifier": {
+      "ie_name": "DataNetworkAccessIdentifier",
+      "ie_type_id": 232,
+      "is_grouped": false,
+      "source_file": "DataNetworkAccessIdentifier.json"
+    },
+    "DataStatus": {
+      "ie_name": "DataStatus",
+      "ie_type_id": 260,
+      "is_grouped": false,
+      "source_file": "DataStatus.json"
+    },
+    "DeactivatePredefinedRules": {
+      "ie_name": "DeactivatePredefinedRules",
+      "ie_type_id": 107,
+      "is_grouped": false,
+      "source_file": "DeactivatePredefinedRules.json"
+    },
+    "DeactivationTime": {
+      "ie_name": "DeactivationTime",
+      "ie_type_id": 164,
+      "is_grouped": false,
+      "source_file": "DeactivationTime.json"
+    },
+    "DestinationInterface": {
+      "ie_name": "DestinationInterface",
+      "ie_type_id": 42,
+      "is_grouped": false,
+      "source_file": "DestinationInterface.json"
+    },
+    "DownlinkDataNotificationDelay": {
+      "ie_name": "DownlinkDataNotificationDelay",
+      "ie_type_id": 46,
+      "is_grouped": false,
+      "source_file": "DownlinkDataNotificationDelay.json"
+    },
+    "DownlinkDataReport": {
+      "ie_name": "DownlinkDataReport",
+      "ie_type_id": 83,
+      "is_grouped": true,
+      "sub_ies": [
+        {
+          "name": "DownlinkDataServiceInformation",
+          "ie_type_id": 45
+        },
+        {
+          "name": "PDRID",
+          "ie_type_id": 56
+        },
+        {
+          "name": "DLDataPacketsSize",
+          "ie_type_id": 250
+        },
+        {
+          "name": "DataStatus",
+          "ie_type_id": 260
+        }
+      ],
+      "source_file": "DownlinkDataReport.json"
+    },
+    "DownlinkDataServiceInformation": {
+      "ie_name": "DownlinkDataServiceInformation",
+      "ie_type_id": 45,
+      "is_grouped": false,
+      "source_file": "DownlinkDataServiceInformation.json"
+    },
+    "DroppedDLTrafficThreshold": {
+      "ie_name": "DroppedDLTrafficThreshold",
+      "ie_type_id": 72,
+      "is_grouped": false,
+      "source_file": "DroppedDLTrafficThreshold.json"
+    },
+    "DuplicatingParameters": {
+      "ie_name": "DuplicatingParameters",
+      "ie_type_id": 5,
+      "is_grouped": true,
+      "sub_ies": [
+        {
+          "name": "TransportLevelMarking",
+          "ie_type_id": 30
+        },
+        {
+          "name": "ForwardingPolicy",
+          "ie_type_id": 41
+        },
+        {
+          "name": "DestinationInterface",
+          "ie_type_id": 42
+        },
+        {
+          "name": "OuterHeaderCreation",
+          "ie_type_id": 84
+        }
+      ],
+      "source_file": "DuplicatingParameters.json"
+    },
+    "DurationMeasurement": {
+      "ie_name": "DurationMeasurement",
+      "ie_type_id": 67,
+      "is_grouped": false,
+      "source_file": "DurationMeasurement.json"
+    },
+    "EndTime": {
+      "ie_name": "EndTime",
+      "ie_type_id": 76,
+      "is_grouped": false,
+      "source_file": "EndTime.json"
+    },
+    "ErrorIndicationReport": {
+      "ie_name": "ErrorIndicationReport",
+      "ie_type_id": 99,
+      "is_grouped": true,
+      "sub_ies": [
+        {
+          "name": "FTEID",
+          "ie_type_id": 21
+        }
+      ],
+      "source_file": "ErrorIndicationReport.json"
+    },
+    "EthernetContextInformation": {
+      "ie_name": "EthernetContextInformation",
+      "ie_type_id": 254,
+      "is_grouped": true,
+      "sub_ies": [
+        {
+          "name": "CTAG",
+          "ie_type_id": 134
+        },
+        {
+          "name": "STAG",
+          "ie_type_id": 135
+        },
+        {
+          "name": "MACAddressesDetected",
+          "ie_type_id": 144
+        }
+      ],
+      "source_file": "EthernetContextInformation.json"
+    },
+    "EthernetFilterID": {
+      "ie_name": "EthernetFilterID",
+      "ie_type_id": 138,
+      "is_grouped": false,
+      "source_file": "EthernetFilterID.json"
+    },
+    "EthernetFilterProperties": {
+      "ie_name": "EthernetFilterProperties",
+      "ie_type_id": 139,
+      "is_grouped": false,
+      "source_file": "EthernetFilterProperties.json"
+    },
+    "EthernetInactivityTimer": {
+      "ie_name": "EthernetInactivityTimer",
+      "ie_type_id": 146,
+      "is_grouped": false,
+      "source_file": "EthernetInactivityTimer.json"
+    },
+    "EthernetPDUSessionInformation": {
+      "ie_name": "EthernetPDUSessionInformation",
+      "ie_type_id": 142,
+      "is_grouped": false,
+      "source_file": "EthernetPDUSessionInformation.json"
+    },
+    "EthernetPacketFilter": {
+      "ie_name": "EthernetPacketFilter",
+      "ie_type_id": 132,
+      "is_grouped": true,
+      "sub_ies": [
+        {
+          "name": "SDFFilter",
+          "ie_type_id": 23
+        },
+        {
+          "name": "MACAddress",
+          "ie_type_id": 133
+        },
+        {
+          "name": "CTAG",
+          "ie_type_id": 134
+        },
+        {
+          "name": "STAG",
+          "ie_type_id": 135
+        },
+        {
+          "name": "Ethertype",
+          "ie_type_id": 136
+        },
+        {
+          "name": "EthernetFilterID",
+          "ie_type_id": 138
+        },
+        {
+          "name": "EthernetFilterProperties",
+          "ie_type_id": 139
+        }
+      ],
+      "source_file": "EthernetPacketFilter.json"
+    },
+    "EthernetTrafficInformation": {
+      "ie_name": "EthernetTrafficInformation",
+      "ie_type_id": 143,
+      "is_grouped": true,
+      "sub_ies": [
+        {
+          "name": "CTAG",
+          "ie_type_id": 134
+        },
+        {
+          "name": "STAG",
+          "ie_type_id": 135
+        },
+        {
+          "name": "MACAddressesDetected",
+          "ie_type_id": 144
+        },
+        {
+          "name": "MACAddressesRemoved",
+          "ie_type_id": 145
+        }
+      ],
+      "source_file": "EthernetTrafficInformation.json"
+    },
+    "Ethertype": {
+      "ie_name": "Ethertype",
+      "ie_type_id": 136,
+      "is_grouped": false,
+      "source_file": "Ethertype.json"
+    },
+    "EventQuota": {
+      "ie_name": "EventQuota",
+      "ie_type_id": 148,
+      "is_grouped": false,
+      "source_file": "EventQuota.json"
+    },
+    "EventThreshold": {
+      "ie_name": "EventThreshold",
+      "ie_type_id": 149,
+      "is_grouped": false,
+      "source_file": "EventThreshold.json"
+    },
+    "EventTimeStamp": {
+      "ie_name": "EventTimeStamp",
+      "ie_type_id": 156,
+      "is_grouped": false,
+      "source_file": "EventTimeStamp.json"
+    },
+    "FARID": {
+      "ie_name": "FARID",
+      "ie_type_id": 108,
+      "is_grouped": false,
+      "source_file": "FARID.json"
+    },
+    "FQCSID": {
+      "ie_name": "FQCSID",
+      "ie_type_id": 65,
+      "is_grouped": false,
+      "source_file": "FQCSID.json"
+    },
+    "FSEID": {
+      "ie_name": "FSEID",
+      "ie_type_id": 57,
+      "is_grouped": false,
+      "source_file": "FSEID.json"
+    },
+    "FTEID": {
+      "ie_name": "FTEID",
+      "ie_type_id": 21,
+      "is_grouped": false,
+      "source_file": "FTEID.json"
+    },
+    "FailedRuleID": {
+      "ie_name": "FailedRuleID",
+      "ie_type_id": 114,
+      "is_grouped": false,
+      "source_file": "FailedRuleID.json"
+    },
+    "FlowInformation": {
+      "ie_name": "FlowInformation",
+      "ie_type_id": 92,
+      "is_grouped": false,
+      "source_file": "FlowInformation.json"
+    },
+    "ForwardingParameters": {
+      "ie_name": "ForwardingParameters",
+      "ie_type_id": 4,
+      "is_grouped": true,
+      "sub_ies": [
+        {
+          "name": "NetworkInstance",
+          "ie_type_id": 22
+        },
+        {
+          "name": "TransportLevelMarking",
+          "ie_type_id": 30
+        },
+        {
+          "name": "RedirectInformation",
+          "ie_type_id": 38
+        },
+        {
+          "name": "ForwardingPolicy",
+          "ie_type_id": 41
+        },
+        {
+          "name": "DestinationInterface",
+          "ie_type_id": 42
+        },
+        {
+          "name": "OuterHeaderCreation",
+          "ie_type_id": 84
+        },
+        {
+          "name": "HeaderEnrichment",
+          "ie_type_id": 98
+        },
+        {
+          "name": "TrafficEndpointID",
+          "ie_type_id": 131
+        },
+        {
+          "name": "Proxying",
+          "ie_type_id": 137
+        },
+        {
+          "name": "TGPPInterfaceType",
+          "ie_type_id": 160
+        },
+        {
+          "name": "DataNetworkAccessIdentifier",
+          "ie_type_id": 232
+        }
+      ],
+      "source_file": "ForwardingParameters.json"
+    },
+    "ForwardingPolicy": {
+      "ie_name": "ForwardingPolicy",
+      "ie_type_id": 41,
+      "is_grouped": false,
+      "source_file": "ForwardingPolicy.json"
+    },
+    "FramedIPv6Route": {
+      "ie_name": "FramedIPv6Route",
+      "ie_type_id": 155,
+      "is_grouped": false,
+      "source_file": "FramedIPv6Route.json"
+    },
+    "FramedRoute": {
+      "ie_name": "FramedRoute",
+      "ie_type_id": 153,
+      "is_grouped": false,
+      "source_file": "FramedRoute.json"
+    },
+    "FramedRouting": {
+      "ie_name": "FramedRouting",
+      "ie_type_id": 154,
+      "is_grouped": false,
+      "source_file": "FramedRouting.json"
+    },
+    "GBR": {
+      "ie_name": "GBR",
+      "ie_type_id": 27,
+      "is_grouped": false,
+      "source_file": "GBR.json"
+    },
+    "GTPUPathInterfaceType": {
+      "ie_name": "GTPUPathInterfaceType",
+      "ie_type_id": 241,
+      "is_grouped": false,
+      "source_file": "GTPUPathInterfaceType.json"
+    },
+    "GTPUPathQoSControlInformation": {
+      "ie_name": "GTPUPathQoSControlInformation",
+      "ie_type_id": 238,
+      "is_grouped": true,
+      "sub_ies": [
+        {
+          "name": "TransportLevelMarking",
+          "ie_type_id": 30
+        },
+        {
+          "name": "Timer",
+          "ie_type_id": 55
+        },
+        {
+          "name": "MeasurementMethod",
+          "ie_type_id": 62
+        },
+        {
+          "name": "RemoteGTPUPeer",
+          "ie_type_id": 103
+        },
+        {
+          "name": "AveragePacketDelay",
+          "ie_type_id": 234
+        },
+        {
+          "name": "MinimumPacketDelay",
+          "ie_type_id": 235
+        },
+        {
+          "name": "MaximumPacketDelay",
+          "ie_type_id": 236
+        },
+        {
+          "name": "QoSReportTrigger",
+          "ie_type_id": 237
+        },
+        {
+          "name": "GTPUPathInterfaceType",
+          "ie_type_id": 241
+        }
+      ],
+      "source_file": "GTPUPathQoSControlInformation.json"
+    },
+    "GTPUPathQoSReport": {
+      "ie_name": "GTPUPathQoSReport",
+      "ie_type_id": 239,
+      "is_grouped": true,
+      "sub_ies": [
+        {
+          "name": "StartTime",
+          "ie_type_id": 75
+        },
+        {
+          "name": "RemoteGTPUPeer",
+          "ie_type_id": 103
+        },
+        {
+          "name": "EventTimeStamp",
+          "ie_type_id": 156
+        },
+        {
+          "name": "QoSReportTrigger",
+          "ie_type_id": 237
+        },
+        {
+          "name": "QoSInformationInGTPUPathQoSReport",
+          "ie_type_id": 240
+        },
+        {
+          "name": "GTPUPathInterfaceType",
+          "ie_type_id": 241
+        }
+      ],
+      "source_file": "GTPUPathQoSReport.json"
+    },
+    "GateStatus": {
+      "ie_name": "GateStatus",
+      "ie_type_id": 25,
+      "is_grouped": false,
+      "source_file": "GateStatus.json"
+    },
+    "GracefulReleasePeriod": {
+      "ie_name": "GracefulReleasePeriod",
+      "ie_type_id": 112,
+      "is_grouped": false,
+      "source_file": "GracefulReleasePeriod.json"
+    },
+    "HeaderEnrichment": {
+      "ie_name": "HeaderEnrichment",
+      "ie_type_id": 98,
+      "is_grouped": false,
+      "source_file": "HeaderEnrichment.json"
+    },
+    "IPMulticastAddress": {
+      "ie_name": "IPMulticastAddress",
+      "ie_type_id": 191,
+      "is_grouped": false,
+      "source_file": "IPMulticastAddress.json"
+    },
+    "IPMulticastAddressingInfo": {
+      "ie_name": "IPMulticastAddressingInfo",
+      "ie_type_id": 188,
+      "is_grouped": true,
+      "sub_ies": [
+        {
+          "name": "IPMulticastAddress",
+          "ie_type_id": 191
+        },
+        {
+          "name": "SourceIPAddress",
+          "ie_type_id": 192
+        }
+      ],
+      "source_file": "IPMulticastAddressingInfo.json"
+    },
+    "IPVersion": {
+      "ie_name": "IPVersion",
+      "ie_type_id": 258,
+      "is_grouped": false,
+      "source_file": "IPVersion.json"
+    },
+    "InactivityDetectionTime": {
+      "ie_name": "InactivityDetectionTime",
+      "ie_type_id": 36,
+      "is_grouped": false,
+      "source_file": "InactivityDetectionTime.json"
+    },
+    "JoinIPMulticastInformationWithinUsageReport": {
+      "ie_name": "JoinIPMulticastInformationWithinUsageReport",
+      "ie_type_id": 189,
+      "is_grouped": true,
+      "sub_ies": [
+        {
+          "name": "IPMulticastAddress",
+          "ie_type_id": 191
+        },
+        {
+          "name": "SourceIPAddress",
+          "ie_type_id": 192
+        }
+      ],
+      "source_file": "JoinIPMulticastInformationWithinUsageReport.json"
+    },
+    "LeaveIPMulticastInformationWithinUsageReport": {
+      "ie_name": "LeaveIPMulticastInformationWithinUsageReport",
+      "ie_type_id": 190,
+      "is_grouped": true,
+      "sub_ies": [
+        {
+          "name": "IPMulticastAddress",
+          "ie_type_id": 191
+        },
+        {
+          "name": "SourceIPAddress",
+          "ie_type_id": 192
+        }
+      ],
+      "source_file": "LeaveIPMulticastInformationWithinUsageReport.json"
+    },
+    "LinkedURRID": {
+      "ie_name": "LinkedURRID",
+      "ie_type_id": 82,
+      "is_grouped": false,
+      "source_file": "LinkedURRID.json"
+    },
+    "LoadControlInformation": {
+      "ie_name": "LoadControlInformation",
+      "ie_type_id": 51,
+      "is_grouped": true,
+      "source_file": "LoadControlInformation.json"
+    },
+    "MACAddress": {
+      "ie_name": "MACAddress",
+      "ie_type_id": 133,
+      "is_grouped": false,
+      "source_file": "MACAddress.json"
+    },
+    "MACAddressesDetected": {
+      "ie_name": "MACAddressesDetected",
+      "ie_type_id": 144,
+      "is_grouped": false,
+      "source_file": "MACAddressesDetected.json"
+    },
+    "MACAddressesRemoved": {
+      "ie_name": "MACAddressesRemoved",
+      "ie_type_id": 145,
+      "is_grouped": false,
+      "source_file": "MACAddressesRemoved.json"
+    },
+    "MARID": {
+      "ie_name": "MARID",
+      "ie_type_id": 170,
+      "is_grouped": false,
+      "source_file": "MARID.json"
+    },
+    "MBR": {
+      "ie_name": "MBR",
+      "ie_type_id": 26,
+      "is_grouped": false,
+      "source_file": "MBR.json"
+    },
+    "MPTCPAddressInformation": {
+      "ie_name": "MPTCPAddressInformation",
+      "ie_type_id": 228,
+      "is_grouped": false,
+      "source_file": "MPTCPAddressInformation.json"
+    },
+    "MPTCPApplicableIndication": {
+      "ie_name": "MPTCPApplicableIndication",
+      "ie_type_id": 265,
+      "is_grouped": false,
+      "source_file": "MPTCPApplicableIndication.json"
+    },
+    "MPTCPControlInformation": {
+      "ie_name": "MPTCPControlInformation",
+      "ie_type_id": 222,
+      "is_grouped": false,
+      "source_file": "MPTCPControlInformation.json"
+    },
+    "MPTCPParameters": {
+      "ie_name": "MPTCPParameters",
+      "ie_type_id": 225,
+      "is_grouped": true,
+      "sub_ies": [
+        {
+          "name": "MPTCPAddressInformation",
+          "ie_type_id": 228
+        },
+        {
+          "name": "UELinkSpecificIPAddress",
+          "ie_type_id": 229
+        }
+      ],
+      "source_file": "MPTCPParameters.json"
+    },
+    "MTEDTControlInformation": {
+      "ie_name": "MTEDTControlInformation",
+      "ie_type_id": 249,
+      "is_grouped": false,
+      "source_file": "MTEDTControlInformation.json"
+    },
+    "MaximumPacketDelay": {
+      "ie_name": "MaximumPacketDelay",
+      "ie_type_id": 236,
+      "is_grouped": false,
+      "source_file": "MaximumPacketDelay.json"
+    },
+    "MeasurementInformation": {
+      "ie_name": "MeasurementInformation",
+      "ie_type_id": 100,
+      "is_grouped": false,
+      "source_file": "MeasurementInformation.json"
+    },
+    "MeasurementMethod": {
+      "ie_name": "MeasurementMethod",
+      "ie_type_id": 62,
+      "is_grouped": false,
+      "source_file": "MeasurementMethod.json"
+    },
+    "MeasurementPeriod": {
+      "ie_name": "MeasurementPeriod",
+      "ie_type_id": 64,
+      "is_grouped": false,
+      "source_file": "MeasurementPeriod.json"
+    },
+    "Metric": {
+      "ie_name": "Metric",
+      "ie_type_id": 53,
+      "is_grouped": false,
+      "source_file": "Metric.json"
+    },
+    "MinimumPacketDelay": {
+      "ie_name": "MinimumPacketDelay",
+      "ie_type_id": 235,
+      "is_grouped": false,
+      "source_file": "MinimumPacketDelay.json"
+    },
+    "MinimumWaitTime": {
+      "ie_name": "MinimumWaitTime",
+      "ie_type_id": 246,
+      "is_grouped": false,
+      "source_file": "MinimumWaitTime.json"
+    },
+    "MonitoringTime": {
+      "ie_name": "MonitoringTime",
+      "ie_type_id": 33,
+      "is_grouped": false,
+      "source_file": "MonitoringTime.json"
+    },
+    "Multiplier": {
+      "ie_name": "Multiplier",
+      "ie_type_id": 119,
+      "is_grouped": false,
+      "source_file": "Multiplier.json"
+    },
+    "NFInstanceID": {
+      "ie_name": "NFInstanceID",
+      "ie_type_id": 253,
+      "is_grouped": false,
+      "source_file": "NFInstanceID.json"
+    },
+    "NWTTPortNumber": {
+      "ie_name": "NWTTPortNumber",
+      "ie_type_id": 197,
+      "is_grouped": false,
+      "source_file": "NWTTPortNumber.json"
+    },
+    "NetworkInstance": {
+      "ie_name": "NetworkInstance",
+      "ie_type_id": 22,
+      "is_grouped": false,
+      "source_file": "NetworkInstance.json"
+    },
+    "NodeID": {
+      "ie_name": "NodeID",
+      "ie_type_id": 60,
+      "is_grouped": false,
+      "source_file": "NodeID.json"
+    },
+    "NodeReportType": {
+      "ie_name": "NodeReportType",
+      "ie_type_id": 101,
+      "is_grouped": false,
+      "source_file": "NodeReportType.json"
+    },
+    "NonTGPPAccessForwardingActionInformation": {
+      "ie_name": "NonTGPPAccessForwardingActionInformation",
+      "ie_type_id": 167,
+      "is_grouped": true,
+      "sub_ies": [
+        {
+          "name": "URRID",
+          "ie_type_id": 81
+        },
+        {
+          "name": "FARID",
+          "ie_type_id": 108
+        },
+        {
+          "name": "Weight",
+          "ie_type_id": 173
+        },
+        {
+          "name": "Priority",
+          "ie_type_id": 174
+        }
+      ],
+      "source_file": "NonTGPPAccessForwardingActionInformation.json"
+    },
+    "NumberOfReports": {
+      "ie_name": "NumberOfReports",
+      "ie_type_id": 182,
+      "is_grouped": false,
+      "source_file": "NumberOfReports.json"
+    },
+    "NumberOfUEIPAddresses": {
+      "ie_name": "NumberOfUEIPAddresses",
+      "ie_type_id": 268,
+      "is_grouped": false,
+      "source_file": "NumberOfUEIPAddresses.json"
+    },
+    "OCIFlags": {
+      "ie_name": "OCIFlags",
+      "ie_type_id": 110,
+      "is_grouped": false,
+      "source_file": "OCIFlags.json"
+    },
+    "OffendingIE": {
+      "ie_name": "OffendingIE",
+      "ie_type_id": 40,
+      "is_grouped": false,
+      "source_file": "OffendingIE.json"
+    },
+    "OldCPFSEID": {
+      "ie_name": "OldCPFSEID",
+      "ie_type_id": 57,
+      "is_grouped": false,
+      "alias_of": "FSEID",
+      "description": "Old Control Plane F-SEID for session migration, same IE type as FSEID",
+      "source_file": "OldCPFSEID.json"
+    },
+    "OuterHeaderCreation": {
+      "ie_name": "OuterHeaderCreation",
+      "ie_type_id": 84,
+      "is_grouped": false,
+      "source_file": "OuterHeaderCreation.json"
+    },
+    "OuterHeaderRemoval": {
+      "ie_name": "OuterHeaderRemoval",
+      "ie_type_id": 95,
+      "is_grouped": false,
+      "source_file": "OuterHeaderRemoval.json"
+    },
+    "OverloadControlInformation": {
+      "ie_name": "OverloadControlInformation",
+      "ie_type_id": 54,
+      "is_grouped": true,
+      "sub_ies": [
+        {
+          "name": "SequenceNumber",
+          "ie_type_id": 52
+        },
+        {
+          "name": "Metric",
+          "ie_type_id": 53
+        },
+        {
+          "name": "Timer",
+          "ie_type_id": 55
+        },
+        {
+          "name": "OCIFlags",
+          "ie_type_id": 110
+        }
+      ],
+      "source_file": "OverloadControlInformation.json"
+    },
+    "PDI": {
+      "ie_name": "PDI",
+      "ie_type_id": 2,
+      "is_grouped": true,
+      "sub_ies": [
+        {
+          "name": "SourceInterface",
+          "ie_type_id": 20
+        },
+        {
+          "name": "FTEID",
+          "ie_type_id": 21
+        },
+        {
+          "name": "NetworkInstance",
+          "ie_type_id": 22
+        },
+        {
+          "name": "SDFFilter",
+          "ie_type_id": 23
+        },
+        {
+          "name": "ApplicationID",
+          "ie_type_id": 24
+        },
+        {
+          "name": "UEIPAddress",
+          "ie_type_id": 93
+        },
+        {
+          "name": "TrafficEndpointID",
+          "ie_type_id": 131
+        },
+        {
+          "name": "EthernetPacketFilter",
+          "ie_type_id": 132
+        },
+        {
+          "name": "EthernetPDUSessionInformation",
+          "ie_type_id": 142
+        }
+      ],
+      "source_file": "PDI.json"
+    },
+    "PDNType": {
+      "ie_name": "PDNType",
+      "ie_type_id": 113,
+      "is_grouped": false,
+      "source_file": "PDNType.json"
+    },
+    "PDRID": {
+      "ie_name": "PDRID",
+      "ie_type_id": 56,
+      "is_grouped": false,
+      "source_file": "PDRID.json"
+    },
+    "PFCPASReqFlags": {
+      "ie_name": "PFCPASReqFlags",
+      "ie_type_id": 259,
+      "is_grouped": false,
+      "source_file": "PFCPASReqFlags.json"
+    },
+    "PFCPASRspFlags": {
+      "ie_name": "PFCPASRspFlags",
+      "ie_type_id": 184,
+      "is_grouped": false,
+      "source_file": "PFCPASRspFlags.json"
+    },
+    "PFCPAUReqFlags": {
+      "ie_name": "PFCPAUReqFlags",
+      "ie_type_id": 162,
+      "is_grouped": false,
+      "source_file": "PFCPAUReqFlags.json"
+    },
+    "PFCPAssociationReleaseRequest": {
+      "ie_name": "PFCPAssociationReleaseRequest",
+      "ie_type_id": 111,
+      "is_grouped": false,
+      "source_file": "PFCPAssociationReleaseRequest.json"
+    },
+    "PFCPSEReqFlags": {
+      "ie_name": "PFCPSEReqFlags",
+      "ie_type_id": 186,
+      "is_grouped": false,
+      "source_file": "PFCPSEReqFlags.json"
+    },
+    "PFCPSMReqFlags": {
+      "ie_name": "PFCPSMReqFlags",
+      "ie_type_id": 49,
+      "is_grouped": false,
+      "source_file": "PFCPSMReqFlags.json"
+    },
+    "PFCPSRReqFlags": {
+      "ie_name": "PFCPSRReqFlags",
+      "ie_type_id": 161,
+      "is_grouped": false,
+      "source_file": "PFCPSRReqFlags.json"
+    },
+    "PFCPSRRspFlags": {
+      "ie_name": "PFCPSRRspFlags",
+      "ie_type_id": 50,
+      "is_grouped": false,
+      "source_file": "PFCPSRRspFlags.json"
+    },
+    "PFCPSessionRetentionInformation": {
+      "ie_name": "PFCPSessionRetentionInformation",
+      "ie_type_id": 183,
+      "is_grouped": true,
+      "sub_ies": [
+        {
+          "name": "CPPFCPEntityIPAddress",
+          "ie_type_id": 185
+        }
+      ],
+      "source_file": "PFCPSessionRetentionInformation.json"
+    },
+    "PFDContents": {
+      "ie_name": "PFDContents",
+      "ie_type_id": 61,
+      "is_grouped": false,
+      "source_file": "PFDContents.json"
+    },
+    "PFDContext": {
+      "ie_name": "PFDContext",
+      "ie_type_id": 59,
+      "is_grouped": true,
+      "sub_ies": [
+        {
+          "name": "PFDContents",
+          "ie_type_id": 61
+        }
+      ],
+      "source_file": "PFDContext.json"
+    },
+    "PMFAddressInformation": {
+      "ie_name": "PMFAddressInformation",
+      "ie_type_id": 230,
+      "is_grouped": false,
+      "source_file": "PMFAddressInformation.json"
+    },
+    "PMFControlInformation": {
+      "ie_name": "PMFControlInformation",
+      "ie_type_id": 224,
+      "is_grouped": false,
+      "source_file": "PMFControlInformation.json"
+    },
+    "PMFParameters": {
+      "ie_name": "PMFParameters",
+      "ie_type_id": 227,
+      "is_grouped": true,
+      "sub_ies": [
+        {
+          "name": "PMFAddressInformation",
+          "ie_type_id": 230
+        }
+      ],
+      "source_file": "PMFParameters.json"
+    },
+    "PacketDelayThresholds": {
+      "ie_name": "PacketDelayThresholds",
+      "ie_type_id": 245,
+      "is_grouped": false,
+      "source_file": "PacketDelayThresholds.json"
+    },
+    "PacketRate": {
+      "ie_name": "PacketRate",
+      "ie_type_id": 94,
+      "is_grouped": false,
+      "source_file": "PacketRate.json"
+    },
+    "PacketRateStatus": {
+      "ie_name": "PacketRateStatus",
+      "ie_type_id": 193,
+      "is_grouped": false,
+      "source_file": "PacketRateStatus.json"
+    },
+    "PacketRateStatusReport": {
+      "ie_name": "PacketRateStatusReport",
+      "ie_type_id": 252,
+      "is_grouped": true,
+      "sub_ies": [
+        {
+          "name": "QERID",
+          "ie_type_id": 109
+        },
+        {
+          "name": "PacketRateStatus",
+          "ie_type_id": 193
+        }
+      ],
+      "source_file": "PacketRateStatusReport.json"
+    },
+    "PacketRateStatusReportWithinSessionModificationResponse": {
+      "ie_name": "PacketRateStatusReportWithinSessionModificationResponse",
+      "ie_type_id": 264,
+      "is_grouped": true,
+      "sub_ies": [
+        {
+          "name": "QERID",
+          "ie_type_id": 109
+        },
+        {
+          "name": "PacketRateStatus",
+          "ie_type_id": 193
+        }
+      ],
+      "source_file": "PacketRateStatusReportWithinSessionModificationResponse.json"
+    },
+    "PacketReplicationAndDetectionCarryOnInformation": {
+      "ie_name": "PacketReplicationAndDetectionCarryOnInformation",
+      "ie_type_id": 179,
+      "is_grouped": false,
+      "source_file": "PacketReplicationAndDetectionCarryOnInformation.json"
+    },
+    "PagingPolicyIndicator": {
+      "ie_name": "PagingPolicyIndicator",
+      "ie_type_id": 158,
+      "is_grouped": false,
+      "source_file": "PagingPolicyIndicator.json"
+    },
+    "PortManagementInformationContainer": {
+      "ie_name": "PortManagementInformationContainer",
+      "ie_type_id": 202,
+      "is_grouped": false,
+      "source_file": "PortManagementInformationContainer.json"
+    },
+    "PortManagementInformationForTSC": {
+      "ie_name": "PortManagementInformationForTSC",
+      "ie_type_id": null,
+      "is_grouped": true,
+      "variants": [
+        {
+          "name": "PortManagementInformationForTSCWithinSessionModificationRequest",
+          "ie_type_id": 199
+        },
+        {
+          "name": "PortManagementInformationForTSCWithinSessionModificationResponse",
+          "ie_type_id": 200
+        },
+        {
+          "name": "PortManagementInformationForTSCWithinSessionReportRequest",
+          "ie_type_id": 201
+        }
+      ],
+      "description": "Generic Port Management Information for TSC, actual type depends on message context",
+      "sub_ies": [
+        {
+          "name": "PortManagementInformationContainer",
+          "ie_type_id": 202
+        }
+      ],
+      "source_file": "PortManagementInformationForTSC.json"
+    },
+    "PortManagementInformationForTSCWithinSessionModificationRequest": {
+      "ie_name": "PortManagementInformationForTSCWithinSessionModificationRequest",
+      "ie_type_id": 199,
+      "is_grouped": false,
+      "source_file": "PortManagementInformationForTSCWithinSessionModificationRequest.json"
+    },
+    "PortManagementInformationForTSCWithinSessionModificationResponse": {
+      "ie_name": "PortManagementInformationForTSCWithinSessionModificationResponse",
+      "ie_type_id": 200,
+      "is_grouped": false,
+      "source_file": "PortManagementInformationForTSCWithinSessionModificationResponse.json"
+    },
+    "PortManagementInformationForTSCWithinSessionReportRequest": {
+      "ie_name": "PortManagementInformationForTSCWithinSessionReportRequest",
+      "ie_type_id": 201,
+      "is_grouped": false,
+      "source_file": "PortManagementInformationForTSCWithinSessionReportRequest.json"
+    },
+    "Precedence": {
+      "ie_name": "Precedence",
+      "ie_type_id": 29,
+      "is_grouped": false,
+      "source_file": "Precedence.json"
+    },
+    "Priority": {
+      "ie_name": "Priority",
+      "ie_type_id": 174,
+      "is_grouped": false,
+      "source_file": "Priority.json"
+    },
+    "ProvideATSSSControlInformation": {
+      "ie_name": "ProvideATSSSControlInformation",
+      "ie_type_id": 220,
+      "is_grouped": true,
+      "sub_ies": [
+        {
+          "name": "MPTCPControlInformation",
+          "ie_type_id": 222
+        },
+        {
+          "name": "ATSSSLLControlInformation",
+          "ie_type_id": 223
+        },
+        {
+          "name": "PMFControlInformation",
+          "ie_type_id": 224
+        }
+      ],
+      "source_file": "ProvideATSSSControlInformation.json"
+    },
+    "ProvideRDSConfigurationInformation": {
+      "ie_name": "ProvideRDSConfigurationInformation",
+      "ie_type_id": 261,
+      "is_grouped": true,
+      "sub_ies": [
+        {
+          "name": "RDSConfigurationInformation",
+          "ie_type_id": 262
+        }
+      ],
+      "source_file": "ProvideRDSConfigurationInformation.json"
+    },
+    "Proxying": {
+      "ie_name": "Proxying",
+      "ie_type_id": 137,
+      "is_grouped": false,
+      "source_file": "Proxying.json"
+    },
+    "QERControlIndications": {
+      "ie_name": "QERControlIndications",
+      "ie_type_id": 251,
+      "is_grouped": false,
+      "source_file": "QERControlIndications.json"
+    },
+    "QERCorrelationID": {
+      "ie_name": "QERCorrelationID",
+      "ie_type_id": 28,
+      "is_grouped": false,
+      "source_file": "QERCorrelationID.json"
+    },
+    "QERID": {
+      "ie_name": "QERID",
+      "ie_type_id": 109,
+      "is_grouped": false,
+      "source_file": "QERID.json"
+    },
+    "QFI": {
+      "ie_name": "QFI",
+      "ie_type_id": 124,
+      "is_grouped": false,
+      "source_file": "QFI.json"
+    },
+    "QoSInformationInGTPUPathQoSReport": {
+      "ie_name": "QoSInformationInGTPUPathQoSReport",
+      "ie_type_id": 240,
+      "is_grouped": true,
+      "sub_ies": [
+        {
+          "name": "TransportLevelMarking",
+          "ie_type_id": 30
+        },
+        {
+          "name": "AveragePacketDelay",
+          "ie_type_id": 234
+        },
+        {
+          "name": "MinimumPacketDelay",
+          "ie_type_id": 235
+        },
+        {
+          "name": "MaximumPacketDelay",
+          "ie_type_id": 236
+        }
+      ],
+      "source_file": "QoSInformationInGTPUPathQoSReport.json"
+    },
+    "QoSMonitoringMeasurement": {
+      "ie_name": "QoSMonitoringMeasurement",
+      "ie_type_id": 248,
+      "is_grouped": false,
+      "source_file": "QoSMonitoringMeasurement.json"
+    },
+    "QoSMonitoringPerQoSFlowControlInformation": {
+      "ie_name": "QoSMonitoringPerQoSFlowControlInformation",
+      "ie_type_id": 242,
+      "is_grouped": true,
+      "sub_ies": [
+        {
+          "name": "MeasurementPeriod",
+          "ie_type_id": 64
+        },
+        {
+          "name": "QFI",
+          "ie_type_id": 124
+        },
+        {
+          "name": "RequestedQoSMonitoring",
+          "ie_type_id": 243
+        },
+        {
+          "name": "ReportingFrequency",
+          "ie_type_id": 244
+        },
+        {
+          "name": "PacketDelayThresholds",
+          "ie_type_id": 245
+        },
+        {
+          "name": "MinimumWaitTime",
+          "ie_type_id": 246
+        }
+      ],
+      "source_file": "QoSMonitoringPerQoSFlowControlInformation.json"
+    },
+    "QoSMonitoringReport": {
+      "ie_name": "QoSMonitoringReport",
+      "ie_type_id": 247,
+      "is_grouped": true,
+      "sub_ies": [
+        {
+          "name": "StartTime",
+          "ie_type_id": 75
+        },
+        {
+          "name": "QFI",
+          "ie_type_id": 124
+        },
+        {
+          "name": "EventTimeStamp",
+          "ie_type_id": 156
+        },
+        {
+          "name": "QoSMonitoringMeasurement",
+          "ie_type_id": 248
+        }
+      ],
+      "source_file": "QoSMonitoringReport.json"
+    },
+    "QoSReportTrigger": {
+      "ie_name": "QoSReportTrigger",
+      "ie_type_id": 237,
+      "is_grouped": false,
+      "source_file": "QoSReportTrigger.json"
+    },
+    "QueryPacketRateStatusWithinSessionModificationRequest": {
+      "ie_name": "QueryPacketRateStatusWithinSessionModificationRequest",
+      "ie_type_id": 263,
+      "is_grouped": true,
+      "sub_ies": [
+        {
+          "name": "QERID",
+          "ie_type_id": 109
+        }
+      ],
+      "source_file": "QueryPacketRateStatusWithinSessionModificationRequest.json"
+    },
+    "QueryURR": {
+      "ie_name": "QueryURR",
+      "ie_type_id": 77,
+      "is_grouped": true,
+      "sub_ies": [
+        {
+          "name": "URRID",
+          "ie_type_id": 81
+        }
+      ],
+      "source_file": "QueryURR.json"
+    },
+    "QueryURRReference": {
+      "ie_name": "QueryURRReference",
+      "ie_type_id": 125,
+      "is_grouped": false,
+      "source_file": "QueryURRReference.json"
+    },
+    "QuotaHoldingTime": {
+      "ie_name": "QuotaHoldingTime",
+      "ie_type_id": 71,
+      "is_grouped": false,
+      "source_file": "QuotaHoldingTime.json"
+    },
+    "QuotaValidityTime": {
+      "ie_name": "QuotaValidityTime",
+      "ie_type_id": 181,
+      "is_grouped": false,
+      "source_file": "QuotaValidityTime.json"
+    },
+    "RDSConfigurationInformation": {
+      "ie_name": "RDSConfigurationInformation",
+      "ie_type_id": 262,
+      "is_grouped": false,
+      "source_file": "RDSConfigurationInformation.json"
+    },
+    "RQI": {
+      "ie_name": "RQI",
+      "ie_type_id": 123,
+      "is_grouped": false,
+      "source_file": "RQI.json"
+    },
+    "RecoveryTimeStamp": {
+      "ie_name": "RecoveryTimeStamp",
+      "ie_type_id": 96,
+      "is_grouped": false,
+      "source_file": "RecoveryTimeStamp.json"
+    },
+    "RedirectInformation": {
+      "ie_name": "RedirectInformation",
+      "ie_type_id": 38,
+      "is_grouped": false,
+      "source_file": "RedirectInformation.json"
+    },
+    "RedundantTransmissionForwardingParameters": {
+      "ie_name": "RedundantTransmissionForwardingParameters",
+      "ie_type_id": 270,
+      "is_grouped": true,
+      "sub_ies": [
+        {
+          "name": "NetworkInstance",
+          "ie_type_id": 22
+        },
+        {
+          "name": "OuterHeaderCreation",
+          "ie_type_id": 84
+        }
+      ],
+      "source_file": "RedundantTransmissionForwardingParameters.json"
+    },
+    "RedundantTransmissionParameters": {
+      "ie_name": "RedundantTransmissionParameters",
+      "ie_type_id": 255,
+      "is_grouped": true,
+      "source_file": "RedundantTransmissionParameters.json"
+    },
+    "RemoteGTPUPeer": {
+      "ie_name": "RemoteGTPUPeer",
+      "ie_type_id": 103,
+      "is_grouped": false,
+      "source_file": "RemoteGTPUPeer.json"
+    },
+    "RemoveBAR": {
+      "ie_name": "RemoveBAR",
+      "ie_type_id": 87,
+      "is_grouped": true,
+      "sub_ies": [
+        {
+          "name": "BARID",
+          "ie_type_id": 88
+        }
+      ],
+      "source_file": "RemoveBAR.json"
+    },
+    "RemoveFAR": {
+      "ie_name": "RemoveFAR",
+      "ie_type_id": 16,
+      "is_grouped": true,
+      "sub_ies": [
+        {
+          "name": "FARID",
+          "ie_type_id": 108
+        }
+      ],
+      "source_file": "RemoveFAR.json"
+    },
+    "RemoveMAR": {
+      "ie_name": "RemoveMAR",
+      "ie_type_id": 168,
+      "is_grouped": true,
+      "sub_ies": [
+        {
+          "name": "MARID",
+          "ie_type_id": 170
+        }
+      ],
+      "source_file": "RemoveMAR.json"
+    },
+    "RemovePDR": {
+      "ie_name": "RemovePDR",
+      "ie_type_id": 15,
+      "is_grouped": true,
+      "sub_ies": [
+        {
+          "name": "PDRID",
+          "ie_type_id": 56
+        }
+      ],
+      "source_file": "RemovePDR.json"
+    },
+    "RemoveQER": {
+      "ie_name": "RemoveQER",
+      "ie_type_id": 18,
+      "is_grouped": true,
+      "sub_ies": [
+        {
+          "name": "QERID",
+          "ie_type_id": 109
+        }
+      ],
+      "source_file": "RemoveQER.json"
+    },
+    "RemoveSRR": {
+      "ie_name": "RemoveSRR",
+      "ie_type_id": 211,
+      "is_grouped": true,
+      "sub_ies": [
+        {
+          "name": "SRRID",
+          "ie_type_id": 215
+        }
+      ],
+      "source_file": "RemoveSRR.json"
+    },
+    "RemoveTrafficEndpoint": {
+      "ie_name": "RemoveTrafficEndpoint",
+      "ie_type_id": 130,
+      "is_grouped": true,
+      "sub_ies": [
+        {
+          "name": "TrafficEndpointID",
+          "ie_type_id": 131
+        }
+      ],
+      "source_file": "RemoveTrafficEndpoint.json"
+    },
+    "RemoveURR": {
+      "ie_name": "RemoveURR",
+      "ie_type_id": 17,
+      "is_grouped": true,
+      "sub_ies": [
+        {
+          "name": "URRID",
+          "ie_type_id": 81
+        }
+      ],
+      "source_file": "RemoveURR.json"
+    },
+    "ReportType": {
+      "ie_name": "ReportType",
+      "ie_type_id": 39,
+      "is_grouped": false,
+      "source_file": "ReportType.json"
+    },
+    "ReportingFrequency": {
+      "ie_name": "ReportingFrequency",
+      "ie_type_id": 244,
+      "is_grouped": false,
+      "source_file": "ReportingFrequency.json"
+    },
+    "ReportingTriggers": {
+      "ie_name": "ReportingTriggers",
+      "ie_type_id": 37,
+      "is_grouped": false,
+      "source_file": "ReportingTriggers.json"
+    },
+    "RequestedAccessAvailabilityInformation": {
+      "ie_name": "RequestedAccessAvailabilityInformation",
+      "ie_type_id": 217,
+      "is_grouped": false,
+      "source_file": "RequestedAccessAvailabilityInformation.json"
+    },
+    "RequestedClockDriftInformation": {
+      "ie_name": "RequestedClockDriftInformation",
+      "ie_type_id": 204,
+      "is_grouped": false,
+      "source_file": "RequestedClockDriftInformation.json"
+    },
+    "RequestedQoSMonitoring": {
+      "ie_name": "RequestedQoSMonitoring",
+      "ie_type_id": 243,
+      "is_grouped": false,
+      "source_file": "RequestedQoSMonitoring.json"
+    },
+    "SDFFilter": {
+      "ie_name": "SDFFilter",
+      "ie_type_id": 23,
+      "is_grouped": false,
+      "source_file": "SDFFilter.json"
+    },
+    "SMFSetID": {
+      "ie_name": "SMFSetID",
+      "ie_type_id": 180,
+      "is_grouped": false,
+      "source_file": "SMFSetID.json"
+    },
+    "SNSSAI": {
+      "ie_name": "SNSSAI",
+      "ie_type_id": 257,
+      "is_grouped": false,
+      "source_file": "SNSSAI.json"
+    },
+    "SRRID": {
+      "ie_name": "SRRID",
+      "ie_type_id": 215,
+      "is_grouped": false,
+      "source_file": "SRRID.json"
+    },
+    "STAG": {
+      "ie_name": "STAG",
+      "ie_type_id": 135,
+      "is_grouped": false,
+      "source_file": "STAG.json"
+    },
+    "SequenceNumber": {
+      "ie_name": "SequenceNumber",
+      "ie_type_id": 52,
+      "is_grouped": false,
+      "source_file": "SequenceNumber.json"
+    },
+    "SessionReport": {
+      "ie_name": "SessionReport",
+      "ie_type_id": 214,
+      "is_grouped": true,
+      "sub_ies": [
+        {
+          "name": "SRRID",
+          "ie_type_id": 215
+        },
+        {
+          "name": "AccessAvailabilityControlInformation",
+          "ie_type_id": 216
+        },
+        {
+          "name": "QoSMonitoringReport",
+          "ie_type_id": 247
+        }
+      ],
+      "source_file": "SessionReport.json"
+    },
+    "SourceIPAddress": {
+      "ie_name": "SourceIPAddress",
+      "ie_type_id": 192,
+      "is_grouped": false,
+      "source_file": "SourceIPAddress.json"
+    },
+    "SourceInterface": {
+      "ie_name": "SourceInterface",
+      "ie_type_id": 20,
+      "is_grouped": false,
+      "source_file": "SourceInterface.json"
+    },
+    "StartTime": {
+      "ie_name": "StartTime",
+      "ie_type_id": 75,
+      "is_grouped": false,
+      "source_file": "StartTime.json"
+    },
+    "SteeringFunctionality": {
+      "ie_name": "SteeringFunctionality",
+      "ie_type_id": 171,
+      "is_grouped": false,
+      "source_file": "SteeringFunctionality.json"
+    },
+    "SteeringMode": {
+      "ie_name": "SteeringMode",
+      "ie_type_id": 172,
+      "is_grouped": false,
+      "source_file": "SteeringMode.json"
+    },
+    "SubsequentEventQuota": {
+      "ie_name": "SubsequentEventQuota",
+      "ie_type_id": 150,
+      "is_grouped": false,
+      "source_file": "SubsequentEventQuota.json"
+    },
+    "SubsequentEventThreshold": {
+      "ie_name": "SubsequentEventThreshold",
+      "ie_type_id": 151,
+      "is_grouped": false,
+      "source_file": "SubsequentEventThreshold.json"
+    },
+    "SubsequentTimeQuota": {
+      "ie_name": "SubsequentTimeQuota",
+      "ie_type_id": 122,
+      "is_grouped": false,
+      "source_file": "SubsequentTimeQuota.json"
+    },
+    "SubsequentTimeThreshold": {
+      "ie_name": "SubsequentTimeThreshold",
+      "ie_type_id": 35,
+      "is_grouped": false,
+      "source_file": "SubsequentTimeThreshold.json"
+    },
+    "SubsequentVolumeQuota": {
+      "ie_name": "SubsequentVolumeQuota",
+      "ie_type_id": 121,
+      "is_grouped": false,
+      "source_file": "SubsequentVolumeQuota.json"
+    },
+    "SubsequentVolumeThreshold": {
+      "ie_name": "SubsequentVolumeThreshold",
+      "ie_type_id": 34,
+      "is_grouped": false,
+      "source_file": "SubsequentVolumeThreshold.json"
+    },
+    "SuggestedBufferingPacketsCount": {
+      "ie_name": "SuggestedBufferingPacketsCount",
+      "ie_type_id": 140,
+      "is_grouped": false,
+      "source_file": "SuggestedBufferingPacketsCount.json"
+    },
+    "TGPPAccessForwardingActionInformation": {
+      "ie_name": "TGPPAccessForwardingActionInformation",
+      "ie_type_id": 166,
+      "is_grouped": true,
+      "sub_ies": [
+        {
+          "name": "URRID",
+          "ie_type_id": 81
+        },
+        {
+          "name": "FARID",
+          "ie_type_id": 108
+        },
+        {
+          "name": "Weight",
+          "ie_type_id": 173
+        },
+        {
+          "name": "Priority",
+          "ie_type_id": 174
+        }
+      ],
+      "source_file": "TGPPAccessForwardingActionInformation.json"
+    },
+    "TGPPInterfaceType": {
+      "ie_name": "TGPPInterfaceType",
+      "ie_type_id": 160,
+      "is_grouped": false,
+      "source_file": "TGPPInterfaceType.json"
+    },
+    "TSCManagementInformationWithinSessionModificationRequest": {
+      "ie_name": "TSCManagementInformationWithinSessionModificationRequest",
+      "ie_type_id": 199,
+      "is_grouped": true,
+      "sub_ies": [
+        {
+          "name": "PortManagementInformationContainer",
+          "ie_type_id": 202
+        }
+      ],
+      "source_file": "TSCManagementInformationWithinSessionModificationRequest.json"
+    },
+    "TSCManagementInformationWithinSessionModificationResponse": {
+      "ie_name": "TSCManagementInformationWithinSessionModificationResponse",
+      "ie_type_id": 200,
+      "is_grouped": true,
+      "sub_ies": [
+        {
+          "name": "PortManagementInformationContainer",
+          "ie_type_id": 202
+        }
+      ],
+      "source_file": "TSCManagementInformationWithinSessionModificationResponse.json"
+    },
+    "TSCManagementInformationWithinSessionReportRequest": {
+      "ie_name": "TSCManagementInformationWithinSessionReportRequest",
+      "ie_type_id": 201,
+      "is_grouped": true,
+      "sub_ies": [
+        {
+          "name": "PortManagementInformationContainer",
+          "ie_type_id": 202
+        }
+      ],
+      "source_file": "TSCManagementInformationWithinSessionReportRequest.json"
+    },
+    "TSNBridgeID": {
+      "ie_name": "TSNBridgeID",
+      "ie_type_id": 198,
+      "is_grouped": false,
+      "source_file": "TSNBridgeID.json"
+    },
+    "TSNTimeDomainNumber": {
+      "ie_name": "TSNTimeDomainNumber",
+      "ie_type_id": 206,
+      "is_grouped": false,
+      "source_file": "TSNTimeDomainNumber.json"
+    },
+    "TimeOfFirstPacket": {
+      "ie_name": "TimeOfFirstPacket",
+      "ie_type_id": 69,
+      "is_grouped": false,
+      "source_file": "TimeOfFirstPacket.json"
+    },
+    "TimeOfLastPacket": {
+      "ie_name": "TimeOfLastPacket",
+      "ie_type_id": 70,
+      "is_grouped": false,
+      "source_file": "TimeOfLastPacket.json"
+    },
+    "TimeOffsetMeasurement": {
+      "ie_name": "TimeOffsetMeasurement",
+      "ie_type_id": 209,
+      "is_grouped": false,
+      "source_file": "TimeOffsetMeasurement.json"
+    },
+    "TimeOffsetThreshold": {
+      "ie_name": "TimeOffsetThreshold",
+      "ie_type_id": 207,
+      "is_grouped": false,
+      "source_file": "TimeOffsetThreshold.json"
+    },
+    "TimeQuota": {
+      "ie_name": "TimeQuota",
+      "ie_type_id": 74,
+      "is_grouped": false,
+      "source_file": "TimeQuota.json"
+    },
+    "TimeQuotaMechanism": {
+      "ie_name": "TimeQuotaMechanism",
+      "ie_type_id": 115,
+      "is_grouped": false,
+      "source_file": "TimeQuotaMechanism.json"
+    },
+    "TimeThreshold": {
+      "ie_name": "TimeThreshold",
+      "ie_type_id": 32,
+      "is_grouped": false,
+      "source_file": "TimeThreshold.json"
+    },
+    "Timer": {
+      "ie_name": "Timer",
+      "ie_type_id": 55,
+      "is_grouped": false,
+      "source_file": "Timer.json"
+    },
+    "TraceInformation": {
+      "ie_name": "TraceInformation",
+      "ie_type_id": 152,
+      "is_grouped": false,
+      "source_file": "TraceInformation.json"
+    },
+    "TrafficEndpointID": {
+      "ie_name": "TrafficEndpointID",
+      "ie_type_id": 131,
+      "is_grouped": false,
+      "source_file": "TrafficEndpointID.json"
+    },
+    "TransportDelayReporting": {
+      "ie_name": "TransportDelayReporting",
+      "ie_type_id": 271,
+      "is_grouped": true,
+      "sub_ies": [
+        {
+          "name": "TransportLevelMarking",
+          "ie_type_id": 30
+        },
+        {
+          "name": "RemoteGTPUPeer",
+          "ie_type_id": 103
+        }
+      ],
+      "source_file": "TransportDelayReporting.json"
+    },
+    "TransportLevelMarking": {
+      "ie_name": "TransportLevelMarking",
+      "ie_type_id": 30,
+      "is_grouped": false,
+      "source_file": "TransportLevelMarking.json"
+    },
+    "UEIPAddress": {
+      "ie_name": "UEIPAddress",
+      "ie_type_id": 93,
+      "is_grouped": false,
+      "source_file": "UEIPAddress.json"
+    },
+    "UEIPAddressPoolIdentity": {
+      "ie_name": "UEIPAddressPoolIdentity",
+      "ie_type_id": 177,
+      "is_grouped": false,
+      "source_file": "UEIPAddressPoolIdentity.json"
+    },
+    "UEIPAddressPoolInformation": {
+      "ie_name": "UEIPAddressPoolInformation",
+      "ie_type_id": 233,
+      "is_grouped": true,
+      "sub_ies": [
+        {
+          "name": "NetworkInstance",
+          "ie_type_id": 22
+        },
+        {
+          "name": "UEIPAddressPoolIdentity",
+          "ie_type_id": 177
+        },
+        {
+          "name": "SNSSAI",
+          "ie_type_id": 257
+        },
+        {
+          "name": "IPVersion",
+          "ie_type_id": 258
+        }
+      ],
+      "source_file": "UEIPAddressPoolInformation.json"
+    },
+    "UEIPAddressUsageInformation": {
+      "ie_name": "UEIPAddressUsageInformation",
+      "ie_type_id": 267,
+      "is_grouped": true,
+      "sub_ies": [
+        {
+          "name": "NetworkInstance",
+          "ie_type_id": 22
+        },
+        {
+          "name": "SequenceNumber",
+          "ie_type_id": 52
+        },
+        {
+          "name": "Metric",
+          "ie_type_id": 53
+        },
+        {
+          "name": "UEIPAddressPoolIdentity",
+          "ie_type_id": 177
+        },
+        {
+          "name": "NumberOfUEIPAddresses",
+          "ie_type_id": 268
+        },
+        {
+          "name": "ValidityTimer",
+          "ie_type_id": 269
+        }
+      ],
+      "source_file": "UEIPAddressUsageInformation.json"
+    },
+    "UELinkSpecificIPAddress": {
+      "ie_name": "UELinkSpecificIPAddress",
+      "ie_type_id": 229,
+      "is_grouped": false,
+      "source_file": "UELinkSpecificIPAddress.json"
+    },
+    "UPFInstanceID": {
+      "ie_name": "UPFInstanceID",
+      "ie_type_id": 253,
+      "is_grouped": false,
+      "alias_of": "NFInstanceID",
+      "description": "UPF Instance ID, same IE type as NFInstanceID",
+      "source_file": "UPFInstanceID.json"
+    },
+    "UPFSEID": {
+      "ie_name": "UPFSEID",
+      "ie_type_id": 57,
+      "is_grouped": false,
+      "alias_of": "FSEID",
+      "description": "User Plane F-SEID, same IE type as FSEID",
+      "source_file": "UPFSEID.json"
+    },
+    "UPFunctionFeatures": {
+      "ie_name": "UPFunctionFeatures",
+      "ie_type_id": 43,
+      "is_grouped": false,
+      "source_file": "UPFunctionFeatures.json"
+    },
+    "URRID": {
+      "ie_name": "URRID",
+      "ie_type_id": 81,
+      "is_grouped": false,
+      "source_file": "URRID.json"
+    },
+    "URSEQN": {
+      "ie_name": "URSEQN",
+      "ie_type_id": 104,
+      "is_grouped": false,
+      "source_file": "URSEQN.json"
+    },
+    "UpdateBAR": {
+      "ie_name": "UpdateBAR",
+      "ie_type_id": 86,
+      "is_grouped": true,
+      "alias_of": "UpdateBARWithinSessionModificationRequest",
+      "sub_ies": [
+        {
+          "name": "DownlinkDataNotificationDelay",
+          "ie_type_id": 46
+        },
+        {
+          "name": "BARID",
+          "ie_type_id": 88
+        },
+        {
+          "name": "SuggestedBufferingPacketsCount",
+          "ie_type_id": 140
+        },
+        {
+          "name": "MTEDTControlInformation",
+          "ie_type_id": 249
+        }
+      ],
+      "source_file": "UpdateBAR.json"
+    },
+    "UpdateBARWithinSessionModificationRequest": {
+      "ie_name": "UpdateBARWithinSessionModificationRequest",
+      "ie_type_id": 86,
+      "is_grouped": true,
+      "sub_ies": [
+        {
+          "name": "DownlinkDataNotificationDelay",
+          "ie_type_id": 46
+        },
+        {
+          "name": "BARID",
+          "ie_type_id": 88
+        },
+        {
+          "name": "SuggestedBufferingPacketsCount",
+          "ie_type_id": 140
+        },
+        {
+          "name": "MTEDTControlInformation",
+          "ie_type_id": 249
+        }
+      ],
+      "source_file": "UpdateBARWithinSessionModificationRequest.json"
+    },
+    "UpdateBARWithinSessionReportResponse": {
+      "ie_name": "UpdateBARWithinSessionReportResponse",
+      "ie_type_id": 12,
+      "is_grouped": true,
+      "sub_ies": [
+        {
+          "name": "DownlinkDataNotificationDelay",
+          "ie_type_id": 46
+        },
+        {
+          "name": "DLBufferingDuration",
+          "ie_type_id": 47
+        },
+        {
+          "name": "DLBufferingSuggestedPacketCount",
+          "ie_type_id": 48
+        },
+        {
+          "name": "BARID",
+          "ie_type_id": 88
+        },
+        {
+          "name": "SuggestedBufferingPacketsCount",
+          "ie_type_id": 140
+        }
+      ],
+      "source_file": "UpdateBARWithinSessionReportResponse.json"
+    },
+    "UpdateDuplicatingParameters": {
+      "ie_name": "UpdateDuplicatingParameters",
+      "ie_type_id": 105,
+      "is_grouped": true,
+      "sub_ies": [
+        {
+          "name": "TransportLevelMarking",
+          "ie_type_id": 30
+        },
+        {
+          "name": "ForwardingPolicy",
+          "ie_type_id": 41
+        },
+        {
+          "name": "DestinationInterface",
+          "ie_type_id": 42
+        },
+        {
+          "name": "OuterHeaderCreation",
+          "ie_type_id": 84
+        }
+      ],
+      "source_file": "UpdateDuplicatingParameters.json"
+    },
+    "UpdateFAR": {
+      "ie_name": "UpdateFAR",
+      "ie_type_id": 10,
+      "is_grouped": true,
+      "sub_ies": [
+        {
+          "name": "UpdateForwardingParameters",
+          "ie_type_id": 11
+        },
+        {
+          "name": "NetworkInstance",
+          "ie_type_id": 22
+        },
+        {
+          "name": "ApplyAction",
+          "ie_type_id": 44
+        },
+        {
+          "name": "OuterHeaderCreation",
+          "ie_type_id": 84
+        },
+        {
+          "name": "BARID",
+          "ie_type_id": 88
+        },
+        {
+          "name": "UpdateDuplicatingParameters",
+          "ie_type_id": 105
+        },
+        {
+          "name": "FARID",
+          "ie_type_id": 108
+        }
+      ],
+      "source_file": "UpdateFAR.json"
+    },
+    "UpdateForwardingParameters": {
+      "ie_name": "UpdateForwardingParameters",
+      "ie_type_id": 11,
+      "is_grouped": true,
+      "sub_ies": [
+        {
+          "name": "NetworkInstance",
+          "ie_type_id": 22
+        },
+        {
+          "name": "TransportLevelMarking",
+          "ie_type_id": 30
+        },
+        {
+          "name": "RedirectInformation",
+          "ie_type_id": 38
+        },
+        {
+          "name": "ForwardingPolicy",
+          "ie_type_id": 41
+        },
+        {
+          "name": "DestinationInterface",
+          "ie_type_id": 42
+        },
+        {
+          "name": "PFCPSMReqFlags",
+          "ie_type_id": 49
+        },
+        {
+          "name": "OuterHeaderCreation",
+          "ie_type_id": 84
+        },
+        {
+          "name": "HeaderEnrichment",
+          "ie_type_id": 98
+        },
+        {
+          "name": "TrafficEndpointID",
+          "ie_type_id": 131
+        },
+        {
+          "name": "TGPPInterfaceType",
+          "ie_type_id": 160
+        },
+        {
+          "name": "DataNetworkAccessIdentifier",
+          "ie_type_id": 232
+        }
+      ],
+      "source_file": "UpdateForwardingParameters.json"
+    },
+    "UpdateMAR": {
+      "ie_name": "UpdateMAR",
+      "ie_type_id": 169,
+      "is_grouped": true,
+      "sub_ies": [
+        {
+          "name": "TGPPAccessForwardingActionInformation",
+          "ie_type_id": 166
+        },
+        {
+          "name": "NonTGPPAccessForwardingActionInformation",
+          "ie_type_id": 167
+        },
+        {
+          "name": "MARID",
+          "ie_type_id": 170
+        },
+        {
+          "name": "SteeringFunctionality",
+          "ie_type_id": 171
+        },
+        {
+          "name": "SteeringMode",
+          "ie_type_id": 172
+        },
+        {
+          "name": "UpdateTGPPAccessForwardingActionInformation",
+          "ie_type_id": 175
+        },
+        {
+          "name": "UpdateNonTGPPAccessForwardingActionInformation",
+          "ie_type_id": 176
+        }
+      ],
+      "source_file": "UpdateMAR.json"
+    },
+    "UpdateNonTGPPAccessForwardingActionInformation": {
+      "ie_name": "UpdateNonTGPPAccessForwardingActionInformation",
+      "ie_type_id": 176,
+      "is_grouped": true,
+      "sub_ies": [
+        {
+          "name": "URRID",
+          "ie_type_id": 81
+        },
+        {
+          "name": "FARID",
+          "ie_type_id": 108
+        },
+        {
+          "name": "Weight",
+          "ie_type_id": 173
+        },
+        {
+          "name": "Priority",
+          "ie_type_id": 174
+        }
+      ],
+      "source_file": "UpdateNonTGPPAccessForwardingActionInformation.json"
+    },
+    "UpdatePDR": {
+      "ie_name": "UpdatePDR",
+      "ie_type_id": 9,
+      "is_grouped": true,
+      "sub_ies": [
+        {
+          "name": "PDI",
+          "ie_type_id": 2
+        },
+        {
+          "name": "Precedence",
+          "ie_type_id": 29
+        },
+        {
+          "name": "PDRID",
+          "ie_type_id": 56
+        },
+        {
+          "name": "URRID",
+          "ie_type_id": 81
+        },
+        {
+          "name": "OuterHeaderRemoval",
+          "ie_type_id": 95
+        },
+        {
+          "name": "ActivatePredefinedRules",
+          "ie_type_id": 106
+        },
+        {
+          "name": "DeactivatePredefinedRules",
+          "ie_type_id": 107
+        },
+        {
+          "name": "FARID",
+          "ie_type_id": 108
+        },
+        {
+          "name": "QERID",
+          "ie_type_id": 109
+        },
+        {
+          "name": "ActivationTime",
+          "ie_type_id": 163
+        },
+        {
+          "name": "DeactivationTime",
+          "ie_type_id": 164
+        },
+        {
+          "name": "IPMulticastAddressingInfo",
+          "ie_type_id": 188
+        },
+        {
+          "name": "TransportDelayReporting",
+          "ie_type_id": 271
+        }
+      ],
+      "source_file": "UpdatePDR.json"
+    },
+    "UpdateQER": {
+      "ie_name": "UpdateQER",
+      "ie_type_id": 14,
+      "is_grouped": true,
+      "sub_ies": [
+        {
+          "name": "GateStatus",
+          "ie_type_id": 25
+        },
+        {
+          "name": "MBR",
+          "ie_type_id": 26
+        },
+        {
+          "name": "GBR",
+          "ie_type_id": 27
+        },
+        {
+          "name": "QERCorrelationID",
+          "ie_type_id": 28
+        },
+        {
+          "name": "PacketRate",
+          "ie_type_id": 94
+        },
+        {
+          "name": "DLFlowLevelMarking",
+          "ie_type_id": 97
+        },
+        {
+          "name": "QERID",
+          "ie_type_id": 109
+        },
+        {
+          "name": "RQI",
+          "ie_type_id": 123
+        },
+        {
+          "name": "QFI",
+          "ie_type_id": 124
+        },
+        {
+          "name": "AveragingWindow",
+          "ie_type_id": 157
+        },
+        {
+          "name": "PagingPolicyIndicator",
+          "ie_type_id": 158
+        },
+        {
+          "name": "PacketRateStatus",
+          "ie_type_id": 193
+        },
+        {
+          "name": "QERControlIndications",
+          "ie_type_id": 251
+        }
+      ],
+      "source_file": "UpdateQER.json"
+    },
+    "UpdateSRR": {
+      "ie_name": "UpdateSRR",
+      "ie_type_id": 213,
+      "is_grouped": true,
+      "sub_ies": [
+        {
+          "name": "SRRID",
+          "ie_type_id": 215
+        },
+        {
+          "name": "AccessAvailabilityControlInformation",
+          "ie_type_id": 216
+        },
+        {
+          "name": "QoSMonitoringPerQoSFlowControlInformation",
+          "ie_type_id": 242
+        }
+      ],
+      "source_file": "UpdateSRR.json"
+    },
+    "UpdateTGPPAccessForwardingActionInformation": {
+      "ie_name": "UpdateTGPPAccessForwardingActionInformation",
+      "ie_type_id": 175,
+      "is_grouped": true,
+      "sub_ies": [
+        {
+          "name": "URRID",
+          "ie_type_id": 81
+        },
+        {
+          "name": "FARID",
+          "ie_type_id": 108
+        },
+        {
+          "name": "Weight",
+          "ie_type_id": 173
+        },
+        {
+          "name": "Priority",
+          "ie_type_id": 174
+        }
+      ],
+      "source_file": "UpdateTGPPAccessForwardingActionInformation.json"
+    },
+    "UpdateTrafficEndpoint": {
+      "ie_name": "UpdateTrafficEndpoint",
+      "ie_type_id": 129,
+      "is_grouped": true,
+      "sub_ies": [
+        {
+          "name": "FTEID",
+          "ie_type_id": 21
+        },
+        {
+          "name": "NetworkInstance",
+          "ie_type_id": 22
+        },
+        {
+          "name": "UEIPAddress",
+          "ie_type_id": 93
+        },
+        {
+          "name": "QFI",
+          "ie_type_id": 124
+        },
+        {
+          "name": "TrafficEndpointID",
+          "ie_type_id": 131
+        },
+        {
+          "name": "FramedRoute",
+          "ie_type_id": 153
+        },
+        {
+          "name": "FramedRouting",
+          "ie_type_id": 154
+        },
+        {
+          "name": "FramedIPv6Route",
+          "ie_type_id": 155
+        }
+      ],
+      "source_file": "UpdateTrafficEndpoint.json"
+    },
+    "UpdateURR": {
+      "ie_name": "UpdateURR",
+      "ie_type_id": 13,
+      "is_grouped": true,
+      "sub_ies": [
+        {
+          "name": "VolumeThreshold",
+          "ie_type_id": 31
+        },
+        {
+          "name": "TimeThreshold",
+          "ie_type_id": 32
+        },
+        {
+          "name": "MonitoringTime",
+          "ie_type_id": 33
+        },
+        {
+          "name": "SubsequentVolumeThreshold",
+          "ie_type_id": 34
+        },
+        {
+          "name": "SubsequentTimeThreshold",
+          "ie_type_id": 35
+        },
+        {
+          "name": "InactivityDetectionTime",
+          "ie_type_id": 36
+        },
+        {
+          "name": "ReportingTriggers",
+          "ie_type_id": 37
+        },
+        {
+          "name": "MeasurementMethod",
+          "ie_type_id": 62
+        },
+        {
+          "name": "MeasurementPeriod",
+          "ie_type_id": 64
+        },
+        {
+          "name": "QuotaHoldingTime",
+          "ie_type_id": 71
+        },
+        {
+          "name": "DroppedDLTrafficThreshold",
+          "ie_type_id": 72
+        },
+        {
+          "name": "VolumeQuota",
+          "ie_type_id": 73
+        },
+        {
+          "name": "TimeQuota",
+          "ie_type_id": 74
+        },
+        {
+          "name": "URRID",
+          "ie_type_id": 81
+        },
+        {
+          "name": "LinkedURRID",
+          "ie_type_id": 82
+        },
+        {
+          "name": "MeasurementInformation",
+          "ie_type_id": 100
+        },
+        {
+          "name": "FARID",
+          "ie_type_id": 108
+        },
+        {
+          "name": "TimeQuotaMechanism",
+          "ie_type_id": 115
+        },
+        {
+          "name": "AggregatedURRs",
+          "ie_type_id": 118
+        },
+        {
+          "name": "SubsequentVolumeQuota",
+          "ie_type_id": 121
+        },
+        {
+          "name": "SubsequentTimeQuota",
+          "ie_type_id": 122
+        },
+        {
+          "name": "EthernetInactivityTimer",
+          "ie_type_id": 146
+        },
+        {
+          "name": "AdditionalMonitoringTime",
+          "ie_type_id": 147
+        },
+        {
+          "name": "EventQuota",
+          "ie_type_id": 148
+        },
+        {
+          "name": "EventThreshold",
+          "ie_type_id": 149
+        },
+        {
+          "name": "SubsequentEventQuota",
+          "ie_type_id": 150
+        },
+        {
+          "name": "SubsequentEventThreshold",
+          "ie_type_id": 151
+        },
+        {
+          "name": "QuotaValidityTime",
+          "ie_type_id": 181
+        },
+        {
+          "name": "NumberOfReports",
+          "ie_type_id": 182
+        }
+      ],
+      "source_file": "UpdateURR.json"
+    },
+    "UpdatedPDR": {
+      "ie_name": "UpdatedPDR",
+      "ie_type_id": 256,
+      "is_grouped": true,
+      "sub_ies": [
+        {
+          "name": "FTEID",
+          "ie_type_id": 21
+        },
+        {
+          "name": "PDRID",
+          "ie_type_id": 56
+        }
+      ],
+      "source_file": "UpdatedPDR.json"
+    },
+    "UsageInformation": {
+      "ie_name": "UsageInformation",
+      "ie_type_id": 90,
+      "is_grouped": false,
+      "source_file": "UsageInformation.json"
+    },
+    "UsageReport": {
+      "ie_name": "UsageReport",
+      "ie_type_id": null,
+      "is_grouped": true,
+      "variants": [
+        {
+          "name": "UsageReportWithinSessionModificationResponse",
+          "ie_type_id": 78
+        },
+        {
+          "name": "UsageReportWithinSessionDeletionResponse",
+          "ie_type_id": 79
+        },
+        {
+          "name": "UsageReportWithinSessionReportRequest",
+          "ie_type_id": 80
+        }
+      ],
+      "description": "Generic Usage Report IE, actual type depends on message context",
+      "sub_ies": [
+        {
+          "name": "UsageReportTrigger",
+          "ie_type_id": 63
+        },
+        {
+          "name": "VolumeMeasurement",
+          "ie_type_id": 66
+        },
+        {
+          "name": "DurationMeasurement",
+          "ie_type_id": 67
+        },
+        {
+          "name": "TimeOfFirstPacket",
+          "ie_type_id": 69
+        },
+        {
+          "name": "TimeOfLastPacket",
+          "ie_type_id": 70
+        },
+        {
+          "name": "StartTime",
+          "ie_type_id": 75
+        },
+        {
+          "name": "EndTime",
+          "ie_type_id": 76
+        },
+        {
+          "name": "URRID",
+          "ie_type_id": 81
+        },
+        {
+          "name": "UsageInformation",
+          "ie_type_id": 90
+        },
+        {
+          "name": "URSEQN",
+          "ie_type_id": 104
+        },
+        {
+          "name": "EthernetTrafficInformation",
+          "ie_type_id": 143
+        }
+      ],
+      "source_file": "UsageReport.json"
+    },
+    "UsageReportTrigger": {
+      "ie_name": "UsageReportTrigger",
+      "ie_type_id": 63,
+      "is_grouped": false,
+      "source_file": "UsageReportTrigger.json"
+    },
+    "UsageReportWithinSessionDeletionResponse": {
+      "ie_name": "UsageReportWithinSessionDeletionResponse",
+      "ie_type_id": 79,
+      "is_grouped": true,
+      "sub_ies": [
+        {
+          "name": "UsageReportTrigger",
+          "ie_type_id": 63
+        },
+        {
+          "name": "VolumeMeasurement",
+          "ie_type_id": 66
+        },
+        {
+          "name": "DurationMeasurement",
+          "ie_type_id": 67
+        },
+        {
+          "name": "TimeOfFirstPacket",
+          "ie_type_id": 69
+        },
+        {
+          "name": "TimeOfLastPacket",
+          "ie_type_id": 70
+        },
+        {
+          "name": "StartTime",
+          "ie_type_id": 75
+        },
+        {
+          "name": "EndTime",
+          "ie_type_id": 76
+        },
+        {
+          "name": "URRID",
+          "ie_type_id": 81
+        },
+        {
+          "name": "UsageInformation",
+          "ie_type_id": 90
+        },
+        {
+          "name": "URSEQN",
+          "ie_type_id": 104
+        },
+        {
+          "name": "EthernetTrafficInformation",
+          "ie_type_id": 143
+        }
+      ],
+      "source_file": "UsageReportWithinSessionDeletionResponse.json"
+    },
+    "UsageReportWithinSessionModificationResponse": {
+      "ie_name": "UsageReportWithinSessionModificationResponse",
+      "ie_type_id": 78,
+      "is_grouped": true,
+      "sub_ies": [
+        {
+          "name": "UsageReportTrigger",
+          "ie_type_id": 63
+        },
+        {
+          "name": "VolumeMeasurement",
+          "ie_type_id": 66
+        },
+        {
+          "name": "DurationMeasurement",
+          "ie_type_id": 67
+        },
+        {
+          "name": "TimeOfFirstPacket",
+          "ie_type_id": 69
+        },
+        {
+          "name": "TimeOfLastPacket",
+          "ie_type_id": 70
+        },
+        {
+          "name": "StartTime",
+          "ie_type_id": 75
+        },
+        {
+          "name": "EndTime",
+          "ie_type_id": 76
+        },
+        {
+          "name": "URRID",
+          "ie_type_id": 81
+        },
+        {
+          "name": "UsageInformation",
+          "ie_type_id": 90
+        },
+        {
+          "name": "URSEQN",
+          "ie_type_id": 104
+        },
+        {
+          "name": "QueryURRReference",
+          "ie_type_id": 125
+        },
+        {
+          "name": "EthernetTrafficInformation",
+          "ie_type_id": 143
+        }
+      ],
+      "source_file": "UsageReportWithinSessionModificationResponse.json"
+    },
+    "UsageReportWithinSessionReportRequest": {
+      "ie_name": "UsageReportWithinSessionReportRequest",
+      "ie_type_id": 80,
+      "is_grouped": true,
+      "sub_ies": [
+        {
+          "name": "UsageReportTrigger",
+          "ie_type_id": 63
+        },
+        {
+          "name": "VolumeMeasurement",
+          "ie_type_id": 66
+        },
+        {
+          "name": "DurationMeasurement",
+          "ie_type_id": 67
+        },
+        {
+          "name": "ApplicationDetectionInformation",
+          "ie_type_id": 68
+        },
+        {
+          "name": "TimeOfFirstPacket",
+          "ie_type_id": 69
+        },
+        {
+          "name": "TimeOfLastPacket",
+          "ie_type_id": 70
+        },
+        {
+          "name": "StartTime",
+          "ie_type_id": 75
+        },
+        {
+          "name": "EndTime",
+          "ie_type_id": 76
+        },
+        {
+          "name": "URRID",
+          "ie_type_id": 81
+        },
+        {
+          "name": "UsageInformation",
+          "ie_type_id": 90
+        },
+        {
+          "name": "UEIPAddress",
+          "ie_type_id": 93
+        },
+        {
+          "name": "URSEQN",
+          "ie_type_id": 104
+        },
+        {
+          "name": "QueryURRReference",
+          "ie_type_id": 125
+        },
+        {
+          "name": "EthernetTrafficInformation",
+          "ie_type_id": 143
+        },
+        {
+          "name": "EventTimeStamp",
+          "ie_type_id": 156
+        },
+        {
+          "name": "JoinIPMulticastInformationWithinUsageReport",
+          "ie_type_id": 189
+        },
+        {
+          "name": "LeaveIPMulticastInformationWithinUsageReport",
+          "ie_type_id": 190
+        }
+      ],
+      "source_file": "UsageReportWithinSessionReportRequest.json"
+    },
+    "UserID": {
+      "ie_name": "UserID",
+      "ie_type_id": 141,
+      "is_grouped": false,
+      "source_file": "UserID.json"
+    },
+    "UserPlaneIPResourceInformation": {
+      "ie_name": "UserPlaneIPResourceInformation",
+      "ie_type_id": 116,
+      "is_grouped": false,
+      "source_file": "UserPlaneIPResourceInformation.json"
+    },
+    "UserPlaneInactivityTimer": {
+      "ie_name": "UserPlaneInactivityTimer",
+      "ie_type_id": 117,
+      "is_grouped": false,
+      "source_file": "UserPlaneInactivityTimer.json"
+    },
+    "UserPlanePathFailureReport": {
+      "ie_name": "UserPlanePathFailureReport",
+      "ie_type_id": 102,
+      "is_grouped": true,
+      "sub_ies": [
+        {
+          "name": "RemoteGTPUPeer",
+          "ie_type_id": 103
+        }
+      ],
+      "source_file": "UserPlanePathFailureReport.json"
+    },
+    "UserPlanePathRecoveryReport": {
+      "ie_name": "UserPlanePathRecoveryReport",
+      "ie_type_id": 187,
+      "is_grouped": true,
+      "sub_ies": [
+        {
+          "name": "RemoteGTPUPeer",
+          "ie_type_id": 103
+        }
+      ],
+      "source_file": "UserPlanePathRecoveryReport.json"
+    },
+    "ValidityTimer": {
+      "ie_name": "ValidityTimer",
+      "ie_type_id": 269,
+      "is_grouped": false,
+      "source_file": "ValidityTimer.json"
+    },
+    "VolumeMeasurement": {
+      "ie_name": "VolumeMeasurement",
+      "ie_type_id": 66,
+      "is_grouped": false,
+      "source_file": "VolumeMeasurement.json"
+    },
+    "VolumeQuota": {
+      "ie_name": "VolumeQuota",
+      "ie_type_id": 73,
+      "is_grouped": false,
+      "source_file": "VolumeQuota.json"
+    },
+    "VolumeThreshold": {
+      "ie_name": "VolumeThreshold",
+      "ie_type_id": 31,
+      "is_grouped": false,
+      "source_file": "VolumeThreshold.json"
+    },
+    "Weight": {
+      "ie_name": "Weight",
+      "ie_type_id": 173,
+      "is_grouped": false,
+      "source_file": "Weight.json"
+    }
+  }
+}

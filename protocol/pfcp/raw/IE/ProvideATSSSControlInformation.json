@@ -1,0 +1,19 @@
+{
+  "ie_name": "ProvideATSSSControlInformation",
+  "ie_type_id": 220,
+  "is_grouped": true,
+  "sub_ies": [
+    {
+      "name": "MPTCPControlInformation",
+      "ie_type_id": 222
+    },
+    {
+      "name": "ATSSSLLControlInformation",
+      "ie_type_id": 223
+    },
+    {
+      "name": "PMFControlInformation",
+      "ie_type_id": 224
+    }
+  ]
+}

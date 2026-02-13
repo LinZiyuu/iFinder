@@ -1,0 +1,26 @@
+{
+  "ie_name": "PortManagementInformationForTSC",
+  "ie_type_id": null,
+  "is_grouped": true,
+  "variants": [
+    {
+      "name": "PortManagementInformationForTSCWithinSessionModificationRequest",
+      "ie_type_id": 199
+    },
+    {
+      "name": "PortManagementInformationForTSCWithinSessionModificationResponse",
+      "ie_type_id": 200
+    },
+    {
+      "name": "PortManagementInformationForTSCWithinSessionReportRequest",
+      "ie_type_id": 201
+    }
+  ],
+  "description": "Generic Port Management Information for TSC, actual type depends on message context",
+  "sub_ies": [
+    {
+      "name": "PortManagementInformationContainer",
+      "ie_type_id": 202
+    }
+  ]
+}

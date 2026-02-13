@@ -1,0 +1,7 @@
+{
+  "ie_name": "OldCPFSEID",
+  "ie_type_id": 57,
+  "is_grouped": false,
+  "alias_of": "FSEID",
+  "description": "Old Control Plane F-SEID for session migration, same IE type as FSEID"
+}

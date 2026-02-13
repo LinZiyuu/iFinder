@@ -1,0 +1,7 @@
+{
+  "ie_name": "CPFSEID",
+  "ie_type_id": 57,
+  "is_grouped": false,
+  "alias_of": "FSEID",
+  "description": "Control Plane F-SEID, same IE type as FSEID"
+}

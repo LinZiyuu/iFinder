@@ -1,0 +1,123 @@
+{
+  "ie_name": "CreateURR",
+  "ie_type_id": 6,
+  "is_grouped": true,
+  "sub_ies": [
+    {
+      "name": "VolumeThreshold",
+      "ie_type_id": 31
+    },
+    {
+      "name": "TimeThreshold",
+      "ie_type_id": 32
+    },
+    {
+      "name": "MonitoringTime",
+      "ie_type_id": 33
+    },
+    {
+      "name": "SubsequentVolumeThreshold",
+      "ie_type_id": 34
+    },
+    {
+      "name": "SubsequentTimeThreshold",
+      "ie_type_id": 35
+    },
+    {
+      "name": "InactivityDetectionTime",
+      "ie_type_id": 36
+    },
+    {
+      "name": "ReportingTriggers",
+      "ie_type_id": 37
+    },
+    {
+      "name": "MeasurementMethod",
+      "ie_type_id": 62
+    },
+    {
+      "name": "MeasurementPeriod",
+      "ie_type_id": 64
+    },
+    {
+      "name": "QuotaHoldingTime",
+      "ie_type_id": 71
+    },
+    {
+      "name": "DroppedDLTrafficThreshold",
+      "ie_type_id": 72
+    },
+    {
+      "name": "VolumeQuota",
+      "ie_type_id": 73
+    },
+    {
+      "name": "TimeQuota",
+      "ie_type_id": 74
+    },
+    {
+      "name": "URRID",
+      "ie_type_id": 81
+    },
+    {
+      "name": "LinkedURRID",
+      "ie_type_id": 82
+    },
+    {
+      "name": "MeasurementInformation",
+      "ie_type_id": 100
+    },
+    {
+      "name": "FARID",
+      "ie_type_id": 108
+    },
+    {
+      "name": "TimeQuotaMechanism",
+      "ie_type_id": 115
+    },
+    {
+      "name": "AggregatedURRs",
+      "ie_type_id": 118
+    },
+    {
+      "name": "SubsequentVolumeQuota",
+      "ie_type_id": 121
+    },
+    {
+      "name": "SubsequentTimeQuota",
+      "ie_type_id": 122
+    },
+    {
+      "name": "EthernetInactivityTimer",
+      "ie_type_id": 146
+    },
+    {
+      "name": "AdditionalMonitoringTime",
+      "ie_type_id": 147
+    },
+    {
+      "name": "EventQuota",
+      "ie_type_id": 148
+    },
+    {
+      "name": "EventThreshold",
+      "ie_type_id": 149
+    },
+    {
+      "name": "SubsequentEventQuota",
+      "ie_type_id": 150
+    },
+    {
+      "name": "SubsequentEventThreshold",
+      "ie_type_id": 151
+    },
+    {
+      "name": "QuotaValidityTime",
+      "ie_type_id": 181
+    },
+    {
+      "name": "NumberOfReports",
+      "ie_type_id": 182
+    }
+  ]
+}

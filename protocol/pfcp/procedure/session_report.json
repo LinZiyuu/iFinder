@@ -1,0 +1,25 @@
+{
+  "procedure_id": "PFCP_Session_Report",
+  "direction": "UPF/SGW -> SMF/PGW",
+  "dependency_procedure": "PFCP_Session_Establishment",
+  "message_flow": [
+    {
+      "seq": 1,
+      "from": "UPF/SGW",
+      "to": "SMF/PGW",
+      "message": "PFCP_Session_Report_Request",
+      "mandatory_ies": [
+        "ReportType"
+      ]
+    },
+    {
+      "seq": 2,
+      "from": "SMF/PGW",
+      "to": "UPF/SGW",
+      "message": "PFCP_Session_Report_Response",
+      "mandatory_ies": [
+        "Cause"
+      ]
+    }
+  ]
+}

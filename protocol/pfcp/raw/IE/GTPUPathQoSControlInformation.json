@@ -1,0 +1,43 @@
+{
+  "ie_name": "GTPUPathQoSControlInformation",
+  "ie_type_id": 238,
+  "is_grouped": true,
+  "sub_ies": [
+    {
+      "name": "TransportLevelMarking",
+      "ie_type_id": 30
+    },
+    {
+      "name": "Timer",
+      "ie_type_id": 55
+    },
+    {
+      "name": "MeasurementMethod",
+      "ie_type_id": 62
+    },
+    {
+      "name": "RemoteGTPUPeer",
+      "ie_type_id": 103
+    },
+    {
+      "name": "AveragePacketDelay",
+      "ie_type_id": 234
+    },
+    {
+      "name": "MinimumPacketDelay",
+      "ie_type_id": 235
+    },
+    {
+      "name": "MaximumPacketDelay",
+      "ie_type_id": 236
+    },
+    {
+      "name": "QoSReportTrigger",
+      "ie_type_id": 237
+    },
+    {
+      "name": "GTPUPathInterfaceType",
+      "ie_type_id": 241
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "ie_name": "PMFParameters",
+  "ie_type_id": 227,
+  "is_grouped": true,
+  "sub_ies": [
+    {
+      "name": "PMFAddressInformation",
+      "ie_type_id": 230
+    }
+  ]
+}

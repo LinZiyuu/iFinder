@@ -1,0 +1,12 @@
+{
+  "message_name": "HeartbeatResponse",
+  "Direction": "SMF <-> UPF",
+  "ies": [
+    {
+      "name": "RecoveryTimeStamp",
+      "requirement": "Mandatory",
+      "multiplicity": "Single",
+      "is_grouped": false
+    }
+  ]
+}

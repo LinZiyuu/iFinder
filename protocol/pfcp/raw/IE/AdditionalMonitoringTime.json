@@ -1,0 +1,35 @@
+{
+  "ie_name": "AdditionalMonitoringTime",
+  "ie_type_id": 147,
+  "is_grouped": true,
+  "sub_ies": [
+    {
+      "name": "MonitoringTime",
+      "ie_type_id": 33
+    },
+    {
+      "name": "SubsequentVolumeThreshold",
+      "ie_type_id": 34
+    },
+    {
+      "name": "SubsequentTimeThreshold",
+      "ie_type_id": 35
+    },
+    {
+      "name": "SubsequentVolumeQuota",
+      "ie_type_id": 121
+    },
+    {
+      "name": "SubsequentTimeQuota",
+      "ie_type_id": 122
+    },
+    {
+      "name": "EventQuota",
+      "ie_type_id": 148
+    },
+    {
+      "name": "EventThreshold",
+      "ie_type_id": 149
+    }
+  ]
+}

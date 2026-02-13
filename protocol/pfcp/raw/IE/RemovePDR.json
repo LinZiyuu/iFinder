@@ -1,0 +1,11 @@
+{
+  "ie_name": "RemovePDR",
+  "ie_type_id": 15,
+  "is_grouped": true,
+  "sub_ies": [
+    {
+      "name": "PDRID",
+      "ie_type_id": 56
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "ie_name": "UpdatedPDR",
+  "ie_type_id": 256,
+  "is_grouped": true,
+  "sub_ies": [
+    {
+      "name": "FTEID",
+      "ie_type_id": 21
+    },
+    {
+      "name": "PDRID",
+      "ie_type_id": 56
+    }
+  ]
+}
