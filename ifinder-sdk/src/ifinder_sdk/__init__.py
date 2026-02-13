@@ -1,5 +1,3 @@
-"""iFinder SDK package."""
-
 from ifinder_sdk.client import IFinderClient, IFinderPaths
 from ifinder_sdk.claude_client import IFinderClaudeClient
 

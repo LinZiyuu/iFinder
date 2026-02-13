@@ -1,5 +1,3 @@
-"""Configuration models package for iFinder SDK."""
-
 from ifinder_sdk.config.models import (
     AttackManipulation,
     AttackSequenceStep,

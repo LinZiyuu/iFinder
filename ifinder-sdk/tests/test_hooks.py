@@ -1,5 +1,3 @@
-"""Tests for hook policies and security validators."""
-
 from pathlib import Path
 
 from ifinder_sdk.hooks import (

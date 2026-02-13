@@ -1,11 +1,3 @@
-"""Stage 1 Discovery helpers for semantic backward analysis.
-
-This module implements the Discovery Agent workflow in three steps:
-1) locate pattern-matched dangerous operations;
-2) walk backward along caller chains to reconstruct execution context;
-3) check required validations along the recovered path.
-"""
-
 from __future__ import annotations
 
 import json
@@ -24,8 +16,6 @@ from ifinder_sdk.config import (
 
 @dataclass(frozen=True)
 class RiskyUsage:
-    """A raw risky operation usage hit before candidate materialization."""
-
     file_path: Path
     line_no: int
     snippet: str
@@ -89,7 +79,6 @@ _NON_FUNCTION_KEYWORDS = {"if", "for", "while", "switch", "return", "sizeof"}
 
 
 def load_pattern(pattern_path: str | Path) -> dict[str, Any]:
-    """Load a pattern file as JSON."""
     path = Path(pattern_path)
     if not path.exists():
         raise FileNotFoundError(f"Pattern file not found: {path}")
@@ -107,17 +96,6 @@ def discover_itrue_candidates(
     max_candidates: int = 200,
     max_call_depth: int = 8,
 ) -> DiscoveryResult:
-    """Run stage-1 discovery using semantic backward analysis.
-
-    Args:
-        pattern: Pattern dict or path to pattern JSON.
-        target_codebase: Root of the target codebase.
-        scan_dirs: Relative directories under target_codebase to scan.
-        target_version: Target release version (e.g., "v2.7.6").
-        include_uncertain: Keep hits with no obvious missing validation.
-        max_candidates: Upper bound for returned candidates.
-        max_call_depth: Maximum backward caller expansion depth.
-    """
     pattern_data = load_pattern(pattern) if isinstance(pattern, (str, Path)) else pattern
     pattern_id = str(pattern_data.get("pattern_id", "UNKNOWN"))
 
@@ -172,7 +150,6 @@ def collect_source_files(
     scan_dirs: list[str],
     extensions: set[str] | None = None,
 ) -> list[Path]:
-    """Collect source files for discovery scanning."""
     base = Path(target_codebase)
     if not base.exists():
         raise FileNotFoundError(f"Target codebase not found: {base}")
@@ -195,7 +172,6 @@ def locate_risky_ie_usages(
     pattern_data: dict[str, Any],
     source_files: list[Path],
 ) -> list[RiskyUsage]:
-    """Step 1: locate risky IE usages matching grounded dangerous operations."""
     risky: list[RiskyUsage] = []
     operation_map = _ground_dangerous_operations(pattern_data)
 
@@ -234,13 +210,6 @@ def construct_execution_path_context(
     source_files: list[Path],
     max_depth: int = 8,
 ) -> list[str]:
-    """Step 2: reconstruct an execution path via backward caller expansion.
-
-    This uses a grep-style heuristic:
-    - find caller functions that reference the current function;
-    - iteratively walk to higher callers;
-    - prioritize likely handler names when multiple callers exist.
-    """
     if not sink_function or sink_function == "unknown_function":
         return [sink_function]
 
@@ -254,7 +223,6 @@ def construct_execution_path_context(
         if not callers:
             break
 
-        # Heuristic: prefer handler-like callers to reach message entry points quickly.
         callers.sort(key=lambda name: _is_handler_like(name), reverse=True)
         chosen = callers[0]
         chain.insert(0, chosen)
@@ -273,7 +241,6 @@ def check_required_validations(
     call_chain: list[str],
     source_files: list[Path],
 ) -> tuple[dict[str, bool], str]:
-    """Step 3: check validation existence along the reconstructed call path."""
     required = _required_validation_types(pattern_data)
     chain_text = _collect_call_chain_context(call_chain, source_files).lower()
 
@@ -301,7 +268,6 @@ def check_required_validations(
 
 
 def find_callers_of_function(function_name: str, source_files: list[Path]) -> list[str]:
-    """Find candidate caller functions that invoke `function_name(...)`."""
     needle = re.compile(rf"\b{re.escape(function_name)}\s*\(")
     callers: set[str] = set()
 
@@ -311,7 +277,6 @@ def find_callers_of_function(function_name: str, source_files: list[Path]) -> li
         for idx, line in enumerate(lines):
             if not needle.search(line):
                 continue
-            # Skip definitions of the same function.
             defined = _match_function_definition(line, ext)
             if defined == function_name:
                 continue
@@ -323,7 +288,6 @@ def find_callers_of_function(function_name: str, source_files: list[Path]) -> li
 
 
 def _ground_dangerous_operations(pattern_data: dict[str, Any]) -> dict[str, list[str]]:
-    """Ground abstract pattern operations into language-specific keywords."""
     grounded = {
         "c": list(_DANGEROUS_OPERATION_DEFAULTS["c"]),
         "go": list(_DANGEROUS_OPERATION_DEFAULTS["go"]),
@@ -357,7 +321,6 @@ def _ground_dangerous_operations(pattern_data: dict[str, Any]) -> dict[str, list
 
 
 def _required_validation_types(pattern_data: dict[str, Any]) -> set[str]:
-    """Parse required validation categories from pattern configuration."""
     raw = pattern_data.get("required_validations")
     if isinstance(raw, list):
         parsed = {str(x).lower() for x in raw}
@@ -378,7 +341,6 @@ def _required_validation_types(pattern_data: dict[str, Any]) -> set[str]:
 
 
 def _collect_call_chain_context(call_chain: list[str], source_files: list[Path]) -> str:
-    """Collect textual context for each function in call_chain."""
     chunks: list[str] = []
     for func in call_chain:
         if func == "unknown_function":
@@ -388,7 +350,6 @@ def _collect_call_chain_context(call_chain: list[str], source_files: list[Path])
 
 
 def _extract_function_context(function_name: str, source_files: list[Path], window: int = 120) -> str:
-    """Extract a window of text around function definition occurrences."""
     contexts: list[str] = []
     for path in source_files:
         lines = _safe_read_lines(path)
@@ -435,7 +396,6 @@ def _first_matching_keyword(line: str, keywords: list[str]) -> str | None:
 
 
 def _infer_ie_field_from_line(line: str) -> str:
-    # Prefer argument-like tokens often used as IE value/length/count carriers.
     arg_like = re.findall(r"[A-Za-z_][A-Za-z0-9_\.\->\[\]]*", line)
     preferred = [
         tok

@@ -1,5 +1,3 @@
-"""Security hooks for command/path/runtime guardrails."""
-
 from __future__ import annotations
 
 import shlex
@@ -8,7 +6,6 @@ from typing import Iterable
 
 
 def validate_path_within_roots(path: str | Path, allowed_roots: Iterable[str | Path]) -> tuple[bool, str]:
-    """Validate that path stays under one of the allowed roots."""
     target = Path(path).resolve()
     roots = [Path(root).resolve() for root in allowed_roots]
     for root in roots:
@@ -18,7 +15,6 @@ def validate_path_within_roots(path: str | Path, allowed_roots: Iterable[str | P
 
 
 def validate_command(command: str, blocked_tokens: Iterable[str]) -> tuple[bool, str]:
-    """Deny obviously dangerous command tokens."""
     lowered = command.lower()
     for token in blocked_tokens:
         if token.lower() in lowered:
@@ -27,7 +23,6 @@ def validate_command(command: str, blocked_tokens: Iterable[str]) -> tuple[bool,
 
 
 def validate_container_name(container: str, allowed_prefixes: Iterable[str]) -> tuple[bool, str]:
-    """Check whether target container name is whitelisted by prefix."""
     if not container:
         return False, "Container name cannot be empty."
     for prefix in allowed_prefixes:
@@ -37,7 +32,6 @@ def validate_container_name(container: str, allowed_prefixes: Iterable[str]) -> 
 
 
 def is_safe_shell_command(command: str) -> bool:
-    """Best-effort command safety check for SDK helper usage."""
     blocked_tokens = (
         "rm -rf /",
         "mkfs",

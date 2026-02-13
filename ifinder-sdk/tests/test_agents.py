@@ -1,5 +1,3 @@
-"""Tests for agent definitions."""
-
 from ifinder_sdk.agents import (
     DISCOVERY_AGENT,
     EXPLOITATION_AGENT,

@@ -1,5 +1,3 @@
-"""High-level stage orchestration APIs for iFinder SDK."""
-
 from __future__ import annotations
 
 import json
@@ -20,16 +18,12 @@ from ifinder_sdk.tools import discover_itrue_candidates, exploit_candidate, vet_
 
 @dataclass(frozen=True)
 class IFinderPaths:
-    """Filesystem paths used by the pipeline client."""
-
     pattern_dir: Path = Path("pattern")
     procedure_dir: Path = Path("protocol/pfcp/procedure")
     message_schema_path: Path = Path("protocol/pfcp/generated/message_schemas.normalized.json")
 
 
 class IFinderClient:
-    """Orchestrates the Discovery -> Vetting -> Exploitation pipeline."""
-
     def __init__(self, *, paths: IFinderPaths | None = None) -> None:
         self.paths = paths or IFinderPaths()
 
@@ -44,7 +38,6 @@ class IFinderClient:
         max_candidates: int = 200,
         max_call_depth: int = 8,
     ) -> DiscoveryResult:
-        """Run stage-1 discovery."""
         pattern_payload = self._resolve_pattern_input(pattern)
         return discover_itrue_candidates(
             pattern=pattern_payload,
@@ -65,7 +58,6 @@ class IFinderClient:
         procedure_dir: str | Path | None = None,
         max_handler_hits_per_message: int = 2,
     ) -> VettingResult:
-        """Run stage-2 vetting for discovery output."""
         return vet_discovery_result(
             discovery,
             procedure_dir=procedure_dir or self.paths.procedure_dir,
@@ -89,7 +81,6 @@ class IFinderClient:
         max_iterations: int = 5,
         message_schemas: str | Path | dict[str, Any] | None = None,
     ) -> list[ExploitationResult]:
-        """Run stage-3 exploitation for all feasible candidates."""
         discovery_obj = (
             discovery if isinstance(discovery, DiscoveryResult) else DiscoveryResult.model_validate(discovery)
         )
@@ -151,7 +142,6 @@ class IFinderClient:
         max_iterations: int = 5,
         persist_artifacts: bool = True,
     ) -> dict[str, Any]:
-        """Run all three stages and return artifacts."""
         discovery = self.phase1_discover(
             pattern=pattern,
             target_codebase=target_codebase,
@@ -198,7 +188,6 @@ class IFinderClient:
         artifact: dict[str, Any],
         output_root: str | Path,
     ) -> None:
-        """Write stage outputs to JSON files."""
         base = Path(output_root)
         discovery_dir = base / "discovery_results"
         vetting_dir = base / "vetting_results"

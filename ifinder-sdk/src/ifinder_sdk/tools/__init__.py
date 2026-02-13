@@ -1,5 +1,3 @@
-"""Tool package for iFinder SDK."""
-
 from ifinder_sdk.tools.discovery import (
     collect_source_files,
     discover_itrue_candidates,

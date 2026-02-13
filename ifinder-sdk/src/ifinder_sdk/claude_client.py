@@ -1,5 +1,3 @@
-"""Claude Agent SDK client for iFinder Discovery Agent."""
-
 from __future__ import annotations
 
 import json
@@ -16,8 +14,6 @@ from claude_agent_sdk import (
 
 
 class IFinderClaudeClient:
-    """High-level client for running the Discovery Agent with Claude Code."""
-
     def __init__(
         self,
         *,
@@ -70,7 +66,6 @@ class IFinderClaudeClient:
         target_version: str = "unknown",
         output_path: str | Path | None = None,
     ) -> dict[str, Any]:
-        """Run Discovery Agent scanning via Claude Agent SDK."""
         pattern_path = Path(pattern_path)
         scope_path = Path(scope_path)
         pattern = json.loads(pattern_path.read_text(encoding="utf-8"))

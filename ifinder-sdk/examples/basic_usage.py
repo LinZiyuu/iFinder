@@ -1,5 +1,3 @@
-"""Basic usage example for iFinder SDK."""
-
 from ifinder_sdk import IFinderClient, IFinderPaths
 
 

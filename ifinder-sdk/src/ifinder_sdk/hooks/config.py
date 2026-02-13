@@ -1,5 +1,3 @@
-"""Hook configuration profiles for iFinder SDK."""
-
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -8,8 +6,6 @@ from pathlib import Path
 
 @dataclass(frozen=True)
 class HookPolicy:
-    """Execution guardrail policy consumed by SDK client/tools."""
-
     allowed_roots: tuple[str, ...]
     blocked_command_tokens: tuple[str, ...]
     allowed_container_prefixes: tuple[str, ...]
@@ -17,7 +13,6 @@ class HookPolicy:
 
 
 def default_hook_policy(project_root: str | Path) -> HookPolicy:
-    """Balanced defaults suitable for local development."""
     root = str(Path(project_root).resolve())
     return HookPolicy(
         allowed_roots=(root,),
@@ -34,7 +29,6 @@ def default_hook_policy(project_root: str | Path) -> HookPolicy:
 
 
 def strict_hook_policy(project_root: str | Path) -> HookPolicy:
-    """Stricter profile for CI/shared environments."""
     root = str(Path(project_root).resolve())
     return HookPolicy(
         allowed_roots=(root,),
@@ -53,7 +47,6 @@ def strict_hook_policy(project_root: str | Path) -> HookPolicy:
 
 
 def permissive_hook_policy(project_root: str | Path) -> HookPolicy:
-    """Permissive profile for trusted local experiments."""
     root = str(Path(project_root).resolve())
     return HookPolicy(
         allowed_roots=(root,),

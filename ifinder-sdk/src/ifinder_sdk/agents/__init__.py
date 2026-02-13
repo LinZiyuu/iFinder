@@ -1,5 +1,3 @@
-"""Agent definitions package for iFinder SDK."""
-
 from ifinder_sdk.agents.definitions import (
     DISCOVERY_AGENT,
     EXPLOITATION_AGENT,

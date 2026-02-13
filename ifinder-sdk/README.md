@@ -1,16 +1,16 @@
 # ifinder-sdk
 
-`ifinder-sdk` 是 iFinder 的 SDK 化实现，提供 Discovery / Vetting / Exploitation 三阶段工具和编排入口。
+`ifinder-sdk` is the SDK implementation of iFinder, providing Discovery / Vetting / Exploitation three-stage tools and orchestration entry points.
 
-## 目录约定
+## Directory Conventions
 
-默认按以下协议数据布局读取：
+Default protocol data layout:
 
 - `../pattern/*.json`
 - `../protocol/pfcp/procedure/*.json`
 - `../protocol/pfcp/generated/message_schemas.normalized.json`
 
-## 快速开始
+## Quick Start
 
 ```python
 from ifinder_sdk import IFinderClient
@@ -25,7 +25,7 @@ artifact = client.run_pipeline(
 )
 ```
 
-## 主要 API
+## API
 
 - `ifinder_sdk.client.IFinderClient`
   - `phase1_discover(...)`
@@ -38,7 +38,7 @@ artifact = client.run_pipeline(
   - `vet_discovery_result(...)`
   - `exploit_candidate(...)`
 
-## 测试
+## Tests
 
 ```bash
 pytest -q

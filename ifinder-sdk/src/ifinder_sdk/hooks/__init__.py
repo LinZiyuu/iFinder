@@ -1,5 +1,3 @@
-"""Security hook package for iFinder SDK."""
-
 from ifinder_sdk.hooks.config import (
     HookPolicy,
     default_hook_policy,

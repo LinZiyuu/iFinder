@@ -1,5 +1,3 @@
-"""Tests for discovery/vetting/exploitation helper tools."""
-
 from __future__ import annotations
 
 import json

@@ -1,5 +1,3 @@
-"""Multi-pattern pipeline example for iFinder SDK."""
-
 from ifinder_sdk import IFinderClient
 
 

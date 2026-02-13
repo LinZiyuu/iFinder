@@ -1,5 +1,3 @@
-"""CLI helper to run Discovery Agent using pattern + scope config."""
-
 from __future__ import annotations
 
 import json

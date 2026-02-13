@@ -1,5 +1,3 @@
-"""Tests for pydantic config models."""
-
 from datetime import datetime, timezone
 
 from ifinder_sdk.config import (

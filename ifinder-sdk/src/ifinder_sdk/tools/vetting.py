@@ -1,14 +1,3 @@
-"""Stage 2 Vetting helpers for code-specification cross-checking.
-
-Workflow implemented in this module:
-1) locate trigger message in procedure definitions;
-2) collect prior messages in the same procedure;
-3) recursively expand dependency procedures;
-4) collect code snippets from the target codebase that reference each prior message;
-5) pass all collected code to LLM to judge whether any validation / sanitization
-   exists that would prevent the dangerous operation from being triggered.
-"""
-
 from __future__ import annotations
 
 import asyncio
@@ -36,15 +25,10 @@ ProcedureIndex = dict[str, ProcedureData]
 MessageFlowItem = dict[str, Any]
 
 _SOURCE_EXTENSIONS = {".c", ".h", ".cc", ".cpp", ".cxx", ".go"}
-_CONTEXT_LINES = 60  # lines before/after a match to include as context
+_CONTEXT_LINES = 60
 
-
-# ---------------------------------------------------------------------------
-# Steps 1-3: procedure / message expansion (unchanged)
-# ---------------------------------------------------------------------------
 
 def load_procedure_index(procedure_dir: str | Path) -> ProcedureIndex:
-    """Load procedure JSON files into an index keyed by `procedure_id`."""
     base = Path(procedure_dir)
     if not base.exists():
         raise FileNotFoundError(f"Procedure directory not found: {base}")
@@ -65,7 +49,6 @@ def find_procedures_containing_message(
     trigger_message: str,
     procedure_index: ProcedureIndex,
 ) -> list[str]:
-    """Return procedure IDs whose message_flow contains `trigger_message`."""
     matches: list[str] = []
     for procedure_id, procedure in procedure_index.items():
         flow = procedure.get("message_flow", [])
@@ -75,7 +58,6 @@ def find_procedures_containing_message(
 
 
 def _sort_flow_items(items: list[MessageFlowItem]) -> list[MessageFlowItem]:
-    """Sort flow items by sequence number."""
     return sorted(items, key=lambda x: x.get("seq", 0))
 
 
@@ -83,7 +65,6 @@ def get_same_procedure_prior_messages(
     procedure: ProcedureData,
     trigger_message: str,
 ) -> list[MessageFlowItem]:
-    """Get messages with lower `seq` than the trigger in the same procedure."""
     flow: list[MessageFlowItem] = _sort_flow_items(procedure.get("message_flow", []))
     trigger_items = [item for item in flow if item.get("message") == trigger_message]
     if not trigger_items:
@@ -100,7 +81,6 @@ def get_dependency_chain(
     procedure_id: str,
     procedure_index: ProcedureIndex,
 ) -> list[str]:
-    """Return recursive dependency chain from nearest to farthest ancestor."""
     chain: list[str] = []
     visited: set[str] = set()
     current = procedure_id
@@ -127,7 +107,6 @@ def build_expanded_context_for_candidate(
     trigger_message: str,
     procedure_dir: str | Path,
 ) -> dict[str, Any]:
-    """Build expanded vetting context for a trigger message."""
     procedure_index = load_procedure_index(procedure_dir)
     matches = find_procedures_containing_message(trigger_message, procedure_index)
     if not matches:
@@ -161,7 +140,6 @@ def build_expanded_context_for_candidate(
 
 
 def collect_expanded_messages(expanded_context: dict[str, Any]) -> list[str]:
-    """Collect unique message names from same-procedure + dependency expansion."""
     ordered: list[str] = []
 
     def _add(msg: str) -> None:
@@ -178,10 +156,6 @@ def collect_expanded_messages(expanded_context: dict[str, Any]) -> list[str]:
     return ordered
 
 
-# ---------------------------------------------------------------------------
-# Step 4: collect code snippets for prior messages
-# ---------------------------------------------------------------------------
-
 def collect_code_for_messages(
     messages: list[str],
     target_codebase: str | Path,
@@ -189,15 +163,11 @@ def collect_code_for_messages(
     *,
     context_lines: int = _CONTEXT_LINES,
 ) -> list[dict[str, Any]]:
-    """For each message, search source files and collect surrounding code context.
-
-    Returns a list of ``{message, file, start_line, code}`` dicts.
-    """
     roots = _resolve_scan_roots(target_codebase, scan_dirs)
     source_files = _iter_source_files(roots)
 
     snippets: list[dict[str, Any]] = []
-    seen: set[tuple[str, str, int]] = set()  # (message, file, start_line)
+    seen: set[tuple[str, str, int]] = set()
 
     for message in messages:
         keywords = _message_search_keywords(message)
@@ -229,10 +199,6 @@ def collect_code_for_messages(
     return snippets
 
 
-# ---------------------------------------------------------------------------
-# Steps 4+5 combined: evaluate candidate
-# ---------------------------------------------------------------------------
-
 def evaluate_candidate_with_expanded_context(
     candidate: iTrueCandidate | dict[str, Any],
     *,
@@ -241,19 +207,16 @@ def evaluate_candidate_with_expanded_context(
     scan_dirs: list[str] | None = None,
     max_handler_hits_per_message: int = 2,
 ) -> VettingDecision:
-    """Run VA code-specification cross-checking for one iTrue candidate."""
     cand = _normalize_candidate(candidate)
     expanded = build_expanded_context_for_candidate(cand.trigger_message, procedure_dir)
     context_messages = collect_expanded_messages(expanded)
 
-    # Collect code snippets for all prior messages.
     snippets = collect_code_for_messages(
         context_messages,
         target_codebase,
         scan_dirs,
     )
 
-    # Build per-message mapping entries (for result reporting).
     mappings: list[PriorMessageHandlerMapping] = []
     messages_with_code: set[str] = set()
     for snip in snippets:
@@ -263,7 +226,7 @@ def evaluate_candidate_with_expanded_context(
                 message=snip["message"],
                 handler=f"{Path(snip['file']).name}:{snip['match_line']}",
                 file=snip["file"],
-                validation_found=False,  # will be updated by LLM
+                validation_found=False,
                 validation_detail="Pending LLM analysis.",
             )
         )
@@ -279,14 +242,12 @@ def evaluate_candidate_with_expanded_context(
                 )
             )
 
-    # Ask LLM to judge all collected code at once.
     if snippets:
         blocked, reason = _run_llm_vetting(cand, snippets)
     else:
         blocked = False
         reason = "No prior-message code found in codebase to analyse."
 
-    # Update mappings with LLM result.
     for mapping in mappings:
         if mapping.file:
             mapping.validation_found = blocked
@@ -329,7 +290,6 @@ def vet_discovery_result(
     scan_dirs: list[str] | None = None,
     max_handler_hits_per_message: int = 2,
 ) -> VettingResult:
-    """Run stage-2 vetting for all candidates in a discovery result."""
     disc = _normalize_discovery_result(discovery)
     decisions: list[VettingDecision] = []
 
@@ -360,15 +320,10 @@ def vet_discovery_result(
     )
 
 
-# ---------------------------------------------------------------------------
-# Step 5: LLM-based security check
-# ---------------------------------------------------------------------------
-
 def _run_llm_vetting(
     candidate: iTrueCandidate,
     snippets: list[dict[str, Any]],
 ) -> tuple[bool, str]:
-    """Synchronous wrapper around the async LLM vetting call."""
     try:
         loop = asyncio.get_running_loop()
     except RuntimeError:
@@ -391,12 +346,10 @@ async def _llm_security_check(
     candidate: iTrueCandidate,
     snippets: list[dict[str, Any]],
 ) -> tuple[bool, str]:
-    """Ask LLM whether the collected code contains validation that blocks the vulnerability."""
     from claude_agent_sdk import AssistantMessage, ClaudeAgentOptions, TextBlock, query
 
-    # Build code section — truncate to fit context window.
     code_parts: list[str] = []
-    budget = 24000  # characters
+    budget = 24000
     for snip in snippets:
         header = f"--- {snip['file']}  (message: {snip['message']}, match at line {snip['match_line']}) ---"
         section = f"{header}\n{snip['code']}\n"
@@ -468,7 +421,6 @@ REASON: <one-sentence explanation of what validation exists or why it is absent>
 
 
 def _parse_llm_verdict(response: str) -> tuple[bool, str]:
-    """Parse LLM response into (blocked: bool, reason: str)."""
     lines = response.strip().splitlines()
 
     verdict_line = ""
@@ -485,10 +437,6 @@ def _parse_llm_verdict(response: str) -> tuple[bool, str]:
 
     return blocked, reason
 
-
-# ---------------------------------------------------------------------------
-# Internal helpers
-# ---------------------------------------------------------------------------
 
 def _normalize_candidate(candidate: iTrueCandidate | dict[str, Any]) -> iTrueCandidate:
     if isinstance(candidate, iTrueCandidate):
@@ -536,7 +484,6 @@ def _safe_read_lines(path: Path) -> list[str]:
 
 
 def _message_search_keywords(message: str) -> list[str]:
-    """Generate search keyword variants for a protocol message name."""
     raw = message.strip()
     if not raw:
         return []
@@ -560,6 +507,5 @@ def _message_search_keywords(message: str) -> list[str]:
 
 
 def _line_matches_any_keyword(line: str, keywords: list[str]) -> bool:
-    """Return True if line contains any of the keywords (case-insensitive)."""
     lowered = line.lower()
     return any(kw.lower() in lowered for kw in keywords)

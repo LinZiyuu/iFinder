@@ -1,5 +1,3 @@
-"""Agent definitions for the iFinder SDK pipeline."""
-
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -7,8 +5,6 @@ from dataclasses import dataclass
 
 @dataclass(frozen=True)
 class AgentDefinition:
-    """Static agent metadata used by the SDK orchestrator."""
-
     name: str
     model: str
     system_prompt: str
@@ -71,7 +67,6 @@ _AGENTS_BY_NAME = {
 
 
 def get_agent_definition(name: str) -> AgentDefinition:
-    """Return an agent definition by name."""
     try:
         return _AGENTS_BY_NAME[name]
     except KeyError as exc:
@@ -79,6 +74,4 @@ def get_agent_definition(name: str) -> AgentDefinition:
 
 
 def list_agent_definitions() -> list[AgentDefinition]:
-    """Return all predefined agent definitions."""
     return [DISCOVERY_AGENT, VETTING_AGENT, EXPLOITATION_AGENT]
-
