@@ -10,11 +10,11 @@ This repository contains the artifact accompanying the paper:
 
 iFinder decomposes end-to-end vulnerability research into three specialized agents, each augmented with 3GPP specification knowledge to suppress LLM hallucinations:
 
-- **Discovery Agent.** Performs pattern-guided code auditing with taint-style reasoning. A *coverage map* derived from 3GPP specifications enumerates the audit space as ⟨Message, IE⟩ pairs, enabling systematic and measurable code review. For each audit unit, the agent traces attacker-controlled protocol inputs (sources) through the implementation and flags cases where they reach security-sensitive operations (sinks) without adequate sanitization.
+- **Discovery Agent.** Detects iTrue candidates via semantic backward analysis. The agent first locates code sites where protocol-controlled IEs are used in pattern-matched dangerous operations, then walks backward along caller chains to reconstruct the execution context from the protocol message handler to the dangerous operation, and finally checks whether the required validations (protocol-syntax, protocol-semantics, and resource-availability) are missing along the path.
 
-- **Verification Agent.** Conducts specification-grounded cross-checking to reduce false positives. Using *procedure sequences* extracted from 3GPP specifications, the agent localizes prerequisite protocol stages and evaluates each candidate along five dimensions: controllability, reachability, defense inadequacy, state feasibility, and security impact.
+- **Vetting Agent.** Conducts code-specification cross-checking to reduce false positives. The agent leverages 3GPP specifications to expand the analysis context via a three-step approach: locating the candidate's triggering message in the specification-defined procedure, mapping all prerequisite messages back to their code handlers, and reexamining iTrue candidates under the expanded code context to determine whether security checks in preceding states make exploitation infeasible.
 
-- **Exploitation Agent.** Generates proof-of-concept (PoC) exploits via feedback-aware refinement. The agent derives attack vectors from *message schemas* and *procedure sequences*, constructs protocol-compliant messages, executes the PoC against a testbed, analyzes runtime logs, and iteratively refines until the vulnerability is confirmed or the retry budget is exhausted.
+- **Exploitation Agent.** Automatically generates a PoC for each iTrue candidate via a three-step workflow. First, the agent derives an explicit attack vector and instantiates protocol-compliant messages using the extracted message schemas, then generates the PoC strictly from these intermediate artifacts. Second, it performs pre-execution checks (e.g., compilability and consistency with the attack vector) to catch malformed or drifting PoCs. Finally, when a well-formed PoC still fails due to implicit runtime constraints, the agent invokes a *feedback-aware refinement* loop — analyzing runtime logs, updating the PoC to satisfy missing constraints, and re-executing until the flaw is triggered or the testing budget is exhausted.
 
 ## Usage
 
@@ -25,7 +25,7 @@ PYTHONPATH=ifinder-sdk/src python -m ifinder_sdk.tools.discovery_claude_runner \
   --coverage-map protocol/pfcp/coverage_map.json \
   --output-dir outputs/discovery_results
 
-# Stage 2: Verification
+# Stage 2: Vetting
 PYTHONPATH=ifinder-sdk/src python -c "
 from ifinder_sdk.tools.vetting import vet_discovery_result
 import json
