@@ -1,5 +1,5 @@
 {
-  "scope_name": "open5gs-v2.4.14-pfcp",
+  "scope_name": "open5gs-pfcp",
   "targets": [
     {
       "name": "open5gs",

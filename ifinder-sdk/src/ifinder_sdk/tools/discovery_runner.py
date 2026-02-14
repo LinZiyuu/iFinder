@@ -35,9 +35,8 @@ def run_discovery(
     scope_path: str | Path,
     target_name: str | None = None,
     output_dir: str | Path = "outputs",
-    include_uncertain: bool = True,
     max_candidates: int = 200,
-    max_call_depth: int = 8,
+    model: str | None = None,
 ) -> DiscoveryResult:
     pattern = load_pattern(pattern_path)
     scope = load_scope(scope_path)
@@ -53,9 +52,8 @@ def run_discovery(
         target_codebase=target_codebase,
         scan_dirs=scan_dirs,
         target_version=str(scope.get("scope_name", "unknown")),
-        include_uncertain=include_uncertain,
         max_candidates=max_candidates,
-        max_call_depth=max_call_depth,
+        model=model,
     )
 
     out_dir = Path(output_dir) / "discovery_results"
@@ -77,8 +75,11 @@ if __name__ == "__main__":
     parser.add_argument("--target", default=None, help="Target name in scope")
     parser.add_argument("--output", default="outputs", help="Output directory")
     parser.add_argument("--max-candidates", type=int, default=200)
-    parser.add_argument("--max-call-depth", type=int, default=8)
-    parser.add_argument("--include-uncertain", action="store_true", default=True)
+    parser.add_argument(
+        "--model",
+        default=None,
+        help="Claude model name (e.g., claude-opus-4-6). Defaults to the SDK's DA default.",
+    )
     args = parser.parse_args()
 
     run_discovery(
@@ -86,7 +87,6 @@ if __name__ == "__main__":
         scope_path=args.scope,
         target_name=args.target,
         output_dir=args.output,
-        include_uncertain=args.include_uncertain,
         max_candidates=args.max_candidates,
-        max_call_depth=args.max_call_depth,
+        model=args.model,
     )

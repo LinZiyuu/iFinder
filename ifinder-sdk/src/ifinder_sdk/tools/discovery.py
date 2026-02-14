@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import asyncio
 import json
+import logging
 import re
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -12,6 +14,10 @@ from ifinder_sdk.config import (
     VulnerableSite,
     iTrueCandidate,
 )
+
+logger = logging.getLogger(__name__)
+
+_DEFAULT_DA_MODEL = "claude-sonnet-4-5-20250929"
 
 
 @dataclass(frozen=True)
@@ -95,53 +101,28 @@ def discover_itrue_candidates(
     include_uncertain: bool = True,
     max_candidates: int = 200,
     max_call_depth: int = 8,
+    model: str | None = None,
 ) -> DiscoveryResult:
     pattern_data = load_pattern(pattern) if isinstance(pattern, (str, Path)) else pattern
     pattern_id = str(pattern_data.get("pattern_id", "UNKNOWN"))
 
-    source_files = collect_source_files(target_codebase, scan_dirs)
-    risky_usages = locate_risky_ie_usages(pattern_data, source_files)
-
-    candidates: list[iTrueCandidate] = []
-    for idx, usage in enumerate(risky_usages, start=1):
-        call_chain = construct_execution_path_context(
-            sink_function=usage.function_name,
-            source_files=source_files,
-            max_depth=max_call_depth,
-        )
-        _, missing_summary = check_required_validations(
-            pattern_data=pattern_data,
-            call_chain=call_chain,
-            source_files=source_files,
-        )
-
-        if not missing_summary and not include_uncertain:
-            continue
-
-        candidate = iTrueCandidate(
-            id=f"DA-{pattern_id}-{idx:03d}",
-            vulnerable_site=VulnerableSite(
-                file=str(usage.file_path),
-                line=usage.line_no,
-                function=usage.function_name,
-                dangerous_operation=usage.snippet.strip(),
-            ),
-            trigger_message=usage.trigger_message,
-            trigger_ie=_guess_trigger_ie(usage.ie_field),
-            ie_field=usage.ie_field,
-            data_flow=_build_data_flow(call_chain, usage),
-            call_chain=call_chain,
-        )
-        candidates.append(candidate)
-        if len(candidates) >= max_candidates:
-            break
+    llm_candidates = _run_llm_discovery(
+        pattern_data,
+        target_codebase,
+        scan_dirs,
+        pattern_id,
+        max_candidates,
+        include_uncertain=include_uncertain,
+        max_call_depth=max_call_depth,
+        model=model,
+    )
 
     return DiscoveryResult(
         pattern_id=pattern_id,
         target_codebase=str(target_codebase),
         target_version=target_version,
         discovery_timestamp=datetime.now(timezone.utc),
-        candidates=candidates,
+        candidates=llm_candidates[:max_candidates],
     )
 
 
@@ -285,6 +266,198 @@ def find_callers_of_function(function_name: str, source_files: list[Path]) -> li
                 callers.add(caller)
 
     return sorted(callers)
+
+
+def _run_llm_discovery(
+    pattern_data: dict[str, Any],
+    target_codebase: str | Path,
+    scan_dirs: list[str],
+    pattern_id: str,
+    max_candidates: int,
+    *,
+    include_uncertain: bool,
+    max_call_depth: int,
+    model: str | None,
+) -> list[iTrueCandidate]:
+    try:
+        loop = asyncio.get_running_loop()
+    except RuntimeError:
+        loop = None
+
+    if loop and loop.is_running():
+        import concurrent.futures
+        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
+            future = pool.submit(
+                asyncio.run,
+                _llm_discovery(
+                    pattern_data,
+                    target_codebase,
+                    scan_dirs,
+                    pattern_id,
+                    max_candidates,
+                    include_uncertain=include_uncertain,
+                    max_call_depth=max_call_depth,
+                    model=model,
+                ),
+            )
+            return future.result(timeout=600)
+    else:
+        return asyncio.run(
+            _llm_discovery(
+                pattern_data,
+                target_codebase,
+                scan_dirs,
+                pattern_id,
+                max_candidates,
+                include_uncertain=include_uncertain,
+                max_call_depth=max_call_depth,
+                model=model,
+            )
+        )
+
+
+async def _llm_discovery(
+    pattern_data: dict[str, Any],
+    target_codebase: str | Path,
+    scan_dirs: list[str],
+    pattern_id: str,
+    max_candidates: int,
+    *,
+    include_uncertain: bool,
+    max_call_depth: int,
+    model: str | None,
+) -> list[iTrueCandidate]:
+    from claude_agent_sdk import AssistantMessage, ClaudeAgentOptions, TextBlock, query
+
+    scan_paths = [str(Path(target_codebase) / d) for d in scan_dirs]
+
+    prompt = f"""You are the Discovery Agent (DA) in the iFinder vulnerability discovery framework.
+Your goal is to discover iTrue (implicit-trust violation) candidates in a telecom
+protocol stack codebase by performing **semantic backward analysis** against a
+known vulnerability pattern.
+
+=== Vulnerability Pattern ===
+{json.dumps(pattern_data, indent=2)}
+
+=== Target Codebase ===
+Root: {target_codebase}
+Directories to scan: {json.dumps(scan_paths)}
+
+=== Methodology: Semantic Backward Analysis (three steps) ===
+
+You have full access to Grep, Glob, and Read tools. Use them freely in each step.
+
+**Step 1 — Locating risky IE usages**
+Read the pattern description. The pattern uses language-agnostic terms (e.g.
+"memory operations"). Ground these abstract operations into concrete,
+language-specific constructs in the target codebase. Then search the scan
+directories to find code locations where a protocol-controlled Information Element
+(IE) is used in one of these dangerous operations. For each detected site,
+determine which IE field is passed as the argument to the dangerous operation.
+
+**Step 2 — Constructing execution path context**
+For each risky usage found in Step 1, reconstruct the call-path context via
+iterative backward expansion. Starting from the function containing the dangerous
+operation, search for its callers, locate relevant source files, and inspect each
+caller's code. Repeat this backward traversal until you reach the protocol message
+handler entry point. The resulting call chain should span from the message handler,
+through intermediate parsing/processing functions, down to the function containing
+the pattern-matched dangerous operation.
+
+**Step 3 — Checking the existence of validation**
+With the execution path constructed, check whether the necessary validations for
+the target IE are enforced along the path. Depending on the pattern, look for
+three kinds of validation:
+  (1) Protocol-syntax validation — presence of mandatory-field checks, basic
+      format/length constraints before accessing IE fields
+  (2) Protocol-semantics validation — range checks, state-dependent invariants on
+      IE values
+  (3) Resource-availability validation — capacity checks, access-control checks
+      before allocating requested resources
+Scan each function along the call path for these checks. If the required
+validation is absent on any feasible path to the dangerous operation, flag the
+site as an iTrue candidate.
+
+Return at most {max_candidates} candidates.
+Limit call-chain expansion depth to at most {max_call_depth}.
+Include uncertain candidates: {include_uncertain}.
+
+=== Required Output Format ===
+When you have finished your analysis, output ONLY a JSON array. Each element must
+have exactly these fields:
+
+[
+  {{
+    "id": "DA-{pattern_id}-001",
+    "vulnerable_site": {{
+      "file": "/absolute/path/to/file.c",
+      "line": 123,
+      "function": "function_name",
+      "dangerous_operation": "the code snippet"
+    }},
+    "trigger_message": "PFCP_Session_Establishment_Request",
+    "trigger_ie": "IE_Name",
+    "ie_field": "ie_field_name",
+    "data_flow": "handler -> ... -> dangerous_op(field)",
+    "call_chain": ["handler", "intermediate", "sink_function"]
+  }}
+]
+
+If you find no candidates, return an empty array: []"""
+
+    options = ClaudeAgentOptions(
+        model=model or _DEFAULT_DA_MODEL,
+        allowed_tools=["Grep", "Glob", "Read"],
+    )
+
+    response_text = ""
+    async for message in query(prompt=prompt, options=options):
+        if isinstance(message, AssistantMessage):
+            for block in message.content:
+                if isinstance(block, TextBlock):
+                    response_text += block.text
+
+    return _parse_llm_candidates(response_text, pattern_id)
+
+
+def _parse_llm_candidates(response: str, pattern_id: str) -> list[iTrueCandidate]:
+    json_match = re.search(r"\[[\s\S]*\]", response)
+    if not json_match:
+        logger.warning("No JSON array found in LLM discovery response for pattern %s", pattern_id)
+        return []
+
+    try:
+        raw_list = json.loads(json_match.group(0))
+    except json.JSONDecodeError as exc:
+        logger.warning("Failed to parse LLM discovery JSON for pattern %s: %s", pattern_id, exc)
+        return []
+
+    if not isinstance(raw_list, list):
+        return []
+
+    candidates: list[iTrueCandidate] = []
+    for idx, item in enumerate(raw_list):
+        try:
+            site = item.get("vulnerable_site", {})
+            candidates.append(iTrueCandidate(
+                id=item.get("id", f"DA-{pattern_id}-{idx + 1:03d}"),
+                vulnerable_site=VulnerableSite(
+                    file=str(site.get("file", "")),
+                    line=int(site.get("line", 0)),
+                    function=str(site.get("function", "unknown")),
+                    dangerous_operation=str(site.get("dangerous_operation", "")),
+                ),
+                trigger_message=str(item.get("trigger_message", "UnknownMessage")),
+                trigger_ie=str(item.get("trigger_ie", "UnknownIE")),
+                ie_field=str(item.get("ie_field", "unknown_field")),
+                data_flow=str(item.get("data_flow", "")),
+                call_chain=list(item.get("call_chain", [])),
+            ))
+        except (TypeError, ValueError, KeyError) as exc:
+            logger.warning("Skipping malformed candidate %d for pattern %s: %s", idx, pattern_id, exc)
+            continue
+
+    return candidates
 
 
 def _ground_dangerous_operations(pattern_data: dict[str, Any]) -> dict[str, list[str]]:

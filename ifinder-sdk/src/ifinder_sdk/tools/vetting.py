@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import os
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -26,6 +27,63 @@ MessageFlowItem = dict[str, Any]
 
 _SOURCE_EXTENSIONS = {".c", ".h", ".cc", ".cpp", ".cxx", ".go"}
 _CONTEXT_LINES = 60
+_LLM_HANDLER_SEARCH_TIMEOUT_S = int(os.getenv("IFINDER_VA_HANDLER_TIMEOUT_S", "180"))
+_LLM_VETTING_TIMEOUT_S = int(os.getenv("IFINDER_VA_VETTING_TIMEOUT_S", "180"))
+_LLM_MODEL = os.getenv("IFINDER_VA_MODEL", "claude-sonnet-4-5-20250929")
+
+# Cache handler-search results because many candidates map to the same procedure
+# and thus the same "prior messages" set.
+_HANDLER_SEARCH_CACHE: dict[tuple[str, tuple[str, ...], tuple[str, ...]], list[dict[str, Any]]] = {}
+
+
+def _handler_search_cache_key(
+    messages: list[str],
+    target_codebase: str | Path,
+    scan_dirs: list[str] | None,
+) -> tuple[str, tuple[str, ...], tuple[str, ...]]:
+    base = str(Path(target_codebase).resolve())
+    norm_dirs = tuple(str(d).rstrip("/") for d in (scan_dirs or []))
+    norm_msgs = tuple(str(m).strip() for m in messages)
+    return base, norm_dirs, norm_msgs
+
+
+def _normalize_trigger_name(
+    trigger_message: str,
+    procedure_index: ProcedureIndex,
+) -> str:
+    """Map a discovery trigger name to the procedure message name.
+
+    If the trigger already exists in some procedure, return it unchanged.
+    Otherwise try to build the canonical ``PFCP_Camel_Case`` form and fall
+    back to a substring search across all procedure messages.
+    """
+    # Fast path: exact match
+    for proc in procedure_index.values():
+        for item in proc.get("message_flow", []):
+            if item.get("message") == trigger_message:
+                return trigger_message
+
+    # Build canonical form: "SessionEstablishmentRequest" -> "PFCP_Session_Establishment_Request"
+    import re
+
+    parts = re.findall(r"[A-Z][a-z]*", trigger_message)
+    if parts:
+        canonical = "PFCP_" + "_".join(parts)
+        for proc in procedure_index.values():
+            for item in proc.get("message_flow", []):
+                if item.get("message") == canonical:
+                    return canonical
+
+    # Substring fallback: find any procedure message containing the trigger as substring
+    trigger_lower = trigger_message.lower().replace(" ", "").replace("_", "")
+    for proc in procedure_index.values():
+        for item in proc.get("message_flow", []):
+            msg = item.get("message", "")
+            msg_lower = msg.lower().replace("_", "")
+            if trigger_lower in msg_lower or msg_lower in trigger_lower:
+                return msg
+
+    return trigger_message
 
 
 def load_procedure_index(procedure_dir: str | Path) -> ProcedureIndex:
@@ -108,9 +166,12 @@ def build_expanded_context_for_candidate(
     procedure_dir: str | Path,
 ) -> dict[str, Any]:
     procedure_index = load_procedure_index(procedure_dir)
-    matches = find_procedures_containing_message(trigger_message, procedure_index)
+    normalized = _normalize_trigger_name(trigger_message, procedure_index)
+    if normalized != trigger_message:
+        logger.info("Mapped trigger name: %s -> %s", trigger_message, normalized)
+    matches = find_procedures_containing_message(normalized, procedure_index)
     if not matches:
-        raise ValueError(f"No procedure contains trigger message: {trigger_message}")
+        raise ValueError(f"No procedure contains trigger message: {trigger_message} (normalized: {normalized})")
     if len(matches) > 1:
         raise ValueError(
             "Trigger message is ambiguous across procedures; "
@@ -119,7 +180,7 @@ def build_expanded_context_for_candidate(
 
     matched_procedure = matches[0]
     same_procedure_prior = get_same_procedure_prior_messages(
-        procedure_index[matched_procedure], trigger_message
+        procedure_index[matched_procedure], normalized
     )
     dependency_chain = get_dependency_chain(matched_procedure, procedure_index)
     dependency_messages = [
@@ -131,7 +192,7 @@ def build_expanded_context_for_candidate(
     ]
 
     return {
-        "trigger_message": trigger_message,
+        "trigger_message": normalized,
         "matched_procedure": matched_procedure,
         "same_procedure_prior_messages": same_procedure_prior,
         "dependency_chain": dependency_chain,
@@ -211,21 +272,41 @@ def evaluate_candidate_with_expanded_context(
     expanded = build_expanded_context_for_candidate(cand.trigger_message, procedure_dir)
     context_messages = collect_expanded_messages(expanded)
 
-    snippets = collect_code_for_messages(
+    handler_results = _run_llm_handler_search(
         context_messages,
         target_codebase,
         scan_dirs,
     )
+    if max_handler_hits_per_message > 0 and handler_results:
+        counts: dict[str, int] = {}
+        trimmed: list[dict[str, Any]] = []
+        for item in handler_results:
+            msg = str(item.get("message", "")).strip()
+            if not msg:
+                continue
+            counts[msg] = counts.get(msg, 0) + 1
+            if counts[msg] <= max_handler_hits_per_message:
+                trimmed.append(item)
+        if len(trimmed) != len(handler_results):
+            logger.info(
+                "Trimmed handler hits per message: %d -> %d (limit=%d)",
+                len(handler_results),
+                len(trimmed),
+                max_handler_hits_per_message,
+            )
+        handler_results = trimmed
 
+    snippets: list[dict[str, Any]] = []
     mappings: list[PriorMessageHandlerMapping] = []
     messages_with_code: set[str] = set()
-    for snip in snippets:
-        messages_with_code.add(snip["message"])
+    for hr in handler_results:
+        messages_with_code.add(hr["message"])
+        snippets.append(hr)
         mappings.append(
             PriorMessageHandlerMapping(
-                message=snip["message"],
-                handler=f"{Path(snip['file']).name}:{snip['match_line']}",
-                file=snip["file"],
+                message=hr["message"],
+                handler=hr.get("handler", f"{Path(hr['file']).name}:{hr.get('match_line', 0)}"),
+                file=hr["file"],
                 validation_found=False,
                 validation_detail="Pending LLM analysis.",
             )
@@ -293,14 +374,34 @@ def vet_discovery_result(
     disc = _normalize_discovery_result(discovery)
     decisions: list[VettingDecision] = []
 
-    for candidate in disc.candidates:
-        decision = evaluate_candidate_with_expanded_context(
-            candidate,
-            procedure_dir=procedure_dir,
-            target_codebase=target_codebase,
-            scan_dirs=scan_dirs,
-            max_handler_hits_per_message=max_handler_hits_per_message,
+    total = len(disc.candidates)
+    logger.info(
+        "Vetting %d candidates (procedure_dir=%s, target_codebase=%s, scan_dirs=%s)",
+        total,
+        procedure_dir,
+        target_codebase,
+        scan_dirs,
+    )
+
+    for idx, candidate in enumerate(disc.candidates, start=1):
+        logger.info(
+            "Vetting candidate %d/%d: id=%s trigger_message=%s",
+            idx,
+            total,
+            getattr(candidate, "id", "<unknown>"),
+            getattr(candidate, "trigger_message", "<unknown>"),
         )
+        try:
+            decision = evaluate_candidate_with_expanded_context(
+                candidate,
+                procedure_dir=procedure_dir,
+                target_codebase=target_codebase,
+                scan_dirs=scan_dirs,
+                max_handler_hits_per_message=max_handler_hits_per_message,
+            )
+        except ValueError as exc:
+            logger.warning("Skipping candidate %s: %s", candidate.id, exc)
+            continue
         decisions.append(decision)
 
     feasible = sum(1 for item in decisions if item.verdict == VettingVerdict.FEASIBLE)
@@ -320,6 +421,168 @@ def vet_discovery_result(
     )
 
 
+def _run_llm_handler_search(
+    messages: list[str],
+    target_codebase: str | Path,
+    scan_dirs: list[str] | None = None,
+) -> list[dict[str, Any]]:
+    """Synchronous wrapper for _llm_search_handlers."""
+    if not messages:
+        return []
+
+    key = _handler_search_cache_key(messages, target_codebase, scan_dirs)
+    cached = _HANDLER_SEARCH_CACHE.get(key)
+    if cached is not None:
+        logger.info("Handler search cache hit (messages=%d)", len(messages))
+        return cached
+
+    try:
+        loop = asyncio.get_running_loop()
+    except RuntimeError:
+        loop = None
+
+    try:
+        if loop and loop.is_running():
+            import concurrent.futures
+
+            with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
+                future = pool.submit(
+                    asyncio.run,
+                    _llm_search_handlers(messages, target_codebase, scan_dirs),
+                )
+                results = future.result(timeout=_LLM_HANDLER_SEARCH_TIMEOUT_S)
+        else:
+            results = asyncio.run(
+                asyncio.wait_for(
+                    _llm_search_handlers(messages, target_codebase, scan_dirs),
+                    timeout=_LLM_HANDLER_SEARCH_TIMEOUT_S,
+                )
+            )
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("LLM handler search failed: %s", exc)
+        return []
+
+    _HANDLER_SEARCH_CACHE[key] = results
+    logger.info("Handler search cached (messages=%d, results=%d)", len(messages), len(results))
+    return results
+
+
+async def _llm_search_handlers(
+    messages: list[str],
+    target_codebase: str | Path,
+    scan_dirs: list[str] | None = None,
+) -> list[dict[str, Any]]:
+    """Use Claude with code-search tools to locate handlers for prior messages."""
+    from claude_agent_sdk import AssistantMessage, ClaudeAgentOptions, TextBlock, query
+
+    base = Path(target_codebase)
+    if scan_dirs:
+        scan_paths = ", ".join(str(base / d) for d in scan_dirs)
+    else:
+        scan_paths = str(base)
+
+    messages_list = "\n".join(f"  - {m}" for m in messages)
+
+    prompt = f"""You are a telecom protocol stack code analyst (5G Core / EPC).
+
+Your task: locate the **handler functions** for each of the following protocol messages
+in the target codebase. A handler is a function that is called when the protocol message
+is received and that processes / decodes / dispatches it.
+
+=== Protocol messages to locate ===
+{messages_list}
+
+=== Target codebase ===
+Scan paths: {scan_paths}
+Source file extensions: .c, .h, .cc, .cpp, .cxx, .go
+
+=== Instructions ===
+For each message:
+1. Use Grep to search for the message name and common variants (e.g. for
+   "PFCP_Session_Establishment_Request", also try "SessionEstablishmentRequest",
+   "session_establishment_request", "SESSION_ESTABLISHMENT", etc.)
+2. Use Read to examine promising matches — verify the code is an actual handler
+   (function definition that processes the message), not just a log line, comment,
+   enum constant, or unrelated reference
+3. If you find a handler, use Read to capture ~60 lines of context around the
+   handler entry point
+4. If initial search yields no results, try broader keyword substrings or check
+   dispatch tables / switch-case blocks that route messages to handlers
+
+For each handler you find, record:
+- Which message it handles
+- The file path and line number
+- The handler function name
+- A code snippet (~60 lines of context)
+
+=== Output format ===
+Respond with EXACTLY a JSON array (no other text). Each element:
+{{
+  "message": "<protocol message name>",
+  "file": "<absolute file path>",
+  "match_line": <line number of handler entry>,
+  "handler": "<function_name>",
+  "code": "<code snippet with ~60 lines of context>"
+}}
+
+If no handler is found for a message, omit it from the array.
+Return [] if nothing is found at all."""
+
+    options = ClaudeAgentOptions(
+        model=_LLM_MODEL,
+        allowed_tools=["Grep", "Glob", "Read"],
+    )
+
+    response_text = ""
+    async for message in query(prompt=prompt, options=options):
+        if isinstance(message, AssistantMessage):
+            for block in message.content:
+                if isinstance(block, TextBlock):
+                    response_text += block.text
+
+    return _parse_handler_search_results(response_text)
+
+
+def _parse_handler_search_results(response: str) -> list[dict[str, Any]]:
+    """Parse the JSON array returned by the handler search LLM."""
+    text = response.strip()
+
+    # Extract JSON array from response (handle markdown code blocks)
+    if "```" in text:
+        start = text.find("[")
+        end = text.rfind("]")
+        if start != -1 and end != -1:
+            text = text[start : end + 1]
+    elif not text.startswith("["):
+        start = text.find("[")
+        end = text.rfind("]")
+        if start != -1 and end != -1:
+            text = text[start : end + 1]
+
+    try:
+        results = json.loads(text)
+    except json.JSONDecodeError:
+        logger.warning("Failed to parse handler search results as JSON")
+        return []
+
+    if not isinstance(results, list):
+        return []
+
+    validated: list[dict[str, Any]] = []
+    for item in results:
+        if not isinstance(item, dict):
+            continue
+        if "message" in item and "file" in item:
+            validated.append({
+                "message": str(item.get("message", "")),
+                "file": str(item.get("file", "")),
+                "match_line": int(item.get("match_line", 0)),
+                "handler": str(item.get("handler", "")),
+                "code": str(item.get("code", "")),
+            })
+    return validated
+
+
 def _run_llm_vetting(
     candidate: iTrueCandidate,
     snippets: list[dict[str, Any]],
@@ -334,9 +597,14 @@ def _run_llm_vetting(
             import concurrent.futures
             with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
                 future = pool.submit(asyncio.run, _llm_security_check(candidate, snippets))
-                return future.result(timeout=120)
+                return future.result(timeout=_LLM_VETTING_TIMEOUT_S)
         else:
-            return asyncio.run(_llm_security_check(candidate, snippets))
+            return asyncio.run(
+                asyncio.wait_for(
+                    _llm_security_check(candidate, snippets),
+                    timeout=_LLM_VETTING_TIMEOUT_S,
+                )
+            )
     except Exception as exc:  # noqa: BLE001
         logger.warning("LLM vetting failed for candidate %s: %s", candidate.id, exc)
         return False, f"LLM vetting error: {exc}"
@@ -362,17 +630,27 @@ async def _llm_security_check(
     prompt = f"""You are a security code auditor performing vulnerability feasibility analysis
 on a telecom protocol stack implementation (e.g. 5G Core / EPC).
 
-Below is a candidate vulnerability and all code snippets from the target codebase
-that handle **prior protocol messages** — i.e. messages that the implementation
-processes BEFORE the trigger message arrives.
+Below is a candidate vulnerability and code snippets from the target codebase that
+handle **prior protocol messages** — i.e. messages that the implementation processes
+BEFORE the trigger message arrives.
 
-Your task: determine whether ANY of these code snippets contain **validation,
+Your task: determine whether the prior-message handlers contain **validation,
 sanitization, bounds checking, or other defensive logic** that would **prevent
 the dangerous operation from being triggered** when the trigger message carrying
 the malicious IE field is later processed.
 
-Specifically look for:
-- Input validation or sanitization on the IE field (or its parent IE / structure)
+=== Tools available ===
+You have Grep, Glob, and Read tools. Use them to:
+- Follow function calls in the snippets to their implementations (e.g. if a snippet
+  calls validate_ie(), use Grep to find that function and Read to examine it)
+- Search for additional validation logic beyond the provided snippets (e.g. shared
+  validation functions, common check macros, decoder-level constraints)
+- Read more context around a snippet when 60 lines is not enough to determine
+  whether a check exists
+- Trace the call chain from the candidate vulnerability to verify the data flow
+
+=== What counts as BLOCKING ===
+- Input validation on the IE field (or its parent IE / structure)
   performed during an earlier message handler
 - Length / bounds / range checks that reject or clamp the field value before it
   can reach the dangerous operation (buffer copy, memory allocation, pointer
@@ -384,7 +662,7 @@ Specifically look for:
 - Any conditional guard (if / switch / assert) whose failure path returns an
   error, sends a reject response, or aborts processing
 
-Do NOT count as blocking:
+=== What does NOT count as BLOCKING ===
 - Logging, tracing, or debug-only statements
 - Checks on completely unrelated IEs or fields
 - Validation that happens AFTER the dangerous operation has already executed
@@ -397,17 +675,22 @@ Do NOT count as blocking:
 - Data flow       : {candidate.data_flow}
 - Call chain      : {' -> '.join(candidate.call_chain)}
 
-=== Prior-message code snippets ===
+=== Prior-message code snippets (starting point) ===
 {code_block}
 
-Respond with EXACTLY this format (no other text):
+=== Instructions ===
+1. First review the provided snippets for obvious validation logic
+2. Use Grep/Read to follow any function calls that might contain validation
+3. Search for the IE field name in the codebase to find additional checks
+4. After your analysis, respond with EXACTLY this format as your final answer:
+
 VERDICT: BLOCKED or VERDICT: NOT_BLOCKED
 REASON: <one-sentence explanation of what validation exists or why it is absent>
 """
 
     options = ClaudeAgentOptions(
-        model="claude-haiku-4-5-20251001",
-        allowed_tools=[],
+        model=_LLM_MODEL,
+        allowed_tools=["Grep", "Glob", "Read"],
     )
 
     response_text = ""

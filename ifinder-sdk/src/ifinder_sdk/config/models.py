@@ -139,15 +139,15 @@ class AttackVectorDocument(BaseModel):
     protocol_messages: dict[str, ProtocolMessageSpec]
 
 
-class CrashLocation(BaseModel):
+class TriggerLocation(BaseModel):
     file: str
     line: int
     function: str
 
 
-class CrashEvidence(BaseModel):
+class TriggerEvidence(BaseModel):
     type: str
-    location: CrashLocation
+    location: TriggerLocation
     log_snippet: list[str] = Field(default_factory=list)
 
 
@@ -156,7 +156,7 @@ class ExploitationResult(BaseModel):
     validation_result: ExploitationVerdict
     timestamp: datetime
     attempts: int
-    crash_evidence: CrashEvidence | None = None
+    trigger_evidence: TriggerEvidence | None = None
     poc_path: str | None = None
     failure_analysis: str | None = None
     refinements_attempted: list[str] | None = None
