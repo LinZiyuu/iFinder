@@ -47,6 +47,21 @@
 
 We have responsibly disclosed these vulnerabilities to the affected implementation maintainers. The specific CVE IDs are available at https://linziyuu.github.io/iFinder-Website/
 
+## License
+
+The iFinder code and artifacts authored by us — `src/`, `scripts/`, `pattern/`,
+`procedure/`, `schema/`, `scope/`, and `dataset/` — are released under the
+[PolyForm Noncommercial License 1.0.0](https://polyformproject.org/licenses/noncommercial/1.0.0/).
+You may use, modify, and share them for **noncommercial purposes only**
+(e.g. academic research and teaching). Commercial use requires separate
+permission — contact ziyu.lin@ntu.edu.sg.
+
+The third-party core-network codebases under `target/` and the testbeds under
+`testbed/` are **not** covered by this license. They remain under their
+respective upstream licenses, including AGPL-3.0 (Open5GS), the OAI Public
+License / CSSL (OpenAirInterface), and Apache-2.0 (free5GC, eUPF, SD-Core).
+See each subdirectory's own LICENSE file.
+
 # Citation
 ```bibtex
 @article{lin2026understanding,
