@@ -1,0 +1,9 @@
+# CODEOWNERS
+src/udr_app:
+ - Tien Thinh NGUYEN, Eurecom
+ - Robert SCHMIDT, Eurecom
+ - Raphael DEFOSSEUX, OSA
+ - Stefan SPETTEL, phine.tech
+ - Lukas ROTHENEDER, phine.tech
+ - Sebastien ROUX, Eurecom  
+ - Lionel Gauthier, Eurecom

@@ -1,0 +1,33 @@
+# SPDX-License-Identifier: MIT
+
+#---------------------------------------------------------------------
+#
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+   name: oai-udr
+spec:
+  lookupPolicy:
+    local: true
+---
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: "oai-udr"
+spec:
+    runPolicy: "Serial"
+    source:
+        git:
+            uri: "https://gitlab.eurecom.fr/oai/cn5g/oai-cn5g-udr.git"
+            ref: "develop"
+        secrets:
+          - secret:
+              name: etc-pki-entitlement
+            destinationDir: etc-pki-entitlement
+    strategy:
+        dockerStrategy:
+            dockerfilePath: "docker/Dockerfile.udr.rhel9"
+    output:
+        to:
+            kind: "ImageStreamTag"
+            name: "oai-udr:develop"

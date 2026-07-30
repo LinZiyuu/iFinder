@@ -1,0 +1,13 @@
+build/amf/build
+tags
+*.log
+archives/
+*.html
+*.swp
+.vscode
+
+amf.conf.dev
+amf.entrypoint.sh
+
+# Packet Capture
+*.pcap

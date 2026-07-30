@@ -1,0 +1,36 @@
+{
+  "message_name": "ModifyBearerCommand",
+  "Direction": "MME/SGSN -> SGW -> PGW (S11/S4/S5/S8)",
+  "ies": [
+    {
+      "name": "AggregateMaximumBitRate",
+      "requirement": "Mandatory",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "BearerContext",
+      "requirement": "Mandatory",
+      "multiplicity": "Single",
+      "is_grouped": true
+    },
+    {
+      "name": "OverloadControlInformation",
+      "requirement": "Optional",
+      "multiplicity": "Single",
+      "is_grouped": true
+    },
+    {
+      "name": "FullyQualifiedTEID",
+      "requirement": "Conditional-Optional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "PrivateExtension",
+      "requirement": "Optional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    }
+  ]
+}

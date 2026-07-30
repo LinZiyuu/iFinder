@@ -1,0 +1,23 @@
+# SPDX-License-Identifier: MIT
+
+# ---------------------------------------------------------------------
+#
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: "traffic-build-cfg"
+  namespace: oaicicd-core
+spec:
+  output:
+    to:
+      kind: ImageStreamTag
+      name: oai-traffic-gen:latest
+  runPolicy: Serial
+  source:
+    dockerfile: "FROM quay.io/fedora/fedora-minimal\nRUN microdnf install -y \\\n             iputils \\\n             iperf3 \\\n
+      \            iperf \\\n    tcpdump \\\n     tar \\\n   rsync \\\n     iproute \\\n             net-tools \\\n
+      \            procps-ng\n"
+    type: Dockerfile
+  strategy:
+    dockerStrategy: {}
+    type: Docker

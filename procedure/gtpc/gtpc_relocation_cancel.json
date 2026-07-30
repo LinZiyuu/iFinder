@@ -1,0 +1,25 @@
+{
+  "procedure_id": "GTPC_Relocation_Cancel",
+  "direction": "Source MME/SGSN <-> Target MME/SGSN",
+  "dependency_procedures": [
+    "GTPC_Forward_Relocation"
+  ],
+  "message_flow": [
+    {
+      "seq": 1,
+      "from": "Source MME/SGSN",
+      "to": "Target MME/SGSN",
+      "message": "RelocationCancelRequest",
+      "mandatory_ies": []
+    },
+    {
+      "seq": 2,
+      "from": "Target MME/SGSN",
+      "to": "Source MME/SGSN",
+      "message": "RelocationCancelResponse",
+      "mandatory_ies": [
+        "Cause"
+      ]
+    }
+  ]
+}

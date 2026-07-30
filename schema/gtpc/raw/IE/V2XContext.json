@@ -1,0 +1,19 @@
+{
+  "ie_name": "V2XContext",
+  "ie_type_id": 208,
+  "is_grouped": true,
+  "sub_ies": [
+    {
+      "name": "ServicesAuthorized",
+      "ie_type_id": 210
+    },
+    {
+      "name": "BitRate",
+      "ie_type_id": 211
+    },
+    {
+      "name": "PC5QoSParameters",
+      "ie_type_id": 209
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+# Default values for smf
+
+image:
+  registry: ghcr.io
+  repository: borjis131/smf
+  tag: "v2.7.5"
+  pullPolicy: IfNotPresent
+
+services:
+  pfcp:
+    type: ClusterIP
+    #type: LoadBalancer
+    #loadBalancerIP: 10.33.0.3
+    #provider: MetalLB
+
+config: {}
+
+global:
+  networkFunctions:
+    upf: []
+  containerPorts:
+    sbi: 80
+  mobileNetwork:
+    dataNetwork:
+      subnet: 10.45.0.0/16
+      gateway: 10.45.0.1
+      dnn: internet

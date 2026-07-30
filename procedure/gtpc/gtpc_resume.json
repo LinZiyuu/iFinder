@@ -1,0 +1,27 @@
+{
+  "procedure_id": "GTPC_Resume",
+  "direction": "SGSN/MME <-> SGW",
+  "dependency_procedures": [
+    "GTPC_Create_Session"
+  ],
+  "message_flow": [
+    {
+      "seq": 1,
+      "from": "SGSN/MME",
+      "to": "SGW",
+      "message": "ResumeNotification",
+      "mandatory_ies": [
+        "IMSI"
+      ]
+    },
+    {
+      "seq": 2,
+      "from": "SGW",
+      "to": "SGSN/MME",
+      "message": "ResumeAcknowledge",
+      "mandatory_ies": [
+        "Cause"
+      ]
+    }
+  ]
+}

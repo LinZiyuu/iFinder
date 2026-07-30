@@ -1,0 +1,151 @@
+#/*
+# * SPDX-License-Identifier: LicenseRef-CSSL-1.0
+# */
+
+#---------------------------------------------------------------------
+#
+# Dockerfile for the Open-Air-Interface NSSF service
+#   Valid for Ubuntu-20.04 (focal),
+#             Ubuntu-22.04 (jammy)
+#
+#---------------------------------------------------------------------
+
+#---------------------------------------------------------------------
+# BASE IMAGE
+#---------------------------------------------------------------------
+ARG BASE_IMAGE=ubuntu:jammy
+FROM $BASE_IMAGE AS oai-nssf-base
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV TZ=Europe/Paris
+ENV IS_DOCKERFILE=1
+RUN apt-get update && \
+    DEBIAN_FRONTEND=noninteractive apt-get upgrade --yes && \
+    DEBIAN_FRONTEND=noninteractive apt-get install --yes \
+      psmisc \
+      git \
+  && rm -rf /var/lib/apt/lists/*
+
+# Some GIT configuration command quite useful
+RUN git config --global https.postBuffer 123289600 && \
+    git config --global http.sslverify false
+
+# Copying source code
+WORKDIR /openair-nssf
+COPY ./build/scripts /openair-nssf/build/scripts/
+COPY ./build/common-build /openair-nssf/build/common-build
+COPY ./build/nssf/CMakeLists.txt /openair-nssf/build/nssf/CMakeLists.txt
+
+# Installing all the needed libraries/packages to build and run NSSF
+WORKDIR /openair-nssf/build/scripts
+RUN ./build_nssf --install-deps --force && \
+    ldconfig
+
+
+#---------------------------------------------------------------------
+# BUILDER IMAGE
+#---------------------------------------------------------------------
+FROM oai-nssf-base AS oai-nssf-builder
+# Copying source code
+COPY . /openair-nssf
+# Building NSSF
+WORKDIR /openair-nssf/build/scripts
+RUN ./build_nssf --clean --Verbose --build-type Release --jobs && \
+    ldd /openair-nssf/build/nssf/build/nssf && \
+    mv /openair-nssf/build/nssf/build/nssf /openair-nssf/build/nssf/build/oai_nssf
+
+#---------------------------------------------------------------------
+# TARGET IMAGE
+#---------------------------------------------------------------------
+FROM $BASE_IMAGE AS oai-nssf
+ARG TARGETPLATFORM
+ARG VERSION=v4.47.1
+ENV TARGETPLATFORM=${TARGETPLATFORM}
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV TZ=Europe/Paris
+# We install some debug tools for the moment in addition of mandatory libraries
+RUN apt-get update && \
+    DEBIAN_FRONTEND=noninteractive apt-get upgrade --yes && \
+    DEBIAN_FRONTEND=noninteractive apt-get install --yes \
+# Debug Tools that are not mandatory
+      tzdata \
+      psmisc \
+      net-tools \
+      tcpdump \
+      iputils-ping \
+      bc \
+      wget \
+# Mandatory packages for the NF to run
+      openssl \
+# Ubuntu 20 --> libasan5
+# Ubuntu 22 --> libasan6
+#      libasan? \
+# Ubuntu 20 --> boost71
+# Ubuntu 22 --> boost74
+      libboost-thread1.7?.0 \
+      libcurl4-gnutls-dev \
+      librtmp1 \
+      libpsl5 \
+# Ubuntu 20 --> libyaml-cpp 0.6
+# Ubuntu 22 --> libyaml-cpp 0.7
+      libyaml-cpp0.? \
+  && rm -rf /var/lib/apt/lists/*
+
+# Copying executable and generated libraries
+WORKDIR /openair-nssf/bin
+COPY --from=oai-nssf-builder \
+    /openair-nssf/build/nssf/build/oai_nssf \
+    /openair-nssf/scripts/healthcheck.sh \
+    ./
+
+RUN echo "Target platform is: ${TARGETPLATFORM}" && \
+    case "${TARGETPLATFORM}" in \
+      "linux/amd64") BINARY="yq_linux_amd64"; ;; \
+      "linux/arm64") BINARY="yq_linux_arm64"; ;; \
+      *) echo "Unsupported platform"; exit 1; ;; \
+    esac && \
+    wget https://github.com/mikefarah/yq/releases/download/${VERSION}/${BINARY} -O /usr/bin/yq && \
+    chmod +x /usr/bin/yq
+
+WORKDIR /usr/local/lib/
+COPY --from=oai-nssf-builder \
+# Copying only the packages built from source
+    /usr/local/lib/libpistache.so \
+    /usr/local/lib/libnghttp2.so.14 \
+    /usr/local/lib/libnghttp2_asio.so.1 \
+    /usr/local/lib/libyaml-cpp.so.0.? \
+    /usr/local/lib/libfmt.so \
+    ./
+
+RUN ldconfig && \
+    ldd /openair-nssf/bin/oai_nssf
+
+# Copying template configuration files
+# The configuration folder will be flat
+WORKDIR /openair-nssf/etc
+COPY --from=oai-nssf-builder \
+    /openair-nssf/etc/config.yaml \
+    /openair-nssf/etc/nssf_slice_config.yaml \
+    ./
+
+WORKDIR /openair-nssf
+
+ARG GIT_COMMIT
+
+LABEL org.opencontainers.image.authors="OpenAirInterface <contact@openairinterface.org>" \
+      org.opencontainers.image.vendor="OpenAirInterface Software Alliance" \
+      org.opencontainers.image.licenses="Collaborative Standards Software License v1.0" \
+      org.opencontainers.image.title="OAI NSSF" \
+      org.opencontainers.image.description="OpenAirInterface Network Slicing Selection Function" \
+      org.opencontainers.image.revision="commit:${GIT_COMMIT}"
+
+
+EXPOSE 80/tcp 8080/tcp
+# healthcheck
+HEALTHCHECK --interval=10s \
+            --timeout=15s \
+            --retries=6 \
+    CMD /openair-nssf/bin/healthcheck.sh
+
+CMD ["/openair-nssf/bin/oai_nssf", "-c", "/openair-nssf/etc/config.yaml", "-o"]

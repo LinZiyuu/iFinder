@@ -1,0 +1,49 @@
+{
+  "procedure_id": "GTPC_Dedicated_Bearer_Activation",
+  "direction": "PGW <-> SGW <-> MME/SGSN",
+  "dependency_procedures": [
+    "GTPC_Create_Session"
+  ],
+  "message_flow": [
+    {
+      "seq": 1,
+      "from": "PGW",
+      "to": "SGW",
+      "message": "CreateBearerRequest",
+      "mandatory_ies": [
+        "EPSBearerID",
+        "BearerContext"
+      ]
+    },
+    {
+      "seq": 2,
+      "from": "SGW",
+      "to": "MME/SGSN",
+      "message": "CreateBearerRequest",
+      "mandatory_ies": [
+        "EPSBearerID",
+        "BearerContext"
+      ]
+    },
+    {
+      "seq": 3,
+      "from": "MME/SGSN",
+      "to": "SGW",
+      "message": "CreateBearerResponse",
+      "mandatory_ies": [
+        "Cause",
+        "BearerContext"
+      ]
+    },
+    {
+      "seq": 4,
+      "from": "SGW",
+      "to": "PGW",
+      "message": "CreateBearerResponse",
+      "mandatory_ies": [
+        "Cause",
+        "BearerContext"
+      ]
+    }
+  ]
+}

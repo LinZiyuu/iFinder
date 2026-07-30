@@ -1,0 +1,22 @@
+{
+  "slice-name": "slice1",
+  "slice-id": {
+    "sst": "1",
+    "sd": "010203"
+  },
+  "site-device-group": ["internet"],
+  "site-info": {
+    "site-name": "site1",
+    "plmn": {
+      "mcc": "208",
+      "mnc": "93"
+    },
+    "gNodeBs": [
+      { "name": "gnb1", "tac": 1 }
+    ],
+    "upf": {
+      "upf-name": "upf",
+      "upf-port": "8805"
+    }
+  }
+}

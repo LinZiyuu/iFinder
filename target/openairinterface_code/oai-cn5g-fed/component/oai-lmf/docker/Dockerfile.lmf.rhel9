@@ -1,0 +1,144 @@
+#/*
+# * SPDX-License-Identifier: LicenseRef-CSSL-1.0
+# */
+
+#---------------------------------------------------------------------
+#
+# Dockerfile for the Open-Air-Interface LMF service
+#   Valid for UBI 9.x | RHEL 9.x
+#
+#---------------------------------------------------------------------
+
+#---------------------------------------------------------------------
+# BUILDER IMAGE
+#---------------------------------------------------------------------
+FROM registry.redhat.io/ubi9/ubi:latest AS oai-lmf-builder
+ARG EPEL_URL
+ENV EPEL_URL=${EPEL_URL}
+ENV IS_DOCKERFILE=1
+
+# Copy the entitlements
+COPY ./etc-pki-entitlement /etc/pki/entitlement
+
+RUN rm -f /etc/rhsm-host && \
+    subscription-manager repos --enable codeready-builder-for-rhel-9-x86_64-rpms && \
+    dnf update -y --allowerasing --skip-broken --nobest && \
+    # here just to display the current version
+    cat /etc/os-release && \
+    dnf install -y \
+        psmisc \
+        git \
+        diffutils \
+        libasan \
+        wget \
+        file \
+        lapack-devel \
+        openblas-devel && \
+    echo "/usr/local/lib" > /etc/ld.so.conf.d/local-lib.conf && \
+    echo "/usr/local/lib64" >> /etc/ld.so.conf.d/local-lib.conf
+
+ARG YQ_VERSION=v4.47.1
+RUN case $(uname -m) in \
+        x86_64)  YQ_BIN="yq_linux_amd64" ;; \
+        aarch64) YQ_BIN="yq_linux_arm64" ;; \
+        *) echo "Unsupported arch"; exit 1 ;; \
+    esac && \
+    wget https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/${YQ_BIN} -O /usr/local/bin/yq && \
+    chmod +x /usr/local/bin/yq
+
+# Some GIT configuration command quite useful
+RUN git config --global https.postBuffer 123289600 && \
+    git config --global https.maxRequestBuffer 123289600 && \
+    git config --global core.compression 0 && \
+    git config --global http.sslverify false
+
+# Copying source code
+WORKDIR /openair-lmf
+COPY . /openair-lmf
+
+# Installing and Building LMF
+WORKDIR /openair-lmf/build/scripts
+RUN ./build_lmf --install-deps --force && \
+    ldconfig
+RUN ./build_lmf --clean --Verbose --build-type Release --jobs && \
+    ldd /openair-lmf/build/lmf/build/lmf && \
+    mv /openair-lmf/build/lmf/build/lmf /openair-lmf/build/lmf/build/oai_lmf && \
+    # Remove entitlements and Subscription Manager configs
+    rm -rf /etc/pki/entitlement
+
+#---------------------------------------------------------------------
+# TARGET IMAGE
+#---------------------------------------------------------------------
+FROM registry.redhat.io/ubi9/ubi-minimal:latest as oai-lmf
+ENV TZ=Europe/Paris
+
+# Copy the entitlements
+COPY ./etc-pki-entitlement /etc/pki/entitlement
+# Copy the subscription manager configurations
+COPY --from=oai-lmf-builder /etc/rhsm /etc/rhsm
+
+# We install some debug tools for the moment in addition of mandatory libraries
+RUN rm -f /etc/rhsm-host && \
+    microdnf update -y && \
+    microdnf install -y \
+      python3 \
+      python3-pip \
+      tzdata \
+#      libasan \
+      procps-ng \
+      psmisc \
+      net-tools \
+      libicu \
+      boost \
+      libevent \
+      findutils \
+      libconfig \
+      openblas \
+      lapack && \
+    pip3 install jinja2 && \
+    microdnf clean all -y && \
+    rm -rf /var/cache/yum /var/cache/dnf && \
+    # Remove entitlements and Subscription Manager configs
+    rm -rf /etc/pki/entitlement && \
+    rm -rf /etc/rhsm
+
+# Copying executable and generated libraries
+WORKDIR /openair-lmf/bin
+COPY --from=oai-lmf-builder \
+    /openair-lmf/build/lmf/build/oai_lmf \
+    /openair-lmf/scripts/healthcheck.sh \
+    ./
+COPY --from=oai-lmf-builder /usr/local/bin/yq /usr/bin/yq
+
+WORKDIR /usr/lib64
+COPY --from=oai-lmf-builder \
+# Copying only the packages built from source
+    /usr/local/lib64/libpistache.so.0 \
+    /usr/local/lib/libnghttp2_asio.so \
+    /usr/local/lib/libnghttp2_asio.so.1 \
+    /usr/local/lib64/libspdlog.so \
+    /usr/local/lib64/libfmt.so \
+    /usr/local/lib64/libyaml-cpp.so.0.? \
+    /usr/local/lib64/libcpr.so.1 \
+    /usr/lib64/
+
+RUN ldconfig -v && \
+    echo "Checking target oai_lmf executable shared libraries" && \
+    ldd /openair-lmf/bin/oai_lmf
+
+WORKDIR /openair-lmf/etc
+COPY --from=oai-lmf-builder \
+    /openair-lmf/etc/config.yaml \
+    .
+
+WORKDIR /openair-lmf
+
+# expose ports
+EXPOSE 80/tcp
+# healthcheck
+HEALTHCHECK --interval=10s \
+            --timeout=15s \
+            --retries=6 \
+    CMD /openair-lmf/bin/healthcheck.sh
+
+CMD ["/openair-lmf/bin/oai_lmf", "-c" , "/openair-lmf/etc/config.yaml", "-o"]

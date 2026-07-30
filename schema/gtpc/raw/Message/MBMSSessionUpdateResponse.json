@@ -1,0 +1,36 @@
+{
+  "message_name": "MBMSSessionUpdateResponse",
+  "Direction": "MME/SGSN -> MBMS GW (Sm/Sn)",
+  "ies": [
+    {
+      "name": "Cause",
+      "requirement": "Mandatory",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "Recovery",
+      "requirement": "Conditional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "FullyQualifiedTEID",
+      "requirement": "Conditional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "MBMSDistributionAcknowledge",
+      "requirement": "Conditional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "PrivateExtension",
+      "requirement": "Optional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    }
+  ]
+}

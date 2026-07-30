@@ -1,0 +1,25 @@
+{
+  "procedure_id": "GTPC_Path_Management",
+  "direction": "GTP-C Node <-> GTP-C Node",
+  "dependency_procedures": [],
+  "message_flow": [
+    {
+      "seq": 1,
+      "from": "GTP-C Node A",
+      "to": "GTP-C Node B",
+      "message": "EchoRequest",
+      "mandatory_ies": [
+        "Recovery"
+      ]
+    },
+    {
+      "seq": 2,
+      "from": "GTP-C Node B",
+      "to": "GTP-C Node A",
+      "message": "EchoResponse",
+      "mandatory_ies": [
+        "Recovery"
+      ]
+    }
+  ]
+}

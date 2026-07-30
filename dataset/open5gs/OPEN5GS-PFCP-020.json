@@ -1,0 +1,57 @@
+{
+  "id": "OPEN5GS-PFCP-020",
+  "aliases": [
+    "GH-3642"
+  ],
+  "source": {
+    "paper_ref": null,
+    "issue_url": "https://github.com/open5gs/open5gs/issues/3642",
+    "fix_pr_url": null,
+    "cve": null,
+    "disclosure_date": "2024-12-20",
+    "reporter": "open5gs#3642 author"
+  },
+  "target": {
+    "project": "open5gs",
+    "nf": "UPF",
+    "interface": "N4/PFCP",
+    "vuln_version": "v2.7.2",
+    "vuln_commit": "v2.7.2",
+    "build": "default (memory corruption from off-by-one; ASan recommended for clean detection)",
+    "config": "configs/open5gs/upf.yaml",
+    "docker_image": null
+  },
+  "classification": {
+    "cwe": "CWE-787",
+    "vuln_type": "out-of-bounds write (URR ID off-by-one as array index)",
+    "ifinder_pattern": "PB1",
+    "impact": "DoS / memory corruption (UPF crash after ~16 URRs per session)"
+  },
+  "trigger": {
+    "procedure": "Session Establishment + URR accounting (over time)",
+    "message": "Per-session sequence that creates 16 URRs (e.g., 16 phone calls / 16 QoS-flow establishments)",
+    "ie_path": "Create URR (repeated 16 times within one session)",
+    "field": "urr->id value used directly as array index into sess->urr_acc[]. The URR ID allocator returns ids in [1..OGS_MAX_NUM_OF_URR=16] (per lib/pfcp/context.c ogs_pfcp_urr_add post-condition), but the consumer src/upf/context.c upf_sess_urr_acc_add does `&sess->urr_acc[urr->id]` \u2014 and urr_acc[] is sized 16 with valid indices [0..15]. When urr->id == 16, indexing past the array end overwrites adjacent memory. PB1 'Invalid Value' (ID outside the consumer's valid array-index range, used directly as the index).",
+    "precondition": "PFCP association + session established; 16 URRs created in the SAME session and at least the 16th URR exercised (any traffic that triggers upf_sess_urr_acc_add)"
+  },
+  "ground_truth": {
+    "crash_site": {
+      "file": "src/upf/context.c",
+      "line": null,
+      "function": "upf_sess_urr_acc_add"
+    },
+    "sanitizer": null,
+    "crash_type": "heap-buffer-overflow (CWE-787 OOB write of urr_acc fields total_octets / ul_octets / dl_octets / ts when urr->id == 16). Surfaces eventually as a secondary 'Unknown type [...]' or '_gtpv1_u_recv_cb: should not be reached' fatal once corrupted memory is read.",
+    "root_cause": {
+      "file": "lib/pfcp/context.c",
+      "line": null,
+      "function": "ogs_pfcp_urr_add",
+      "note": "Off-by-one mismatch between allocator (ogs_pfcp_urr_add asserts urr->id > 0 && urr->id <= 16) and consumer (upf_sess_urr_acc_add indexes urr_acc[urr->id], array sized 16). Reporter's proposed fix: change consumer to `urr_acc[urr->id - 1]`."
+    },
+    "call_stack": [
+      "upf_sess_urr_acc_add src/upf/context.c",
+      "(URR usage report path on GTP-U traffic) src/upf/",
+      "(secondary surfacing) _gtpv1_u_recv_cb 'should not be reached'"
+    ]
+  }
+}

@@ -1,0 +1,4983 @@
+/*
+ * SPDX-License-Identifier: LicenseRef-CSSL-1.0
+ */
+
+#include "smf_context.hpp"
+
+#include <algorithm>
+#include <boost/algorithm/string.hpp>
+#include <memory>
+
+#include "3gpp_24.501.hpp"
+#include "3gpp_29.500.h"
+#include "3gpp_29.502.h"
+#include "3gpp_commons.h"
+#include "Cause.hpp"
+#include "EventNotification.h"
+#include "PduSessionModificationCommandReject.hpp"
+#include "PduSessionModificationRequest.hpp"
+#include "PduSessionResourceSetupResponseTransfer.hpp"
+#include "PduSessionType.h"
+#include "PlmnId.h"
+#include "QosFlowPerTnlInformation.hpp"
+#include "RefToBinaryData.h"
+#include "SmContextCreatedData.h"
+#include "SmContextUpdateError.h"
+#include "SmPolicyContextData.h"
+#include "SmPolicyDecision.h"
+#include "SmPolicyDeleteData.h"
+#include "SmPolicyUpdateContextData.h"
+#include "Snssai.h"
+#include "_5gsmCause.hpp"
+#include "common_defs.hpp"
+#include "conversions.h"
+#include "http_client.hpp"
+#include "itti.hpp"
+#include "logger.hpp"
+#include "smf_sbi_helper.hpp"
+#include "smf_3gpp_conversions.hpp"
+#include "smf_app.hpp"
+#include "smf_config.hpp"
+#include "smf_event.hpp"
+#include "smf_n1.hpp"
+#include "smf_n2.hpp"
+#include "smf_n7.hpp"
+#include "smf_paa_dynamic.hpp"
+#include "smf_pfcp_association.hpp"
+#include "smf_procedure.hpp"
+#include "smf_sbi.hpp"
+#include "string.hpp"
+#include "utils.hpp"
+#include "mime_parser.hpp"
+#include "http_definitions.hpp"
+#include "fqdn.hpp"
+
+using namespace oai::app::smf;
+using namespace oai::utils;
+using namespace oai::utils::sdf_conversions;
+using namespace oai::common::sbi;
+using namespace oai::ngap;
+
+extern itti_mw* itti_inst;
+extern smf_sbi* smf_sbi_inst;
+extern oai::app::smf::smf_app* smf_app_inst;
+extern std::unique_ptr<oai::config::smf::smf_config> smf_cfg;
+
+//------------------------------------------------------------------------------
+void smf_pdu_session::get_pdu_session_id(uint32_t& psi) const {
+  psi = pdu_session_id;
+}
+
+//------------------------------------------------------------------------------
+uint32_t smf_pdu_session::get_pdu_session_id() const {
+  return pdu_session_id;
+}
+
+//------------------------------------------------------------------------------
+void smf_pdu_session::set(const paa_t& paa) {
+  switch (paa.pdu_session_type.pdu_session_type) {
+    case PDU_SESSION_TYPE_E_IPV4:
+      ipv4                              = true;
+      ipv6                              = false;
+      ipv4_address                      = paa.ipv4_address;
+      pdu_session_type.pdu_session_type = paa.pdu_session_type.pdu_session_type;
+      break;
+    case PDU_SESSION_TYPE_E_IPV6:
+      ipv4                              = false;
+      ipv6                              = true;
+      ipv6_address                      = paa.ipv6_address;
+      pdu_session_type.pdu_session_type = paa.pdu_session_type.pdu_session_type;
+      break;
+    case PDU_SESSION_TYPE_E_IPV4V6:
+      ipv4                              = true;
+      ipv6                              = true;
+      ipv4_address                      = paa.ipv4_address;
+      ipv6_address                      = paa.ipv6_address;
+      pdu_session_type.pdu_session_type = paa.pdu_session_type.pdu_session_type;
+      break;
+    case PDU_SESSION_TYPE_E_UNSTRUCTURED:
+    case PDU_SESSION_TYPE_E_ETHERNET:
+    case PDU_SESSION_TYPE_E_RESERVED:
+      ipv4                              = false;
+      ipv6                              = false;
+      pdu_session_type.pdu_session_type = paa.pdu_session_type.pdu_session_type;
+      break;
+    default:
+      Logger::smf_app().error(
+          "smf_pdu_session::set(paa_t) Unknown PDN type %d",
+          paa.pdu_session_type.pdu_session_type);
+  }
+}
+
+//------------------------------------------------------------------------------
+void smf_pdu_session::get_paa(paa_t& paa) {
+  switch (pdu_session_type.pdu_session_type) {
+    case PDU_SESSION_TYPE_E_IPV4:
+      ipv4             = true;
+      ipv6             = false;
+      paa.ipv4_address = ipv4_address;
+      break;
+    case PDU_SESSION_TYPE_E_IPV6:
+      ipv4             = false;
+      ipv6             = true;
+      paa.ipv6_address = ipv6_address;
+      break;
+    case PDU_SESSION_TYPE_E_IPV4V6:
+      ipv4             = true;
+      ipv6             = true;
+      paa.ipv4_address = ipv4_address;
+      paa.ipv6_address = ipv6_address;
+      break;
+    case PDU_SESSION_TYPE_E_UNSTRUCTURED:
+    case PDU_SESSION_TYPE_E_ETHERNET:
+    case PDU_SESSION_TYPE_E_RESERVED:
+      ipv4 = false;
+      ipv6 = false;
+      break;
+    default:
+      Logger::smf_app().error(
+          "smf_pdu_session::get_paa (paa_t) Unknown PDN type %d",
+          pdu_session_type.pdu_session_type);
+  }
+  paa.pdu_session_type.pdu_session_type = pdu_session_type.pdu_session_type;
+}
+
+//------------------------------------------------------------------------------
+void smf_pdu_session::deallocate_ressources(const std::string& dnn) {
+  m_session_handler->deallocate_resources();
+
+  if (ipv4) {
+    paa_dynamic::get_instance().release_paa(dnn, ipv4_address);
+  }
+  clear();
+  Logger::smf_app().info(
+      "Resources associated with this PDU Session have been released");
+}
+
+void smf_pdu_session::set_seid(const uint64_t& s) {
+  seid = s;
+}
+
+//------------------------------------------------------------------------------
+std::string smf_pdu_session::toString() const {
+  std::string s = {};
+
+  bool is_released = false;
+  if (pdu_session_status == pdu_session_status_t::Inactive) is_released = true;
+  if (!is_released) {
+    s.append("\tPDU Session ID:\t\t\t")
+        .append(std::to_string((uint8_t) pdu_session_id))
+        .append("\n");
+    s.append("\tDNN:\t\t\t").append(dnn).append("\n");
+    s.append("\tS-NSSAI:\t\t\t").append(snssai.toString()).append("\n");
+    s.append("\tPDN type:\t\t")
+        .append(pdu_session_type.to_string())
+        .append("\n");
+  }
+  if (ipv4)
+    s.append("\tPAA IPv4:\t\t")
+        .append(conv::toString(ipv4_address))
+        .append("\n");
+  if (ipv6)
+    s.append("\tPAA IPv6:\t\t")
+        .append(conv::toString(ipv6_address))
+        .append("\n");
+  if (default_qfi.qfi) {
+    s.append("\tDefault QFI:\t\t")
+        .append(std::to_string(default_qfi.qfi))
+        .append("\n");
+  } else {
+    s.append("\tDefault QFI:\t\t").append("No QFI available").append("\n");
+  }
+  if (!is_released) {
+    s.append("\tSEID:\t\t\t").append(std::to_string(seid)).append("\n");
+  }
+
+  if (m_session_handler->has_session_graph()) {
+    s.append(m_session_handler->get_session_graph()->to_string("\t"));
+  }
+
+  if (policy_ptr) {
+    s.append("\t Policy Decision:").append("\n");
+    s.append(policy_ptr->toString());
+  }
+
+  return s;
+}
+
+//------------------------------------------------------------------------------
+void smf_pdu_session::set_pdu_session_status(const uint8_t& status) {
+  // TODO: Should consider congestion handling
+  Logger::smf_app().info(
+      "Set PDU Session Status to %s", get_pdu_session_status_str(status));
+  std::unique_lock lock(m_pdu_session_mutex);
+  pdu_session_status = status;
+}
+
+//------------------------------------------------------------------------------
+uint8_t smf_pdu_session::get_pdu_session_status() const {
+  std::shared_lock lock(m_pdu_session_mutex);
+  return pdu_session_status;
+}
+
+//------------------------------------------------------------------------------
+void smf_pdu_session::set_upCnx_state(const upCnx_state_e& state) {
+  Logger::smf_app().info(
+      "Set upCnxState to %s",
+      upCnx_state_e2str.at(static_cast<int>(state)).c_str());
+  std::unique_lock lock(m_pdu_session_mutex);
+  upCnx_state = state;
+}
+
+//------------------------------------------------------------------------------
+upCnx_state_e smf_pdu_session::get_upCnx_state() const {
+  std::shared_lock lock(m_pdu_session_mutex);
+  return upCnx_state;
+}
+
+//------------------------------------------------------------------------------
+void smf_pdu_session::set_ho_state(const ho_state_e& state) {
+  Logger::smf_app().info(
+      "Set HOState to %s", ho_state_e2str.at(static_cast<int>(state)).c_str());
+  std::unique_lock lock(m_pdu_session_mutex);
+  ho_state = state;
+}
+
+//------------------------------------------------------------------------------
+ho_state_e smf_pdu_session::get_ho_state() const {
+  std::shared_lock lock(m_pdu_session_mutex);
+  return ho_state;
+}
+
+//------------------------------------------------------------------------------
+pdu_session_type_t smf_pdu_session::get_pdu_session_type() const {
+  return pdu_session_type;
+}
+
+std::shared_ptr<session_handler> smf_pdu_session::get_session_handler() const {
+  return m_session_handler;
+}
+
+//-----------------------------------------------------------------------------
+std::string smf_pdu_session::get_dnn() const {
+  return dnn;
+}
+
+//-----------------------------------------------------------------------------
+snssai_t smf_pdu_session::get_snssai() const {
+  return snssai;
+}
+
+//------------------------------------------------------------------------------
+void smf_pdu_session::set_dnn(const std::string& d) {
+  dnn = d;
+}
+
+//------------------------------------------------------------------------------
+void smf_pdu_session::set_snssai(const snssai_t s) {
+  snssai = s;
+}
+
+//------------------------------------------------------------------------------
+void smf_pdu_session::set_pending_n11_msg(
+    const std::shared_ptr<itti_sbi_msg>& msg) {
+  pending_n11_msg = msg;
+}
+
+//------------------------------------------------------------------------------
+void smf_pdu_session::get_pending_n11_msg(
+    std::shared_ptr<itti_sbi_msg>& msg) const {
+  msg = pending_n11_msg;
+}
+
+//------------------------------------------------------------------------------
+void smf_pdu_session::set_number_retransmission_T3591(const uint8_t& n) {
+  number_retransmission_T3591 = n;
+}
+
+//------------------------------------------------------------------------------
+void smf_pdu_session::get_number_retransmission_T3591(uint8_t& n) const {
+  n = number_retransmission_T3591;
+}
+
+//------------------------------------------------------------------------------
+uint8_t smf_pdu_session::get_number_retransmission_T3591() const {
+  return number_retransmission_T3591;
+}
+
+//------------------------------------------------------------------------------
+void smf_pdu_session::set_number_retransmission_T3592(const uint8_t& n) {
+  number_retransmission_T3592 = n;
+}
+
+//------------------------------------------------------------------------------
+void smf_pdu_session::get_number_retransmission_T3592(uint8_t& n) const {
+  n = number_retransmission_T3592;
+}
+
+//------------------------------------------------------------------------------
+uint8_t smf_pdu_session::get_number_retransmission_T3592() const {
+  return number_retransmission_T3592;
+}
+
+const std::vector<pfcp::framed_route_t>& smf_pdu_session::get_ipv4_frame_route()
+    const {
+  return ipv4_frame_route;
+}
+
+void smf_pdu_session::add_ipv4_frame_route(
+    const pfcp::framed_route_t& ipv4_fr) {
+  smf_pdu_session::ipv4_frame_route.push_back(ipv4_fr);
+}
+
+//------------------------------------------------------------------------------
+void session_management_subscription::insert_dnn_configuration(
+    const std::string& dnn,
+    std::shared_ptr<dnn_configuration_t>& dnn_configuration) {
+  std::unique_lock lock(m_mutex);
+  dnn_configurations.insert(
+      std::pair<std::string, std::shared_ptr<dnn_configuration_t>>(
+          dnn, dnn_configuration));
+}
+
+//------------------------------------------------------------------------------
+void session_management_subscription::find_dnn_configuration(
+    const std::string& dnn,
+    std::shared_ptr<dnn_configuration_t>& dnn_configuration) const {
+  Logger::smf_app().info("Find DNN configuration with DNN %s", dnn.c_str());
+  std::shared_lock lock(m_mutex);
+  if (dnn_configurations.count(dnn) > 0) {
+    dnn_configuration = dnn_configurations.at(dnn);
+  }
+}
+
+//------------------------------------------------------------------------------
+bool session_management_subscription::dnn_configuration(
+    const std::string& dnn) const {
+  std::shared_lock lock(m_mutex);
+  if (dnn_configurations.count(dnn) > 0) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
+//------------------------------------------------------------------------------
+void smf_context::insert_procedure(std::shared_ptr<smf_procedure>& sproc) {
+  std::unique_lock<std::recursive_mutex> lock(m_context);
+  pending_procedures.push_back(sproc);
+}
+
+//------------------------------------------------------------------------------
+bool smf_context::find_procedure(
+    const uint64_t& trxn_id, std::shared_ptr<smf_procedure>& proc) {
+  std::unique_lock<std::recursive_mutex> lock(m_context);
+  auto found = std::find_if(
+      pending_procedures.begin(), pending_procedures.end(),
+      [trxn_id](const std::shared_ptr<smf_procedure>& i) -> bool {
+        return i->trxn_id == trxn_id;
+      });
+  if (found != pending_procedures.end()) {
+    proc = *found;
+    return true;
+  }
+  return false;
+}
+
+//------------------------------------------------------------------------------
+void smf_context::remove_procedure(smf_procedure* proc) {
+  std::unique_lock<std::recursive_mutex> lock(m_context);
+  auto found = std::find_if(
+      pending_procedures.begin(), pending_procedures.end(),
+      [proc](const std::shared_ptr<smf_procedure>& i) {
+        return i.get() == proc;
+      });
+  if (found != pending_procedures.end()) {
+    pending_procedures.erase(found);
+  }
+}
+
+//------------------------------------------------------------------------------
+void smf_context::handle_itti_msg(
+    itti_n4_session_establishment_response& seresp) {
+  std::shared_ptr<smf_procedure> proc = {};
+  if (find_procedure(seresp.trxn_id, proc)) {
+    Logger::smf_app().debug(
+        "Received N4 Session Establishment Response sender teid " TEID_FMT
+        "  pfcp_tx_id %" PRIX64 "",
+        seresp.seid, seresp.trxn_id);
+    smf_procedure_code res = proc->handle_itti_msg(seresp, shared_from_this());
+    if (res != smf_procedure_code::CONTINUE) {
+      std::shared_ptr<session_create_sm_context_procedure> proc_session_create =
+          std::static_pointer_cast<session_create_sm_context_procedure>(proc);
+      send_pdu_session_create_response(
+          proc_session_create->n11_triggered_pending);
+      remove_procedure(proc.get());
+    }
+  } else {
+    Logger::smf_app().debug(
+        "Received N4 Session Establishment Response sender teid " TEID_FMT
+        "  pfcp_tx_id %" PRIX64 ", smf_procedure not found, discarded!",
+        seresp.seid, seresp.trxn_id);
+  }
+}
+
+//------------------------------------------------------------------------------
+void smf_context::handle_itti_msg(
+    itti_n4_session_modification_response& smresp) {
+  std::shared_ptr<smf_procedure> proc = {};
+  if (find_procedure(smresp.trxn_id, proc)) {
+    Logger::smf_app().debug(
+        "Received N4 Session Modification Response sender teid " TEID_FMT
+        "  pfcp_tx_id %" PRIX64 " ",
+        smresp.seid, smresp.trxn_id);
+    smf_procedure_code res = proc->handle_itti_msg(smresp, shared_from_this());
+    if (res != smf_procedure_code::CONTINUE) {
+      std::shared_ptr<session_update_sm_context_procedure> proc_session_update =
+          std::static_pointer_cast<session_update_sm_context_procedure>(proc);
+      send_pdu_session_update_response(
+          proc_session_update->n11_trigger,
+          proc_session_update->n11_triggered_pending,
+          proc_session_update->session_procedure_type,
+          proc_session_update->sps);
+      remove_procedure(proc.get());
+    }
+  } else {
+    Logger::smf_app().debug(
+        "Received N4 Session Modification Response sender teid " TEID_FMT
+        "  pfcp_tx_id %" PRIX64 ", smf_procedure not found, discarded!",
+        smresp.seid, smresp.trxn_id);
+  }
+  Logger::smf_app().info("Handle N4 Session Modification Response");
+}
+
+//------------------------------------------------------------------------------
+void smf_context::handle_itti_msg(itti_n4_session_deletion_response& sdresp) {
+  std::shared_ptr<smf_procedure> proc = {};
+  if (find_procedure(sdresp.trxn_id, proc)) {
+    Logger::smf_app().debug(
+        "Received N4 Session Deletion Response sender teid " TEID_FMT
+        "  pfcp_tx_id %" PRIX64 " ",
+        sdresp.seid, sdresp.trxn_id);
+    smf_procedure_code res = proc->handle_itti_msg(sdresp, shared_from_this());
+    if (res != smf_procedure_code::CONTINUE) {
+      auto proc_session_delete =
+          std::static_pointer_cast<session_release_sm_context_procedure>(proc);
+      send_pdu_session_release_response(
+          proc_session_delete->n11_trigger,
+          proc_session_delete->n11_triggered_pending,
+          proc_session_delete->session_procedure_type,
+          proc_session_delete->sps);
+      remove_procedure(proc.get());
+    }
+  } else {
+    Logger::smf_app().debug(
+        "Received N4 Session Deletion Response sender teid " TEID_FMT
+        "  pfcp_tx_id %" PRIX64 ", smf_procedure not found, discarded!",
+        sdresp.seid, sdresp.trxn_id);
+  }
+
+  Logger::smf_app().info("Handle N4 Session Deletion Response");
+}
+
+//------------------------------------------------------------------------------
+void smf_context::handle_itti_msg(
+    std::shared_ptr<itti_n4_session_report_request>& req) {
+  pfcp::report_type_t report_type;
+  if (req->pfcp_ies.get(report_type)) {
+    pfcp::pdr_id_t pdr_id;
+    // Downlink Data Report
+    if (report_type.dldr) {
+      pfcp::downlink_data_report data_report;
+      if (req->pfcp_ies.get(data_report)) {
+        pfcp::pdr_id_t pdr_id;
+        if (data_report.get(pdr_id)) {
+          std::shared_ptr<smf_pdu_session> sp = {};
+          pfcp::qfi_t qfi                     = {};
+          if (find_pdu_session_from_seid(req->seid, sp)) {
+            // Step 1. send N4 Data Report Ack to UPF
+            std::shared_ptr<itti_n4_session_report_response> n4_report_ack =
+                std::make_shared<itti_n4_session_report_response>(
+                    TASK_SMF_APP, TASK_SMF_N4);
+            n4_report_ack->seid       = req->seid;
+            n4_report_ack->trxn_id    = req->trxn_id;
+            n4_report_ack->r_endpoint = req->r_endpoint;
+
+            Logger::smf_app().info(
+                "Sending ITTI message %s to task TASK_SMF_N4",
+                n4_report_ack->get_msg_name());
+            int ret = itti_inst->send_msg(n4_report_ack);
+            if (RETURNok != ret) {
+              Logger::smf_app().error(
+                  "Could not send ITTI message %s to task TASK_SMF_N4",
+                  n4_report_ack->get_msg_name());
+              return;
+            }
+
+            // Step 2. Send N1N2MessageTranfer to AMF
+            pdu_session_report_response session_report_msg = {};
+            // set the required IEs
+            session_report_msg.set_supi(supi);
+            session_report_msg.set_snssai(sp->get_snssai());
+            session_report_msg.set_dnn(sp->get_dnn());
+            session_report_msg.set_pdu_session_type(
+                sp->get_pdu_session_type().pdu_session_type);
+            // TODO: use sbi_helper
+            std::string api_version =
+                smf_cfg->get_nf(oai::config::AMF_CONFIG_NAME)
+                    ->get_sbi()
+                    .get_api_version();
+            std::string url =
+                get_amf_addr() +
+                oai::smf::api::smf_sbi_helper::
+                    get_amf_comm_ue_context_n1_n2_message_base_uri(supi);
+            session_report_msg.set_amf_url(url);
+            // seid and trxn_id to be used in Failure indication
+            session_report_msg.set_seid(req->seid);
+            session_report_msg.set_trxn_id(req->trxn_id);
+
+            qos_flow_context_updated qcu =
+                sp->get_session_handler()->get_qos_flow_context_updated(qfi);
+            session_report_msg.add_qos_flow_context_updated(qcu);
+
+            // Create N2 SM Information: PDU Session Resource Setup Request
+            // Transfer IE
+            std::string n2_sm_info     = {};
+            std::string n2_sm_info_hex = {};
+            smf_n2::get_instance()
+                .create_n2_pdu_session_resource_setup_request_transfer(
+                    session_report_msg, n2_sm_info_type_e::PDU_RES_SETUP_REQ,
+                    n2_sm_info);
+
+            conv::convert_string_2_hex(n2_sm_info, n2_sm_info_hex);
+            session_report_msg.set_n2_sm_information(n2_sm_info_hex);
+
+            // Fill the json part
+            nlohmann::json json_data = {};
+            json_data["n2InfoContainer"]["n2InformationClass"] =
+                oai::utils::N1N2_MESSAGE_CLASS;
+            json_data["n2InfoContainer"]["smInfo"]["PduSessionId"] =
+                session_report_msg.get_pdu_session_id();
+            // N2InfoContent (section 6.1.6.2.27@3GPP TS 29.518)
+            json_data["n2InfoContainer"]["smInfo"]["n2InfoContent"]
+                     ["ngapIeType"] = "PDU_RES_SETUP_REQ";  // NGAP message type
+            json_data["n2InfoContainer"]["smInfo"]["n2InfoContent"]["ngapData"]
+                     ["contentId"] = N2_SM_CONTENT_ID;  // NGAP part
+            json_data["n2InfoContainer"]["smInfo"]["sNssai"]["sst"] =
+                session_report_msg.get_snssai().sst;
+            json_data["n2InfoContainer"]["smInfo"]["sNssai"]["sd"] =
+                session_report_msg.get_snssai().sd;
+
+            session_report_msg.set_json_data(json_data);
+
+            std::shared_ptr<itti_sbi_session_report_request> itti_sbi_report =
+                std::make_shared<itti_sbi_session_report_request>(
+                    TASK_SMF_APP, TASK_SMF_SBI);
+            itti_sbi_report->res = session_report_msg;
+            // send ITTI message to N11 interface to trigger N1N2MessageTransfer
+            // towards AMFs
+            Logger::smf_app().info(
+                "Sending ITTI message %s to task TASK_SMF_SBI",
+                itti_sbi_report->get_msg_name());
+
+            ret = itti_inst->send_msg(itti_sbi_report);
+            if (RETURNok != ret) {
+              Logger::smf_app().error(
+                  "Could not send ITTI message %s to task TASK_SMF_SBI",
+                  itti_sbi_report->get_msg_name());
+            }
+          }
+        }
+      }
+    }
+    // Usage Report
+    if (report_type.usar) {
+      // TODO
+      // Step 1. send N4 Data Report Ack to UPF
+      pfcp::usage_report_within_pfcp_session_report_request ur;
+      if (req->pfcp_ies.get(ur)) {
+        pfcp::volume_measurement_t vm;
+        pfcp::duration_measurement_t dm;
+        pfcp::ur_seqn_t seqn;
+        pfcp::usage_report_trigger_t trig;
+
+        if (ur.get(vm)) {
+          Logger::smf_app().info("\t\t SEID            -> %lld", req->seid);
+          if (ur.get(seqn))
+            Logger::smf_app().info("\t\t UR-SEQN         -> %ld", seqn.ur_seqn);
+          if (ur.get(trig))
+            if (trig.perio)
+              Logger::smf_app().info(
+                  "\t\t Trigger         -> Periodic Reporting");
+          if (trig.timqu)
+            Logger::smf_app().info("\t\t Trigger         -> Time Quota");
+          if (trig.timth)
+            Logger::smf_app().info("\t\t Trigger         -> Time Threshold");
+          if (trig.volqu)
+            Logger::smf_app().info("\t\t Trigger         -> Volume Quota");
+          if (trig.volth)
+            Logger::smf_app().info("\t\t Trigger         -> Volume Threshold");
+          if (ur.get(dm))
+            Logger::smf_app().info("\t\t Duration        -> %ld", dm.duration);
+          Logger::smf_app().info("\t\t NoP    Total    -> %lld", vm.total_nop);
+          Logger::smf_app().info("\t\t        Uplink   -> %lld", vm.uplink_nop);
+          Logger::smf_app().info(
+              "\t\t        Downlink -> %lld", vm.downlink_nop);
+          Logger::smf_app().info(
+              "\t\t Volume Total    -> %lld", vm.total_volume);
+          Logger::smf_app().info(
+              "\t\t        Uplink   -> %lld", vm.uplink_volume);
+          Logger::smf_app().info(
+              "\t\t        Downlink -> %lld", vm.downlink_volume);
+        }
+
+        // Trigger QoS Monitoring Event report notification
+        std::shared_ptr<smf_context> pc = {};
+        if (smf_app_inst->seid_2_smf_context(req->seid, pc)) {
+          oai::model::smf::EventNotification ev_notif = {};
+          oai::model::smf::UsageReport ur_model       = {};
+          if (ur.get(vm)) {
+            ur_model.setSEndID(req->seid);
+            if (ur.get(seqn)) ur_model.seturSeqN(seqn.ur_seqn);
+            if (ur.get(dm)) ur_model.setDuration(dm.duration);
+            ur_model.setTotNoP(vm.total_nop);
+            ur_model.setUlNoP(vm.uplink_nop);
+            ur_model.setDlNoP(vm.downlink_nop);
+            ur_model.setTotVol(vm.total_volume);
+            ur_model.setUlVol(vm.uplink_volume);
+            ur_model.setDlVol(vm.downlink_volume);
+          }
+          if (ur.usage_report_trigger.first)
+            ur_model.setURTrigger(ur.usage_report_trigger.second);
+          ev_notif.setUsageReport(ur_model);
+          pc->trigger_qos_monitoring(req->seid, ev_notif, 1);
+        } else {
+          Logger::smf_app().debug(
+              "No SFM context found for SEID " TEID_FMT
+              ". Unable to notify QoS Monitoring Event Report.",
+              req->seid);
+        }
+      }
+
+      std::shared_ptr<itti_n4_session_report_response> n4_report_ack =
+          std::make_shared<itti_n4_session_report_response>(
+              TASK_SMF_APP, TASK_SMF_N4);
+      n4_report_ack->seid    = req->seid;
+      n4_report_ack->trxn_id = req->trxn_id;
+      pfcp::cause_t cause = {.cause_value = pfcp::CAUSE_VALUE_REQUEST_ACCEPTED};
+      n4_report_ack->pfcp_ies.set(cause);
+      n4_report_ack->r_endpoint = req->r_endpoint;
+
+      Logger::smf_app().info(
+          "Sending ITTI message %s to task TASK_SMF_N4",
+          n4_report_ack->get_msg_name());
+      int ret = itti_inst->send_msg(n4_report_ack);
+      if (RETURNok != ret) {
+        Logger::smf_app().error(
+            "Could not send ITTI message %s to task TASK_SMF_N4",
+            n4_report_ack->get_msg_name());
+        return;
+      }
+    }
+    // Error Indication Report
+    if (report_type.erir) {
+      // TODO
+      Logger::smf_app().debug(
+          "PFCP_SESSION_REPORT_REQUEST/Error Indication Report");
+    }
+    // User Plane Inactivity Report
+    if (report_type.upir) {
+      // TODO
+      Logger::smf_app().debug(
+          "PFCP_SESSION_REPORT_REQUEST/User Plane Inactivity Report");
+    }
+  }
+}
+
+//------------------------------------------------------------------------------
+std::string smf_context::toString() const {
+  std::unique_lock<std::recursive_mutex> lock(m_context);
+  std::string s = {};
+  s.append("\n");
+  s.append("SMF CONTEXT:\n");
+  s.append("SUPI:\t\t\t\t").append(supi.c_str()).append("\n");
+  s.append("PDU SESSION:\t\t\t\t").append("\n");
+  for (auto it : pdu_sessions) {
+    s.append(it.second->toString());
+    s.append("\n");
+  }
+  return s;
+}
+
+//------------------------------------------------------------------------------
+void smf_context::get_default_qos(
+    const snssai_t& snssai, const std::string& dnn,
+    subscribed_default_qos_t& default_qos) {
+  Logger::smf_app().info(
+      "Get default QoS for a PDU Session, key %d", (uint8_t) snssai.sst);
+  // get the default QoS profile
+  std::shared_ptr<session_management_subscription> ss = {};
+  std::shared_ptr<dnn_configuration_t> sdc            = {};
+  find_dnn_subscription(snssai, ss);
+
+  if (nullptr != ss) {
+    ss->find_dnn_configuration(dnn, sdc);
+    if (nullptr != sdc) {
+      default_qos = sdc->_5g_qos_profile;
+    }
+  }
+}
+
+//------------------------------------------------------------------------------
+void smf_context::get_session_ambr(
+    oai::nas::SessionAmbr& session_ambr, const snssai_t& snssai,
+    const std::string& dnn) {
+  Logger::smf_app().debug(
+      "Get AMBR info from the subscription information (DNN %s)", dnn.c_str());
+
+  std::shared_ptr<session_management_subscription> ss = {};
+  std::shared_ptr<dnn_configuration_t> sdc            = {};
+  find_dnn_subscription(snssai, ss);
+
+  // set default value in case of error
+  session_ambr.SetSessionAmbrForDownlink(1);
+  session_ambr.SetUnitForDownlink(
+      kBitRateUnitValueIsIncrementedInMultiplesOf1Mbps);
+  session_ambr.SetSessionAmbrForUplink(1);
+  session_ambr.SetUnitForUplink(
+      kBitRateUnitValueIsIncrementedInMultiplesOf1Mbps);
+
+  if (nullptr != ss) {
+    ss->find_dnn_configuration(dnn, sdc);
+    if (nullptr != sdc) {
+      bitrate_unit_e ambr_dl_unit, ambr_ul_unit;
+      uint16_t ambr_dl_value, ambr_ul_value;
+
+      BitRate bit_rate = {};
+      bit_rate.unit    = kBitRateUnitValueIsIncrementedInMultiplesOf1Mbps;
+      bit_rate.value   = 1;
+      if (!parse_bitrate_string(sdc->session_ambr.downlink, bit_rate)) {
+        Logger::smf_app().warn(
+            "Could not set AMBR downlink value, use default value");
+      }
+      session_ambr.SetUnitForDownlink(bit_rate.unit);
+      session_ambr.SetSessionAmbrForDownlink(bit_rate.value);
+
+      bit_rate.unit  = kBitRateUnitValueIsIncrementedInMultiplesOf1Mbps;
+      bit_rate.value = 1;
+      if (parse_bitrate_string(sdc->session_ambr.uplink, bit_rate)) {
+        session_ambr.SetUnitForUplink(bit_rate.unit);
+        session_ambr.SetSessionAmbrForUplink(bit_rate.value);
+      } else {
+        Logger::smf_app().warn(
+            "Could not set AMBR uplink value, use default value");
+      }
+    }
+  } else {
+    Logger::smf_app().warn(
+        "Could not get default info from the subscription information for AMBR "
+        "Dl/UL value, use default 1 MBPS");
+  }
+
+  Logger::smf_app().error(
+      "AMBR info from the subscription information, Downlink 0x%x, Uplink "
+      "0x%x",
+      session_ambr.GetSessionAmbrForDownlink(),
+      session_ambr.GetUnitForDownlink());
+}
+
+//------------------------------------------------------------------------------
+void smf_context::get_session_ambr(
+    session_ambr_t& session_ambr, const snssai_t& snssai,
+    const std::string& dnn) {
+  Logger::smf_app().debug(
+      "Get AMBR info from the subscription information (DNN %s)", dnn.c_str());
+
+  std::shared_ptr<session_management_subscription> ss = {};
+  std::shared_ptr<dnn_configuration_t> sdc            = {};
+  find_dnn_subscription(snssai, ss);
+
+  if (nullptr != ss) {
+    ss->find_dnn_configuration(dnn, sdc);
+    if (nullptr != sdc) {
+      session_ambr = sdc->session_ambr;
+    }
+  } else {
+    Logger::smf_app().warn(
+        "Could not get default info from the subscription information for AMBR "
+        "Dl/UL value, use default 1 MBPS");
+  }
+}
+
+//------------------------------------------------------------------------------
+void smf_context::handle_pdu_session_create_sm_context_request(
+    std::shared_ptr<itti_sbi_create_sm_context_request> smreq) {
+  Logger::smf_app().info(
+      "Handle a PDU Session Create SM Context Request message from AMF (HTTP "
+      "version %d)",
+      smreq->http_version);
+
+  std::string n1_sm_message = {};
+  std::string n1_sm_msg_hex = {};
+  bool request_accepted     = true;
+
+  // Get necessary information
+  std::string dnn         = smreq->req.get_dnn();
+  snssai_t snssai         = smreq->req.get_snssai();
+  uint32_t pdu_session_id = smreq->req.get_pdu_session_id();
+
+  // Check the validity of the UE request, if valid send PDU Session
+  // Accept, otherwise send PDU Session Reject to AMF
+  if (!verify_sm_context_request(smreq)) {
+    Logger::smf_app().warn(
+        "Received a PDU Session Create SM Context Request, the request is not "
+        "valid!");
+    send_pdu_session_establishment_response_reject(
+        smreq, k5gsmCauseUserAuthenticationOrAuthorizationFailed,
+        pdu_session_application_error_e::
+            PDU_SESSION_APPLICATION_ERROR_SUBSCRIPTION_DENIED,
+        http_status_code::UNAUTHORIZED);
+    // TODO:
+    // SMF unsubscribes to the modifications of Session Management Subscription
+    // data for (SUPI, DNN, S-NSSAI)  using Nudm_SDM_Unsubscribe()
+    return;
+  }
+
+  // Store HttpResponse and session-related information to be used when
+  // receiving the response from UPF
+  auto sm_context_resp_pending =
+      std::make_shared<itti_sbi_create_sm_context_response>(
+          TASK_SMF_APP, TASK_SMF_SBI, smreq->pid);
+
+  // Assign necessary information for the response
+  xgpp_conv::create_sm_context_response_from_ctx_request(
+      smreq, sm_context_resp_pending);
+
+  // Create PDU session if not exist
+  auto sp       = std::make_shared<smf_pdu_session>();
+  bool find_pdu = find_pdu_session(pdu_session_id, sp);
+
+  if (!find_pdu) {
+    Logger::smf_app().debug("Create a new PDU session");
+    sp = std::make_shared<smf_pdu_session>(pdu_session_id);
+    sp->pdu_session_type.pdu_session_type = smreq->req.get_pdu_session_type();
+    auto type = pdu_session_type_e(sp->pdu_session_type.pdu_session_type);
+    sp->m_session_handler = std::make_shared<session_handler>(type);
+    sp->set_dnn(dnn);
+    sp->set_snssai(snssai);
+    add_pdu_session(pdu_session_id, sp);
+  } else {
+    Logger::smf_app().warn("PDU session is already existed!");
+  }
+
+  // TODO: if "Integrity Protection is required", check UE Integrity Protection
+  // Maximum Data Rate
+  // TODO: (Optional) Secondary authentication/authorization
+
+  // PCO, section 6.2.4.2, TS 24.501
+  // If the UE wants to use DHCPv4 for IPv4 address assignment, it shall
+  // indicate that to the network within the Extended  protocol configuration
+  // options IE in the PDU SESSION ESTABLISHMENT REQUEST  Extended protocol
+  // configuration options: See subclause 10.5.6.3A in 3GPP TS 24.008.
+
+  protocol_configuration_options_t pco_req = {};
+  smreq->req.get_epco(pco_req);
+  protocol_configuration_options_t pco_resp    = {};
+  protocol_configuration_options_ids_t pco_ids = {
+      .pi_ipcp                                     = 0,
+      .ci_dns_server_ipv4_address_request          = 0,
+      .ci_ip_address_allocation_via_nas_signalling = 0,
+      .ci_ipv4_address_allocation_via_dhcpv4       = 0,
+      .ci_ipv4_link_mtu_request                    = 0,
+      .ci_dns_server_ipv6_address_request          = 0,
+      .ci_ipv6_p_cscf_request                      = 0,
+      .ci_ipv4_p_cscf_request                      = 0,
+      .ci_selected_bearer_control_mode             = 0};
+
+  smf_app_inst->process_pco_request(pco_req, dnn, pco_resp, pco_ids);
+  sm_context_resp_pending->res.set_epco(pco_resp);
+
+  // Address allocation based on PDN type, IP Address pool is controlled
+  // by SMF
+  bool set_paa = false;
+  paa_t paa    = {};
+  Logger::smf_app().debug("UE Address Allocation");
+  bool paa_static_ip = false;
+
+  std::shared_ptr<session_management_subscription> ss = {};
+  std::shared_ptr<dnn_configuration_t> sdc            = {};
+  find_dnn_subscription(snssai, ss);
+  if (nullptr != ss) {
+    ss->find_dnn_configuration(dnn, sdc);
+    if (nullptr != sdc) {
+      paa.pdu_session_type.pdu_session_type =
+          sdc->pdu_session_types.default_session_type
+              .pdu_session_type;  // TODO: Verified if use default session
+                                  // type or requested session type
+                                  // Static IP address allocation
+      for (auto addr : sdc->static_ip_addresses) {
+        if ((sp->pdu_session_type.pdu_session_type ==
+             PDU_SESSION_TYPE_E_IPV4V6) or
+            (sp->pdu_session_type.pdu_session_type ==
+             PDU_SESSION_TYPE_E_IPV4)) {
+          if (addr.ip_address_type == IP_ADDRESS_TYPE_IPV4_ADDRESS) {
+            Logger::smf_app().debug(
+                "Static IP Address with IPv4 %s",
+                inet_ntoa(*((struct in_addr*) &addr.u1.ipv4_address)));
+            paa.ipv4_address.s_addr = addr.u1.ipv4_address.s_addr;
+            paa.pdu_session_type = pdu_session_type_e::PDU_SESSION_TYPE_E_IPV4;
+            set_paa              = true;
+            paa_static_ip        = true;
+          }
+        } else if (
+            sp->pdu_session_type.pdu_session_type == PDU_SESSION_TYPE_E_IPV6) {
+          paa.pdu_session_type = pdu_session_type_e::PDU_SESSION_TYPE_E_IPV6;
+          if (addr.ip_address_type == IP_ADDRESS_TYPE_IPV6_ADDRESS) {
+            paa.ipv6_address = addr.u1.ipv6_address;
+          } else if (addr.ip_address_type == IP_ADDRESS_TYPE_IPV6_PREFIX) {
+            paa.ipv6_address = addr.u1.ipv6_prefix.prefix;
+            // TODO: prefix length
+          }
+          char str_addr6[INET6_ADDRSTRLEN];
+          if (inet_ntop(
+                  AF_INET6, &paa.ipv6_address, str_addr6, sizeof(str_addr6))) {
+            Logger::smf_app().debug(
+                "Static IP Address with IPv6 %s", str_addr6);
+          }
+          set_paa       = true;
+          paa_static_ip = true;
+        }
+      }
+
+      // IPv4 Framed Route
+      for (auto ipv4_frame_route : sdc->ipv4_frame_routes) {
+        pfcp::framed_route_s framed_route;
+        framed_route.framed_route = ipv4_frame_route;
+        sp->add_ipv4_frame_route(framed_route);
+      }
+    }
+  }
+
+  switch (sp->pdu_session_type.pdu_session_type) {
+    case PDU_SESSION_TYPE_E_IPV4V6: {
+      Logger::smf_app().debug(
+          "PDU Session Type IPv4v6, select PDU Session Type IPv4");
+      // TODO: use requested PDU Session Type?
+      //     paa.pdu_session_type.pdu_session_type = PDU_SESSION_TYPE_E_IPV4V6;
+      if ((not paa_static_ip) || (not paa.is_ip_assigned())) {
+        bool success = paa_dynamic::get_instance().get_free_paa(dnn, paa);
+        if (success) {
+          set_paa = true;
+        } else {
+          // ALL_DYNAMIC_ADDRESSES_ARE_OCCUPIED;
+          send_pdu_session_establishment_response_reject(
+              smreq, k5gsmCauseInsufficientResources,
+              pdu_session_application_error_e::
+                  PDU_SESSION_APPLICATION_ERROR_INSUFFICIENT_RESOURCES_SLICE_DNN,
+              http_status_code::INTERNAL_SERVER_ERROR);
+          return;
+        }
+      } else if ((paa_static_ip) && (paa.is_ip_assigned())) {
+        set_paa = true;
+      }
+      Logger::smf_app().info(
+          "PAA, Ipv4 Address: %s",
+          inet_ntoa(*((struct in_addr*) &paa.ipv4_address)));
+
+      char str_addr6[INET6_ADDRSTRLEN];
+      if (inet_ntop(
+              AF_INET6, &paa.ipv6_address, str_addr6, sizeof(str_addr6))) {
+        Logger::smf_app().info("PAA, IPv6 Address: %s", str_addr6);
+      }
+
+    }; break;
+    case PDU_SESSION_TYPE_E_IPV4: {
+      Logger::smf_app().debug("PDU Session Type IPv4");
+      if (!pco_ids.ci_ipv4_address_allocation_via_dhcpv4) {
+        // use SM NAS signalling
+        if ((not paa_static_ip) || (not paa.is_ip_assigned())) {
+          bool success = paa_dynamic::get_instance().get_free_paa(dnn, paa);
+          if (success) {
+            set_paa = true;
+          } else {
+            send_pdu_session_establishment_response_reject(
+                smreq, k5gsmCauseInsufficientResources,
+                pdu_session_application_error_e::
+                    PDU_SESSION_APPLICATION_ERROR_INSUFFICIENT_RESOURCES_SLICE_DNN,
+                http_status_code::INTERNAL_SERVER_ERROR);
+            return;
+          }
+
+        } else if ((paa_static_ip) && (paa.is_ip_assigned())) {
+          set_paa = true;
+        }
+        Logger::smf_app().info(
+            "PAA, Ipv4 Address: %s",
+            inet_ntoa(*((struct in_addr*) &paa.ipv4_address)));
+      } else {  // use DHCP
+        Logger::smf_app().info(
+            "UE requests to use DHCPv4 for IPv4 address assignment, this "
+            "feature has not been supported yet!");
+        // TODO maybe find a better response code
+        send_pdu_session_establishment_response_reject(
+            smreq, k5gsmCauseUnknownPduSessionType,
+            pdu_session_application_error_e::
+                PDU_SESSION_APPLICATION_ERROR_PDUTYPE_NOT_SUPPORTED,
+            http_status_code::FORBIDDEN);
+        return;
+        // TODO
+      }
+
+    } break;
+
+    case PDU_SESSION_TYPE_E_IPV6: {
+      // TODO:
+      Logger::smf_app().warn("IPv6 is not supported yet!");
+      // PDU Session Establishment Reject
+      send_pdu_session_establishment_response_reject(
+          smreq, k5gsmCauseUnknownPduSessionType,
+          pdu_session_application_error_e::
+              PDU_SESSION_APPLICATION_ERROR_PDUTYPE_NOT_SUPPORTED,
+          http_status_code::FORBIDDEN);
+      return;
+    } break;
+
+    case PDU_SESSION_TYPE_E_ETHERNET: {
+      Logger::smf_app().info("PDU Session Type Ethernet");
+    } break;
+
+    default: {
+      Logger::smf_app().error(
+          "Unknown PDN type %d", sp->pdu_session_type.pdu_session_type);
+      // PDU Session Establishment Reject
+      send_pdu_session_establishment_response_reject(
+          smreq, k5gsmCauseUnknownPduSessionType,
+          pdu_session_application_error_e::
+              PDU_SESSION_APPLICATION_ERROR_PDUTYPE_NOT_SUPPORTED,
+          http_status_code::FORBIDDEN);
+      // sm_context_resp_pending->res.set_cause(k5gsmCauseUnknownPduSessionType);
+      return;
+    }
+  }
+
+  // Store AMF callback URI and subscribe to the status notification: AMF will
+  // be notified when SM context changes
+  std::string amf_status_uri = smreq->req.get_sm_context_status_uri();
+  set_amf_status_uri(amf_status_uri);
+
+  // Get and Store AMF Addr if available
+  std::string amf_addr_str = get_amf_addr_from_amf_status_uri(amf_status_uri);
+  set_amf_addr(amf_addr_str);
+
+  // Create SM Policy Association with PCF or local PCC rules
+  // According to 3GPP TS 23.502 (Section 4.3.2.2.1), The purpose of this step
+  // is to receive PCC rules before selecting UPF, If PCC rules are not needed
+  // as input for UPF selection, this step can be performed after step 8 (UPF
+  // selection, UE IP address allocation)
+
+  std::string sm_context_ref = std::to_string(smreq->scid);
+  sp->policy_ptr             = std::make_shared<n7::policy_association>();
+  bool use_pcf_policy        = false;
+  bool include_ue_ip_in_sm_association_estab = false;
+  // Set UE IP address if available
+  std::optional<paa_t> paa_opt = std::nullopt;
+  if (set_paa) {
+    paa_opt                               = std::make_optional<paa_t>(paa);
+    include_ue_ip_in_sm_association_estab = true;
+  }
+  subscribed_default_qos_t default_qos = {};
+  get_default_qos(snssai, smreq->req.get_dnn(), default_qos);
+  session_ambr_t session_ambr = {};
+  get_session_ambr(session_ambr, snssai, smreq->req.get_dnn());
+
+  sp->policy_ptr->set_context(
+      smreq->req.get_supi(), smreq->req.get_dnn(), snssai, plmn,
+      smreq->req.get_pdu_session_id(), smreq->req.get_pdu_session_type(),
+      default_qos, session_ambr, paa_opt);
+
+  sp->policy_ptr->id = smreq->scid;
+  // [Policy Control] The SMF shall set the notification URI for the PCF to use
+  // to notify the SMF of policy decisions. The SMF shall set the notification
+  // The URI value will have the base uri of the SMF
+
+  std::string fmr_format_str = {};
+  oai::smf::api::smf_sbi_helper::get_fmt_format_form(
+      oai::smf::api::smf_sbi_helper::SmfCallbackPathSmPolicyAssociation,
+      fmr_format_str);
+  std::string notification_uri =
+      smf_cfg->get_nf(oai::config::SMF_CONFIG_NAME)->get_sbi().get_url() +
+      oai::smf::api::smf_sbi_helper::SmfCallbackBase() + "/" +
+      fmt::format(fmr_format_str, std::to_string(sp->policy_ptr->id).c_str());
+  // Add association id to url
+  Logger::smf_app().debug(fmt::format(
+      "Set the notification URI {} for the PCF to use to notify the SMF of ",
+      notification_uri.c_str()));
+  sp->policy_ptr->context.setNotificationUri(notification_uri.c_str());
+
+  // NOTE: The decision in association (sp->policy_ptr) is updated from the
+  // response from PCF
+  n7::sm_policy_status_code status =
+      n7::smf_n7::get_instance().create_sm_policy_association(*sp->policy_ptr);
+  if (status != n7::sm_policy_status_code::CREATED) {
+    Logger::smf_n7().info(
+        "PCF SM Policy Association Creation was not successful. Continue "
+        "using default rules");
+    use_pcf_policy = false;
+    sp->policy_ptr.reset();
+    // Here, the standard says that we could reject the PDU session or allow
+    // the PDU session applying local policies 29.512 Chapter 4.2.2.2
+    // TODO I propose to have this behavior configurable, for now we
+    // continue
+  } else {
+    use_pcf_policy = true;
+  }
+  // TODO use the PCC rules also for QoS and other policy information
+
+  // SMF-initiated SM Policy Modification (with PCF) to report UE
+  // IP address change (allocated)
+  // Note from 3GPP TS 23.502 (Section 4.3.2.2.1):
+  // If an IP address/prefix has been allocated before step 7 (e.g. subscribed
+  // static IP address/prefix in UDM/UDR) or the step 7 is performed after step
+  // 8, the IP address/prefix can be provided to PCF in step 7 and the IP
+  // address/prefix notification in this step can be skipped.
+
+  if (!include_ue_ip_in_sm_association_estab) {
+    bool is_sm_policy_modification = false;
+    oai::model::pcf::SmPolicyUpdateContextData sm_policy_update_context_data =
+        {};
+    // Set allocated UE IP addr
+    switch (sp->pdu_session_type.pdu_session_type) {
+      case PDU_SESSION_TYPE_E_IPV4V6: {
+        Logger::smf_app().debug("PDU Session Type IPv4v6");
+        std::string ue_ipv4_addr_str =
+            std::string(inet_ntoa(*((struct in_addr*) &paa.ipv4_address)));
+        Logger::smf_app().info("Allocated UE IPv4 Addr: %s", ue_ipv4_addr_str);
+        sm_policy_update_context_data.setIpv4Address(ue_ipv4_addr_str);
+
+        char str_addr6[INET6_ADDRSTRLEN];
+        if (inet_ntop(
+                AF_INET6, &paa.ipv6_address, str_addr6, sizeof(str_addr6))) {
+          Logger::smf_app().info("Allocated UE IPv6 prefix: %s", str_addr6);
+          std::string ue_ipv6_prefix_str             = std::string(str_addr6);
+          oai::model::common::Ipv6Prefix ipv6_prefix = {};
+          ipv6_prefix.setIpv6Prefix(ue_ipv6_prefix_str);
+          sm_policy_update_context_data.setIpv6AddressPrefix(ipv6_prefix);
+        }
+        is_sm_policy_modification = true;
+
+      }; break;
+      case PDU_SESSION_TYPE_E_IPV4: {
+        Logger::smf_app().debug("PDU Session Type IPv4");
+        std::string ue_ipv4_addr_str =
+            std::string(inet_ntoa(*((struct in_addr*) &paa.ipv4_address)));
+        Logger::smf_app().info("Allocated UE IPv4 Addr: %s", ue_ipv4_addr_str);
+        sm_policy_update_context_data.setIpv4Address(ue_ipv4_addr_str);
+        is_sm_policy_modification = true;
+      } break;
+
+      case PDU_SESSION_TYPE_E_IPV6: {
+        // TODO:
+        Logger::smf_app().warn("IPv6 is not supported yet!");
+      } break;
+
+      default: {
+        Logger::smf_app().error(
+            "Unknown PDN type %d", sp->pdu_session_type.pdu_session_type);
+      }
+    }
+
+    // Use Npcf_SMPolicyControl_Update request to trigger SMF initiated SM
+    // Policy Association Modification and update SM Policy Association
+    if (is_sm_policy_modification and use_pcf_policy) {
+      status = n7::smf_n7::get_instance().update_sm_policy_association(
+          sm_policy_update_context_data, sp->policy_ptr);
+      if (status != n7::sm_policy_status_code::OK) {
+        Logger::smf_n7().info(
+            "SM Policy Association Modification was not successful");
+      }
+    }
+  }
+
+  // Create session establishment procedure and run the procedure
+  // if request is accepted
+  if (set_paa) {
+    sm_context_resp_pending->res.set_paa(paa);
+    sp->set(paa);
+  }
+
+  // Trigger SMF APP to send response to SMF-HTTP-API-SERVER (Step
+  // 5, 4.3.2.2.1 TS 23.502)
+  Logger::smf_app().debug(
+      "Send ITTI msg to SMF APP to trigger the response of Server");
+
+  pdu_session_create_sm_context_response sm_context_response = {};
+  // headers: Location: contains the URI of the newly created resource,
+  // according to the structure:
+  // {apiRoot}/nsmf-pdusession/{apiVersion}/sm-contexts/{smContextRef}
+
+  auto smf_sbi = smf_cfg->get_nf(oai::config::SMF_CONFIG_NAME)->get_sbi();
+  oai::smf::api::smf_sbi_helper::get_fmt_format_form(
+      oai::smf::api::smf_sbi_helper::SmfPduSessionPathSmContextsCreate,
+      fmr_format_str);
+  std::string smf_context_uri =
+      smf_sbi.get_url(smf_cfg->enable_tls()) +
+      oai::smf::api::smf_sbi_helper::SmfPduSessionBase() +
+      fmt::format(fmr_format_str, sm_context_ref);
+
+  sm_context_response.set_smf_context_uri(smf_context_uri);
+  sm_context_response.set_cause(k5gsmCauseRequestAccepted);  // TODO
+
+  nlohmann::json json_data          = {};
+  json_data["smfServiceInstanceId"] = smf_app_inst->get_smf_instance_id();
+  sm_context_response.set_json_data(json_data);
+  sm_context_response.set_http_code(http_status_code::CREATED);
+
+  smf_app_inst->trigger_session_create_sm_context_response(
+      sm_context_response, smreq->pid);
+
+  // TODO: PDU Session authentication/authorization (Optional)
+  // see section 4.3.2.3@3GPP TS 23.502 and section 6.3.1@3GPP TS 24.501
+
+  Logger::smf_app().info("Create a procedure to process this message.");
+  auto proc = std::make_shared<session_create_sm_context_procedure>(sp);
+  std::shared_ptr<smf_procedure> sproc = proc;
+
+  insert_procedure(sproc);
+  if (proc->run(smreq, sm_context_resp_pending, shared_from_this()) ==
+      smf_procedure_code::ERROR) {
+    // error !
+    Logger::smf_app().info(
+        "PDU Session Establishment Request: Create SM Context Request "
+        "procedure failed");
+    remove_procedure(sproc.get());
+    // Set cause to error to trigger PDU session establishment reject (step
+    // 10)
+    sm_context_resp_pending->res.set_cause(
+        PDU_SESSION_APPLICATION_ERROR_PEER_NOT_RESPONDING);
+  }
+
+  // Step 10. if error when establishing the pdu session,
+  // send ITTI message to APP to trigger N1N2MessageTransfer towards AMFs (PDU
+  // Session Establishment Reject)
+  if (sm_context_resp_pending->res.get_cause() != k5gsmCauseRequestAccepted) {
+    // clear pco, ambr
+
+    // free paa
+    paa_t free_paa = {};
+    free_paa       = sm_context_resp_pending->res.get_paa();
+    if (free_paa.is_ip_assigned()) {
+      switch (sp->pdu_session_type.pdu_session_type) {
+        case PDU_SESSION_TYPE_E_IPV4:
+        case PDU_SESSION_TYPE_E_IPV4V6:
+        case PDU_SESSION_TYPE_E_IPV6:
+          paa_dynamic::get_instance().release_paa(dnn, free_paa);
+          break;
+        case PDU_SESSION_TYPE_E_UNSTRUCTURED:
+        case PDU_SESSION_TYPE_E_ETHERNET:
+        case PDU_SESSION_TYPE_E_RESERVED:
+        default:;
+      }
+    }
+    // clear the created context??
+    // TODO:
+
+    // Create PDU Session Establishment Reject and embedded in
+    // Namf_Communication_N1N2MessageTransfer Request
+    Logger::smf_app().debug("Create PDU Session Establishment Reject");
+    uint8_t cause_n1 = sm_context_resp_pending->res.get_cause();
+
+    smf_n1::get_instance().create_n1_pdu_session_establishment_reject(
+        sm_context_resp_pending->res, n1_sm_message, cause_n1);
+    conv::convert_string_2_hex(n1_sm_message, n1_sm_msg_hex);
+    sm_context_resp_pending->res.set_n1_sm_message(n1_sm_msg_hex);
+
+    // Get SUPI and put into URL
+    std::string supi = sm_context_resp_pending->res.get_supi();
+    // TODO: use sbi_helper
+    std::string api_version = smf_cfg->get_nf(oai::config::AMF_CONFIG_NAME)
+                                  ->get_sbi()
+                                  .get_api_version();
+    std::string url = get_amf_addr() +
+                      oai::smf::api::smf_sbi_helper::
+                          get_amf_comm_ue_context_n1_n2_message_base_uri(supi);
+    sm_context_resp_pending->res.set_amf_url(url);
+
+    // Fill the json part
+    nlohmann::json json_data = {};
+    json_data["n1MessageContainer"]["n1MessageClass"] =
+        oai::utils::N1N2_MESSAGE_CLASS;
+    json_data["n1MessageContainer"]["n1MessageContent"]["contentId"] =
+        oai::utils::N1_SM_CONTENT_ID;
+    json_data["pduSessionId"] =
+        sm_context_resp_pending->res.get_pdu_session_id();
+    sm_context_resp_pending->res.set_json_data(json_data);
+
+    // Send ITTI message to N11 to trigger N1N2MessageTransfer towards AMFs
+    Logger::smf_app().info(
+        "Sending ITTI message %s to task TASK_SMF_SBI",
+        sm_context_resp_pending->get_msg_name());
+    int ret = itti_inst->send_msg(sm_context_resp_pending);
+    if (RETURNok != ret) {
+      Logger::smf_app().error(
+          "Could not send ITTI message %s to task TASK_SMF_SBI",
+          sm_context_resp_pending->get_msg_name());
+    }
+
+    // unsubscribes to the modifications of Session Management Subscription data
+    // for the corresponding (SUPI, DNN, S-NSSAI of the HPLMN)
+    std::string key                              = {};
+    oai::model::common::Snssai snssai_3gpp_model = snssai.to_model_snssai();
+    smf_app_inst->get_dnn_snssai_key(dnn, snssai_3gpp_model, key);
+    std::shared_ptr<oai::model::udm::SdmSubscription> sdm_subscription = {};
+    get_sdm_subscription(key, sdm_subscription);
+    if (sdm_subscription) unsubscribe_sdm_subscriptions(supi, sdm_subscription);
+  }
+}
+
+//-------------------------------------------------------------------------------------
+bool smf_context::handle_pdu_session_modification_request(
+    std::shared_ptr<Nas5gsmMessage>& nas_message,
+    std::shared_ptr<itti_sbi_update_sm_context_request>& sm_context_request,
+    std::shared_ptr<itti_sbi_update_sm_context_response>& sm_context_resp,
+    std::shared_ptr<smf_pdu_session>& sp) {
+  Logger::smf_app().debug("PDU_SESSION_MODIFICATION_REQUEST");
+
+  sm_context_resp.get()->session_procedure_type =
+      session_management_procedures_type_e::
+          PDU_SESSION_MODIFICATION_UE_INITIATED_STEP1;
+
+  // check if the PDU Session Release Command is already sent for this
+  // message (see section 6.3.3.5 @3GPP TS 24.501)
+  if (sp.get()->get_pdu_session_status() ==
+      pdu_session_status_t::InactivePending) {
+    // Ignore the message
+    Logger::smf_app().info(
+        "A PDU Session Release Command has been sent for this session "
+        "(session ID %d), ignore the message!",
+        nas_message->GetHeader().GetPduSessionIdentity());
+    return false;
+  }
+
+  // check if the session is in state Modification pending, SMF will
+  // ignore this message (see section 6.3.2.5 @3GPP TS 24.501)
+  if (sp.get()->get_pdu_session_status() ==
+      pdu_session_status_t::ModificationPending) {
+    // Ignore the message
+    Logger::smf_app().info(
+        "This PDU session is in MODIFICATION_PENDING State (session ID "
+        "%d), ignore the message!",
+        nas_message->GetHeader().GetPduSessionIdentity());
+    return false;
+  }
+
+  // See section 6.4.2 - UE-requested PDU Session modification procedure@
+  // 3GPP TS 24.501  Verify PDU Session Identity
+  if (sm_context_request.get()->req.get_pdu_session_id() !=
+      nas_message->GetHeader().GetPduSessionIdentity()) {
+    // TODO: PDU Session ID mismatch
+  }
+
+  // PTI
+  Logger::smf_app().info(
+      "PTI %d", nas_message->GetHeader().GetProcedureTransactionIdentity());
+  procedure_transaction_id_t pti = {
+      .procedure_transaction_id =
+          nas_message->GetHeader().GetProcedureTransactionIdentity()};
+  sm_context_resp.get()->res.set_pti(pti);
+
+  // Message Type
+  // TODO: _5GSMCapability
+  // TODO: Cause
+  // TODO: maximum_number_of_supported_packet_filters
+  // TODO: AlwaysonPDUSessionRequested
+  // TODO: IntergrityProtectionMaximumDataRate
+
+  // Process QoS rules and Qos Flow descriptions
+  update_qos_info(sp, sm_context_resp.get()->res, nas_message);
+
+  // TODO: MappedEPSBearerContexts
+  // TODO: ExtendedProtocolConfigurationOptions
+
+  // section 6.3.2. Network-requested PDU Session modification procedure @
+  // 3GPP TS 24.501  requested QoS rules (including packet filters) and/or
+  // requested QoS flow descriptions  session-AMBR, session TMBR
+  // PTI or UE capability
+
+  // Create a N1 SM (PDU Session Modification Command) and N2 SM (PDU
+  // Session Resource Modify Request Transfer IE)
+  std::string n1_sm_msg_to_be_created, n1_sm_msg_hex_to_be_created;
+  std::string n2_sm_info_to_be_created, n2_sm_info_hex_to_be_created;
+  // N1 SM (PDU Session Modification Command)
+  if (not smf_n1::get_instance().create_n1_pdu_session_modification_command(
+          sm_context_resp.get()->res, n1_sm_msg_to_be_created,
+          k5gsmCauseUnknown) or
+      // N2 SM (PDU Session Resource Modify Request Transfer IE)
+      not smf_n2::get_instance()
+              .create_n2_pdu_session_resource_modify_request_transfer(
+                  sm_context_resp.get()->res,
+                  n2_sm_info_type_e::PDU_RES_MOD_REQ,
+                  n2_sm_info_to_be_created)) {
+    smf_app_inst->trigger_http_response(
+        http_status_code::INTERNAL_SERVER_ERROR, sm_context_request.get()->pid,
+        N11_SESSION_UPDATE_SM_CONTEXT_RESPONSE);
+
+    return false;
+  }
+
+  conv::convert_string_2_hex(
+      n1_sm_msg_to_be_created, n1_sm_msg_hex_to_be_created);
+  conv::convert_string_2_hex(
+      n2_sm_info_to_be_created, n2_sm_info_hex_to_be_created);
+
+  sm_context_resp.get()->res.set_n1_sm_message(n1_sm_msg_hex_to_be_created);
+  sm_context_resp.get()->res.set_n2_sm_information(
+      n2_sm_info_hex_to_be_created);
+  sm_context_resp.get()->res.set_n2_sm_info_type("PDU_RES_MOD_REQ");
+
+  // Fill the json part with SmContextUpdatedData
+  nlohmann::json json_data           = {};
+  json_data["n1SmMsg"]["contentId"]  = oai::utils::N1_SM_CONTENT_ID;
+  json_data["n2SmInfo"]["contentId"] = N2_SM_CONTENT_ID;
+  json_data["n2SmInfoType"]          = "PDU_RES_MOD_REQ";  // NGAP message
+
+  sm_context_resp.get()->res.set_json_data(json_data);
+  // Update PDU Session status
+  sp.get()->set_pdu_session_status(pdu_session_status_t::ModificationPending);
+
+  scid_t scid = {};
+  try {
+    scid = std::stoi(sm_context_request.get()->scid);
+  } catch (const std::exception& err) {
+    Logger::smf_app().warn(
+        "Couldn't retrieve "
+        "the corresponding SMF context, ignore message!");
+    return false;
+  }
+
+  // Store the context for the timer handling
+  sp.get()->set_pending_n11_msg(
+      std::dynamic_pointer_cast<itti_sbi_msg>(sm_context_resp));
+  // start timer T3591
+  // get smf_pdu_session and set the corresponding timer
+  sp.get()->timer_T3591 = itti_inst->timer_setup(
+      T3591_TIMER_VALUE_SEC, 0, TASK_SMF_APP, TASK_SMF_APP_TRIGGER_T3591, scid);
+
+  return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool smf_context::handle_pdu_session_modification_complete(
+    std::shared_ptr<Nas5gsmMessage>& nas_message,
+    std::shared_ptr<itti_sbi_update_sm_context_request>& sm_context_request,
+    std::shared_ptr<itti_sbi_update_sm_context_response>& sm_context_resp,
+    std::shared_ptr<smf_pdu_session>& sp) {
+  /* see section 6.3.2.3@3GPP TS 24.501 V16.1.0
+   Upon receipt of a PDU SESSION MODIFICATION COMPLETE message, the SMF
+   shall stop timer T3591 and shall consider the PDU session as modified.
+   If the selected SSC mode of the PDU session is "SSC mode 3" and the PDU
+   SESSION MODIFICATION COMMAND message included 5GSM cause #39
+   "reactivation requested", the SMF shall start timer T3593. If the PDU
+   Session Address Lifetime value is sent to the UE in the PDU SESSION
+   MODIFICATION COMMAND message then timer T3593 shall be started with the
+   same value, otherwise it shall use a default value.
+   */
+  // Update PDU Session status -> ACTIVE
+  sp.get()->set_pdu_session_status(pdu_session_status_t::Active);
+  // stop T3591
+  itti_inst->timer_remove(sp.get()->timer_T3591);
+
+  sm_context_resp.get()->session_procedure_type =
+      session_management_procedures_type_e::
+          PDU_SESSION_MODIFICATION_UE_INITIATED_STEP3;
+  return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool smf_context::handle_pdu_session_modification_command_reject(
+    std::shared_ptr<Nas5gsmMessage>& nas_message,
+    std::shared_ptr<itti_sbi_update_sm_context_request>& sm_context_request,
+    std::shared_ptr<itti_sbi_update_sm_context_response>& sm_context_resp,
+    std::shared_ptr<smf_pdu_session>& sp) {
+  sm_context_resp.get()->session_procedure_type =
+      session_management_procedures_type_e::
+          PDU_SESSION_MODIFICATION_UE_INITIATED_STEP3;
+
+  // Verify PDU Session Identity
+  if (sm_context_request.get()->req.get_pdu_session_id() !=
+      nas_message->GetHeader().GetPduSessionIdentity()) {
+    // TODO: PDU Session ID mismatch
+  }
+
+  Logger::smf_app().info(
+      "PTI %d", nas_message->GetHeader().GetProcedureTransactionIdentity());
+  procedure_transaction_id_t pti = {
+      .procedure_transaction_id =
+          nas_message->GetHeader().GetProcedureTransactionIdentity()};
+  sm_context_resp.get()->res.set_pti(pti);
+
+  // Message Type
+  uint8_t message_type = nas_message->GetHeader().GetMessageType();
+  if (message_type != kPduSessionModificationCommandReject) {
+    return false;
+  }
+
+  //_5GSMCause
+  oai::nas::_5gsmCause _5gsm_cause = {};
+  (std::dynamic_pointer_cast<oai::nas::PduSessionModificationCommandReject>(
+       nas_message))
+      ->Get5gsmCause(_5gsm_cause);
+  if (_5gsm_cause.GetValue() == k5gsmCauseInvalidPduSessionIdentity) {
+    // Update PDU Session status -> INACTIVE
+    sp.get()->set_pdu_session_status(pdu_session_status_t::Inactive);
+    // TODO: Release locally the existing PDU Session (see
+    // section 6.3.2.5@3GPP TS 24.501)
+  } else if (
+      sp.get()->get_pdu_session_status() ==
+      pdu_session_status_t::ModificationPending) {
+    // Update PDU Session status -> ACTIVE
+    sp.get()->set_pdu_session_status(pdu_session_status_t::Active);
+  }
+
+  // presence
+  // ExtendedProtocolConfigurationOptions
+
+  // stop T3591
+  itti_inst->timer_remove(sp.get()->timer_T3591);
+
+  return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool smf_context::handle_pdu_session_release_request(
+    std::shared_ptr<Nas5gsmMessage>& nas_message,
+    std::shared_ptr<itti_sbi_update_sm_context_request>& sm_context_request,
+    std::shared_ptr<itti_sbi_update_sm_context_response>& sm_context_resp,
+    std::shared_ptr<smf_pdu_session>& sp) {
+  std::string n1_sm_msg, n1_sm_msg_hex;
+  std::string n2_sm_info, n2_sm_info_hex;
+
+  sm_context_resp.get()->session_procedure_type =
+      session_management_procedures_type_e::
+          PDU_SESSION_RELEASE_UE_REQUESTED_STEP1;
+
+  // verify PDU Session ID
+  if (sm_context_request.get()->req.get_pdu_session_id() !=
+      nas_message->GetHeader().GetPduSessionIdentity()) {
+    // TODO: PDU Session ID mismatch
+  }
+
+  // Abnormal cases in network side (see section 6.4.3.6 @3GPP TS 24.501)
+  if (sp.get()->get_pdu_session_status() == pdu_session_status_t::Inactive) {
+    Logger::smf_app().warn(
+        "PDU Session status: INACTIVE, send PDU Session Release Reject "
+        "to UE!");
+    if (smf_n1::get_instance().create_n1_pdu_session_release_reject(
+            sm_context_request.get()->req, n1_sm_msg,
+            k5gsmCauseInvalidPduSessionIdentity)) {
+      conv::convert_string_2_hex(n1_sm_msg, n1_sm_msg_hex);
+      // trigger to send reply to AMF
+      smf_app_inst->trigger_update_context_error_response(
+          http_status_code::FORBIDDEN,
+          PDU_SESSION_APPLICATION_ERROR_NETWORK_FAILURE, n1_sm_msg_hex,
+          sm_context_request.get()->pid);
+    } else {
+      smf_app_inst->trigger_http_response(
+          http_status_code::INTERNAL_SERVER_ERROR,
+          sm_context_request.get()->pid,
+          N11_SESSION_UPDATE_SM_CONTEXT_RESPONSE);
+    }
+    return false;
+  }
+  // Abnormal cases in network side (see section 6.3.3.5 @3GPP TS 24.501)
+  if (sp.get()->get_pdu_session_status() ==
+      pdu_session_status_t::InactivePending) {
+    // Ignore the message
+    Logger::smf_app().info(
+        "A PDU Session Release Command has been sent for this session "
+        "(session ID %d), ignore the message!",
+        nas_message->GetHeader().GetPduSessionIdentity());
+    return false;
+  }
+
+  procedure_transaction_id_t pti = {
+      .procedure_transaction_id =
+          nas_message->GetHeader().GetProcedureTransactionIdentity()};
+
+  Logger::smf_app().info("PTI %d", pti.procedure_transaction_id);
+  sm_context_resp.get()->res.set_pti(pti);
+
+  // Message Type
+  // Presence
+  // 5GSM Cause
+  // Extended Protocol Configuration Options
+
+  // Release the resources related to this PDU Session (in Procedure)
+
+  // get the associated QoS flows: to be used for PFCP Session
+  // Modification procedure
+  //  std::vector<smf_qos_flow> qos_flows;
+  //  sp.get()->get_qos_flows(qos_flows);
+  //  for (auto i : qos_flows) {
+  //    sm_context_request.get()->req.add_qfi(i.qfi.qfi);
+  //  }
+  std::vector<pfcp::qfi_t> qfis = sp->get_session_handler()->get_all_qfis();
+  for (const auto& qfi : qfis) {
+    sm_context_request->req.add_qfi(qfi.qfi);
+  }
+
+  return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool smf_context::handle_pdu_session_release_complete(
+    std::shared_ptr<Nas5gsmMessage>& nas_message,
+    std::shared_ptr<itti_sbi_update_sm_context_request>& sm_context_request,
+    std::shared_ptr<itti_sbi_update_sm_context_response>& sm_context_resp,
+    std::shared_ptr<smf_pdu_session>& sp) {
+  sm_context_resp.get()->session_procedure_type =
+      session_management_procedures_type_e::
+          PDU_SESSION_RELEASE_UE_REQUESTED_STEP3;
+
+  // verify PDU Session ID
+  if (sm_context_request.get()->req.get_pdu_session_id() !=
+      nas_message->GetHeader().GetPduSessionIdentity()) {
+    // TODO: PDU Session ID mismatch
+  }
+
+  Logger::smf_app().info(
+      "PTI %d", nas_message->GetHeader().GetProcedureTransactionIdentity());
+  procedure_transaction_id_t pti = {
+      .procedure_transaction_id =
+          nas_message->GetHeader().GetProcedureTransactionIdentity()};
+
+  // Message Type
+  uint8_t message_type = nas_message->GetHeader().GetMessageType();
+  if (message_type != kPduSessionReleaseComplete) {
+    // TODO: Message Type mismatch
+    // return false;
+  }
+
+  // 5GSM Cause
+  // Extended Protocol Configuration Options
+
+  // TODO: SMF invokes Nsmf_PDUSession_SMContextStatusNotify to notify AMF
+  // that the SM context for this PDU Session is released
+  scid_t scid = {};
+  try {
+    scid = std::stoi(sm_context_request.get()->scid);
+  } catch (const std::exception& err) {
+    Logger::smf_app().warn(
+        "Received a PDU Session Update SM Context Request, couldn't "
+        "retrieve the corresponding SMF context, ignore message!");
+    // TODO: return;
+  }
+
+  Logger::smf_app().debug("Signal the SM Context Status Change");
+  std::string status = "RELEASED";
+  event_sub.sm_context_status(scid, status);
+
+  // TODO: Notify AMF that the SM context for this PDU session is released
+  if (sp.get()->get_pdu_session_status() == pdu_session_status_t::Active) {
+    Logger::smf_app().debug(
+        "Signal the PDU Session Release Event notification");
+    trigger_pdu_session_release(scid, 1);
+  }
+
+  // SM Policy Association termination
+  if (sp->policy_ptr) {
+    oai::model::pcf::SmPolicyDeleteData delete_data;
+    // TODO set data such as release cause, usage reports etc
+    n7::smf_n7::get_instance().remove_sm_policy_association(
+        *sp->policy_ptr, delete_data);
+  }
+  // TODO: SMF un-subscribes from Session Management Subscription data
+  // changes notification from UDM by invoking Numd_SDM_Unsubscribe
+
+  // TODO: should check if sd context exist
+
+  if (get_number_pdu_sessions() == 0) {
+    Logger::smf_app().debug(
+        "Unsubscribe from Session Management Subscription data changes "
+        "notification from UDM");
+    // TODO: unsubscribes from Session Management Subscription data
+    // changes notification from UDM
+  }
+
+  // TODO: Invoke Nudm_UECM_Deregistration
+
+  // Update PDU Session status -> INACTIVE
+  sp.get()->set_pdu_session_status(pdu_session_status_t::Inactive);
+  // Stop timer T3592
+  itti_inst->timer_remove(sp.get()->timer_T3592);
+  return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool smf_context::handle_pdu_session_resource_setup_response_transfer(
+    std::string& n2_sm_information,
+    std::shared_ptr<itti_sbi_update_sm_context_request>& sm_context_request) {
+  std::string n1_sm_msg, n1_sm_msg_hex;
+
+  // PDUSessionResourceSetupResponseTransfer
+  std::shared_ptr<oai::ngap::PduSessionResourceSetupResponseTransfer>
+      decoded_msg = std::make_shared<
+          oai::ngap::PduSessionResourceSetupResponseTransfer>();
+
+  int decode_status = smf_n2::get_instance().decode_n2_sm_information(
+      decoded_msg, n2_sm_information);
+  if (decode_status == KEncodeDecodeError) {
+    // error, send error to AMF
+    Logger::smf_app().warn(
+        "Decode N2 SM (Ngap_PDUSessionResourceSetupResponseTransfer) "
+        "failed!");
+    // PDU Session Establishment Reject
+    // 24.501: response with a 5GSM STATUS message including cause "#95
+    // Semantically incorrect message"
+    if (smf_n1::get_instance().create_n1_pdu_session_establishment_reject(
+            sm_context_request.get()->req, n1_sm_msg,
+            k5gsmCauseSemanticallyIncorrectMessage)) {
+      conv::convert_string_2_hex(n1_sm_msg, n1_sm_msg_hex);
+      // trigger to send reply to AMF
+      smf_app_inst->trigger_update_context_error_response(
+          http_status_code::FORBIDDEN,
+          PDU_SESSION_APPLICATION_ERROR_N2_SM_ERROR,
+          sm_context_request.get()->pid);
+
+    } else {
+      smf_app_inst->trigger_http_response(
+          http_status_code::INTERNAL_SERVER_ERROR,
+          sm_context_request.get()->pid,
+          N11_SESSION_UPDATE_SM_CONTEXT_RESPONSE);
+    }
+    return false;
+  }
+
+  // store AN Tunnel Info + list of accepted QFIs
+  pfcp::fteid_t dl_teid                                     = {};
+  oai::ngap::QosFlowPerTnlInformation qos_flow_per_tnl_info = {};
+  decoded_msg->getDlQosFlowPerTnlInformation(qos_flow_per_tnl_info);
+
+  UpTransportLayerInformation up_transport_layer_information = {};
+  oai::ngap::AssociatedQosFlowList associated_qos_flow_list  = {};
+  qos_flow_per_tnl_info.get(
+      up_transport_layer_information, associated_qos_flow_list);
+
+  TransportLayerAddress transport_layer_address_ul = {};
+  GtpTeid gtp_teid_ul                              = {};
+  up_transport_layer_information.get(transport_layer_address_ul, gtp_teid_ul);
+  std::optional<struct in_addr> ipv4_addr_opt =
+      transport_layer_address_ul.getIpv4Address();
+  if (ipv4_addr_opt.has_value()) {
+    dl_teid.ipv4_address = ipv4_addr_opt.value();
+  }
+  gtp_teid_ul.get(dl_teid.teid);
+
+  dl_teid.v4 = 1;  // Only V4 for now
+  sm_context_request.get()->req.set_dl_fteid(dl_teid);
+
+  Logger::smf_app().debug(
+      "DL GTP F-TEID (AN F-TEID) "
+      "0x%" PRIx32 " ",
+      dl_teid.teid);
+  Logger::smf_app().debug(
+      "uPTransportLayerInformation (AN IP Addr) %s",
+      conv::toString(dl_teid.ipv4_address).c_str());
+
+  std::vector<oai::ngap::AssociatedQosFlowItem> associated_qos_flow_item_list;
+
+  associated_qos_flow_list.get(associated_qos_flow_item_list);
+  for (const auto& flow_item : associated_qos_flow_item_list) {
+    oai::ngap::QosFlowIdentifier qos_flow_identifier = {};
+    flow_item.get(qos_flow_identifier);
+    long qfi_value = 0;
+    qos_flow_identifier.get(qfi_value);
+    pfcp::qfi_t qfi((uint8_t) qfi_value);
+    sm_context_request.get()->req.add_qfi(qfi);
+    Logger::smf_app().debug(
+        "QoSFlowPerTNLInformation, AssociatedQosFlowList, QFI %d", qfi_value);
+  }
+
+  return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool smf_context::handle_pdu_session_resource_setup_unsuccessful_transfer(
+    std::string& n2_sm_information,
+    std::shared_ptr<itti_sbi_update_sm_context_request>& sm_context_request) {
+  std::string n1_sm_msg, n1_sm_msg_hex;
+
+  // Ngap_PDUSessionResourceSetupUnsuccessfulTransfer
+  std::shared_ptr<PduSessionResourceSetupUnsuccessfulTransfer> decoded_msg =
+      std::make_shared<PduSessionResourceSetupUnsuccessfulTransfer>();
+  int decode_status = smf_n2::get_instance().decode_n2_sm_information(
+      decoded_msg, n2_sm_information);
+
+  if (decode_status == KEncodeDecodeError) {
+    Logger::smf_app().warn(
+        "Decode N2 SM (PDUSessionResourceSetupUnsuccessfulTransfer) "
+        "failed!");
+    // trigger to send reply to AMF
+    smf_app_inst->trigger_update_context_error_response(
+        http_status_code::FORBIDDEN, PDU_SESSION_APPLICATION_ERROR_N2_SM_ERROR,
+        sm_context_request.get()->pid);
+    return false;
+  }
+
+  // PDU Session Establishment Reject, 24.501 cause "#26 Insufficient
+  // resources"
+  if (smf_n1::get_instance().create_n1_pdu_session_establishment_reject(
+          sm_context_request.get()->req, n1_sm_msg,
+          k5gsmCauseInsufficientResources)) {
+    conv::convert_string_2_hex(n1_sm_msg, n1_sm_msg_hex);
+    // trigger to send reply to AMF
+    smf_app_inst->trigger_update_context_error_response(
+        http_status_code::FORBIDDEN,
+        PDU_SESSION_APPLICATION_ERROR_UE_NOT_RESPONDING, n1_sm_msg_hex,
+        sm_context_request.get()->pid);
+
+    // TODO: Need release established resources?
+  } else {
+    smf_app_inst->trigger_http_response(
+        http_status_code::INTERNAL_SERVER_ERROR, sm_context_request.get()->pid,
+        N11_SESSION_UPDATE_SM_CONTEXT_RESPONSE);
+  }
+  return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool smf_context::handle_pdu_session_resource_modify_response_transfer(
+    std::string& n2_sm_information,
+    std::shared_ptr<itti_sbi_update_sm_context_request>& sm_context_request) {
+  std::string n1_sm_msg, n1_sm_msg_hex;
+
+  // PDUSessionResourceModifyResponseTransfer
+  std::shared_ptr<PduSessionResourceModifyResponseTransfer> decoded_msg =
+      std::make_shared<PduSessionResourceModifyResponseTransfer>();
+  int decode_status = smf_n2::get_instance().decode_n2_sm_information(
+      decoded_msg, n2_sm_information);
+
+  if (decode_status == KEncodeDecodeError) {
+    Logger::smf_app().warn(
+        "Decode N2 SM (PduSessionResourceModifyResponseTransfer) "
+        "failed!");
+    // trigger to send reply to AMF
+    smf_app_inst->trigger_update_context_error_response(
+        http_status_code::FORBIDDEN, PDU_SESSION_APPLICATION_ERROR_N2_SM_ERROR,
+        sm_context_request.get()->pid);
+    return false;
+  }
+
+  // see section 8.2.3 (PDU Session Resource Modify) @3GPP TS 38.413
+  // if dL_NGU_UP_TNLInformation is included, it shall be considered as
+  // the new DL transport layer addr for the PDU session (should be
+  // verified)
+  // TODO: may include uL_NGU_UP_TNLInformation (mapping between each new
+  // DL transport layer address and the corresponding UL transport layer
+  // address)
+  pfcp::fteid_t dl_teid;
+
+  std::optional<UpTransportLayerInformation> dl_ng_u_up_tnl_information = {};
+  decoded_msg->getDlNgUUpTnlInformation(dl_ng_u_up_tnl_information);
+  if (dl_ng_u_up_tnl_information.has_value()) {
+    TransportLayerAddress transport_layer_address_ul = {};
+    GtpTeid gtp_teid_ul                              = {};
+    (dl_ng_u_up_tnl_information.value())
+        .get(transport_layer_address_ul, gtp_teid_ul);
+    std::optional<struct in_addr> ipv4_addr_opt =
+        transport_layer_address_ul.getIpv4Address();
+    if (ipv4_addr_opt.has_value()) {
+      dl_teid.ipv4_address = ipv4_addr_opt.value();
+    }
+    gtp_teid_ul.get(dl_teid.teid);
+    dl_teid.v4 = 1;  // Only v4 for now
+    sm_context_request.get()->req.set_dl_fteid(dl_teid);
+  }
+
+  // list of Qos Flows which have been successfully setup or modified
+  std::optional<QosFlowAddOrModifyResponseList> qos_flow_response_list = {};
+  decoded_msg->getQosFlowAddOrModifyRequestList(qos_flow_response_list);
+  if (qos_flow_response_list.has_value()) {
+    std::vector<QosFlowAddOrModifyResponseItem> qos_response_item_list;
+    (qos_flow_response_list.value()).get(qos_response_item_list);
+    for (const auto& response_item : qos_response_item_list) {
+      QosFlowIdentifier qos_flow_identifier = {};
+      response_item.getQosFlowIdentifier(qos_flow_identifier);
+      sm_context_request.get()->req.add_qfi(
+          (uint8_t) qos_flow_identifier.get());
+    }
+  }
+
+  // TODO: Additional DL QoS Flow per TNL Information
+  // TODO: QoS Flow Failed to Add or Modify List
+  // TODO: Additional NG-U UP TNL Information
+  // TODO: Redundant DL NG-U UP TNL Information
+  // TODO: Redundant UL NG-U UP TNL Information
+  // TODO: Additional Redundant DL QoS Flow per TNL Information
+  // TODO: Additional Redundant NG-U UP TNL Information
+  // TODO: Secondary RAT Usage Information
+  return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool smf_context::handle_pdu_session_resource_release_response_transfer(
+    std::string& n2_sm_information,
+    std::shared_ptr<itti_sbi_update_sm_context_request>& sm_context_request,
+    std::shared_ptr<smf_pdu_session>& sp) {
+  std::string n1_sm_msg, n1_sm_msg_hex;
+
+  // TODO: SMF does nothing (Step 7, section 4.3.4.2@3GPP TS 23.502)
+  // PDUSessionResourceReleaseResponseTransfer
+  std::shared_ptr<PduSessionResourceReleaseResponseTransfer> decoded_msg =
+      std::make_shared<PduSessionResourceReleaseResponseTransfer>();
+  int decode_status = smf_n2::get_instance().decode_n2_sm_information(
+      decoded_msg, n2_sm_information);
+  if (decode_status == KEncodeDecodeError) {
+    Logger::smf_app().warn(
+        "Decode N2 SM (Ngap_PDUSessionResourceReleaseResponseTransfer) "
+        "failed!");
+    // trigger to send reply to AMF
+    smf_app_inst->trigger_update_context_error_response(
+        http_status_code::FORBIDDEN, PDU_SESSION_APPLICATION_ERROR_N2_SM_ERROR,
+        sm_context_request.get()->pid);
+
+    return false;
+  }
+
+  scid_t scid = {};
+  try {
+    scid = std::stoi(sm_context_request->scid);
+  } catch (const std::exception& err) {
+    Logger::smf_app().warn(
+        "Couldn't retrieve "
+        "the corresponding SMF context, ignore message!");
+    return false;
+  }
+
+  // Notify AMF that the SM context for this PDU session is released
+  if (sp.get()->get_pdu_session_status() == pdu_session_status_t::Active) {
+    trigger_pdu_session_release(scid, 1);
+  }
+
+  smf_app_inst->trigger_http_response(
+      http_status_code::OK, sm_context_request.get()->pid,
+      N11_SESSION_UPDATE_SM_CONTEXT_RESPONSE);
+
+  return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool smf_context::handle_service_request(
+    std::string& n2_sm_information,
+    std::shared_ptr<itti_sbi_update_sm_context_request>& sm_context_request,
+    std::shared_ptr<itti_sbi_update_sm_context_response>& sm_context_resp,
+    std::shared_ptr<smf_pdu_session>& sp) {
+  std::string n2_sm_info, n2_sm_info_hex;
+
+  // Update upCnxState
+  sp->set_upCnx_state(upCnx_state_e::UPCNX_STATE_ACTIVATING);
+
+  // get QFIs associated with PDU session ID
+  //  std::vector<smf_qos_flow> qos_flows = {};
+  //  sp.get()->get_qos_flows(qos_flows);
+  //  for (auto i : qos_flows) {
+  //    sm_context_request.get()->req.add_qfi(i.qfi.qfi);
+  //    qos_flow_context_updated qcu = {};
+  //    qcu.set_cause(k5gsmCauseRequestAccepted);
+  //    qcu.set_qfi(i.qfi);
+  //    qcu.set_ul_fteid(i.ul_fteid);
+  //    qcu.set_qos_profile(i.qos_profile);
+  //    sm_context_resp.get()->res.add_qos_flow_context_updated(qcu);
+  //  }
+  std::vector<pfcp::qfi_t> qfis = sp->get_session_handler()->get_all_qfis();
+  for (const auto& qfi : qfis) {
+    sm_context_request->req.add_qfi(qfi.qfi);
+    qos_flow_context_updated qcu =
+        sp->get_session_handler()->get_qos_flow_context_updated(qfi);
+    sm_context_resp->res.add_qos_flow_context_updated(qcu);
+  }
+
+  sm_context_resp->session_procedure_type =
+      session_management_procedures_type_e::SERVICE_REQUEST_UE_TRIGGERED_STEP1;
+
+  // Create N2 SM Information: PDU Session Resource Setup Request Transfer IE
+  // N2 SM Information
+  smf_n2::get_instance().create_n2_pdu_session_resource_setup_request_transfer(
+      sm_context_resp->res, n2_sm_info_type_e::PDU_RES_SETUP_REQ, n2_sm_info);
+
+  conv::convert_string_2_hex(n2_sm_info, n2_sm_info_hex);
+  sm_context_resp->res.set_n2_sm_information(n2_sm_info_hex);
+
+  // fill the content of SmContextUpdatedData
+  nlohmann::json json_data = {};
+
+  json_data["n2SmInfo"]["contentId"] = N2_SM_CONTENT_ID;
+  json_data["n2SmInfoType"]          = "PDU_RES_SETUP_REQ";  // NGAP message
+  json_data["upCnxState"]            = "ACTIVATING";
+  sm_context_resp->res.set_json_data(json_data);
+
+  // Update upCnxState to ACTIVATING
+  sp->set_upCnx_state(upCnx_state_e::UPCNX_STATE_ACTIVATING);
+
+  // TODO: If new UPF is used, need to send N4 Session Modification
+  // Request/Response to new/old UPF
+
+  // Accept the activation of UP connection and continue to using the current
+  // UPF
+  // TODO: Accept the activation of UP connection and select a new UPF
+  // Reject the activation of UP connection
+  // SMF fails to find a suitable I-UPF: i) trigger re-establishment of PDU
+  // Session;  or ii) keep PDU session but reject the activation of UP
+  // connection;  or iii) release PDU session
+
+  return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool smf_context::handle_an_release(
+    std::shared_ptr<itti_sbi_update_sm_context_request>& sm_context_request,
+    std::shared_ptr<itti_sbi_update_sm_context_response>& sm_context_resp,
+    std::shared_ptr<smf_pdu_session>& sp) {
+  // Get QFIs associated with PDU session ID
+  auto qfus = sp->get_session_handler()->get_qos_flows_context_updated();
+  for (const auto& qfu : qfus) {
+    sm_context_request->req.add_qfi(qfu.qfi);
+    sm_context_resp->res.add_qos_flow_context_updated(qfu);
+  }
+
+  sm_context_resp->session_procedure_type =
+      session_management_procedures_type_e::PDU_SESSION_RELEASE_AN_INITIATED;
+
+  // Update upCnxState
+  sp->set_upCnx_state(upCnx_state_e::UPCNX_STATE_DEACTIVATED);
+  return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool smf_context::handle_pdu_session_update_sm_context_request(
+    std::shared_ptr<itti_sbi_update_sm_context_request> smreq) {
+  Logger::smf_app().info(
+      "Handle a PDU Session Update SM Context Request message from an AMF "
+      "(HTTP version %d)",
+      smreq->http_version);
+  pdu_session_update_sm_context_request sm_context_req_msg = smreq->req;
+  std::string n1_sm_msg                                    = {};
+  std::string n1_sm_msg_hex                                = {};
+  std::string n2_sm_info                                   = {};
+  std::string n2_sm_info_hex                               = {};
+  bool update_upf                                          = false;
+  bool pdu_session_release_procedure                       = false;
+  session_management_procedures_type_e procedure_type(
+      session_management_procedures_type_e::
+          PDU_SESSION_ESTABLISHMENT_UE_REQUESTED);
+
+  // Step 1. get SMF PDU session context. At this stage, pdu_session must be
+  // existed
+  std::shared_ptr<smf_pdu_session> sp = {};
+  if (!find_pdu_session(sm_context_req_msg.get_pdu_session_id(), sp)) {
+    // error
+    Logger::smf_app().warn("PDU session context does not exist!");
+    // trigger to send reply to AMF
+    smf_app_inst->trigger_update_context_error_response(
+        http_status_code::NOT_FOUND,
+        PDU_SESSION_APPLICATION_ERROR_CONTEXT_NOT_FOUND, smreq->pid);
+    return false;
+  }
+
+  std::string dnn = sp.get()->get_dnn();
+  if ((dnn.compare(sm_context_req_msg.get_dnn()) != 0) or
+      (!(sp.get()->get_snssai() == sm_context_req_msg.get_snssai()))) {
+    // error
+    Logger::smf_n1().warn("DNN/SNSSAI doesn't matched with this session!");
+    // trigger to send reply to AMF
+    smf_app_inst->trigger_update_context_error_response(
+        http_status_code::NOT_FOUND,
+        PDU_SESSION_APPLICATION_ERROR_CONTEXT_NOT_FOUND, smreq->pid);
+    return false;
+  }
+
+  // we need to store HttpResponse and session-related information to be used
+  // when receiving the response from UPF
+  std::shared_ptr<itti_sbi_update_sm_context_response> sm_context_resp_pending =
+      std::make_shared<itti_sbi_update_sm_context_response>(
+          TASK_SMF_SBI, TASK_SMF_APP, smreq->pid);
+
+  sm_context_resp_pending->res.set_pdu_session_type(
+      sp.get()->get_pdu_session_type().pdu_session_type);
+
+  // Assign necessary information for the response
+  xgpp_conv::update_sm_context_response_from_ctx_request(
+      smreq, sm_context_resp_pending);
+
+  // Step 2.1. Decode N1 (if content is available)
+  if (sm_context_req_msg.n1_sm_msg_is_set()) {
+    //    nas_message_t decoded_nas_msg = {};
+
+    auto nas_message = std::make_shared<Nas5gsmMessage>();
+
+    // Step 1. Decode NAS and get the necessary information
+    int decoded_size = smf_n1::get_instance().decode_n1_sm_container(
+        nas_message, smreq->req.get_n1_sm_message());
+    // Failed to decode, send reply to AMF with PDU Session Establishment
+    // Reject
+    if (decoded_size == KEncodeDecodeError) {
+      Logger::smf_app().warn("N1 SM container cannot be decoded correctly!");
+      smf_app_inst->trigger_update_context_error_response(
+          http_status_code::FORBIDDEN,
+          PDU_SESSION_APPLICATION_ERROR_N1_SM_ERROR, smreq->pid);
+      return false;
+    }
+
+    uint8_t message_type = nas_message->GetHeader().GetMessageType();
+
+    switch (message_type) {
+      case kPduSessionModificationRequest: {
+        // PDU Session Modification procedure (UE-initiated, step 1.a,
+        // Section 4.3.3.2@3GPP TS 23.502). UE initiated PDU session
+        // modification request (Step 1)
+
+        procedure_type = session_management_procedures_type_e::
+            PDU_SESSION_MODIFICATION_UE_INITIATED_STEP1;
+        if (!handle_pdu_session_modification_request(
+                nas_message, smreq, sm_context_resp_pending, sp)) {
+          // TODO
+          return false;
+        }
+
+        // don't need to create a procedure to update UPF
+      } break;
+
+      case kPduSessionModificationComplete: {
+        // PDU Session Modification procedure (UE-initiated/Network-requested)
+        // (step 3)  PDU Session  Modification Command Complete
+        Logger::smf_app().debug("PDU_SESSION_MODIFICATION_COMPLETE");
+
+        procedure_type = session_management_procedures_type_e::
+            PDU_SESSION_MODIFICATION_UE_INITIATED_STEP3;
+        if (!handle_pdu_session_modification_complete(
+                nas_message, smreq, sm_context_resp_pending, sp)) {
+          // TODO:
+          return false;
+        }
+        // don't need to create a procedure to update UPF
+      } break;
+
+      case kPduSessionModificationCommandReject: {
+        // PDU Session Modification procedure (Section 4.3.3.2@3GPP TS 23.502)
+        Logger::smf_app().debug("PDU_SESSION_MODIFICATION_COMMAND_REJECT");
+
+        procedure_type = session_management_procedures_type_e::
+            PDU_SESSION_MODIFICATION_UE_INITIATED_STEP3;
+
+        if (!handle_pdu_session_modification_command_reject(
+                nas_message, smreq, sm_context_resp_pending, sp)) {
+          // TODO:
+          return false;
+        }
+        // don't need to create a procedure to update UPF
+      } break;
+
+      case kPduSessionReleaseRequest: {
+        // PDU Session Release procedure (Section 4.3.4@3GPP TS 23.502)
+        // PDU Session Release UE-Initiated (Step 1)
+
+        Logger::smf_app().debug("PDU_SESSION_RELEASE_REQUEST");
+        Logger::smf_app().info(
+            "PDU Session Release (UE-Initiated), processing N1 SM "
+            "Information");
+        procedure_type = session_management_procedures_type_e::
+            PDU_SESSION_RELEASE_UE_REQUESTED_STEP1;
+
+        if (!handle_pdu_session_release_request(
+                nas_message, smreq, sm_context_resp_pending, sp)) {
+          // TODO
+          return false;
+        }
+        // need to update UPF accordingly
+        update_upf                    = true;
+        pdu_session_release_procedure = true;
+      } break;
+
+      case kPduSessionReleaseComplete: {
+        // PDU Session Release procedure
+        // PDU Session Release UE-Initiated (Step 3)
+
+        Logger::smf_app().debug("PDU_SESSION_RELEASE_COMPLETE");
+        Logger::smf_app().info(
+            "PDU Session Release Complete (UE-Initiated), processing N1 SM "
+            "Information");
+        procedure_type = session_management_procedures_type_e::
+            PDU_SESSION_RELEASE_UE_REQUESTED_STEP3;
+
+        if (!handle_pdu_session_release_complete(
+                nas_message, smreq, sm_context_resp_pending, sp)) {
+          // TODO:
+          return false;
+        }
+
+        // display info
+        Logger::smf_app().info("SMF context: \n %s", toString().c_str());
+
+        // don't need to create a procedure to update UPF
+        pdu_session_release_procedure = true;
+
+      } break;
+      default: {
+        Logger::smf_app().warn("Unknown message type %d", message_type);
+        // TODO:
+      }
+    }  // end switch
+  }
+
+  // Step 2.2. Decode N2 (if content is available)
+  std::string n2_sm_info_type_str   = {};
+  std::string n2_sm_information     = {};
+  n2_sm_info_type_e n2_sm_info_type = {};
+
+  if (sm_context_req_msg.n2_sm_info_is_set()) {
+    // get necessary information (N2 SM information)
+    n2_sm_info_type_str = smreq->req.get_n2_sm_info_type();
+    n2_sm_information   = smreq->req.get_n2_sm_information();
+    n2_sm_info_type = smf_app_inst->n2_sm_info_type_str2e(n2_sm_info_type_str);
+
+    // decode N2 SM Info
+    switch (n2_sm_info_type) {
+      case n2_sm_info_type_e::PDU_RES_SETUP_RSP: {
+        // PDU Session Resource Setup Response Transfer is included in the
+        // following procedures:  1 - UE-Requested PDU Session Establishment
+        // procedure (Section 4.3.2.2.1@3GPP TS 23.502)  2 - UE Triggered
+        // Service Request Procedure (step 2)
+
+        Logger::smf_app().info("PDU Session Resource Setup Response Transfer");
+
+        if (!handle_pdu_session_resource_setup_response_transfer(
+                n2_sm_information, smreq)) {
+          // unsubscribes to the modifications of Session Management
+          // Subscription data for the corresponding (SUPI, DNN, S-NSSAI of the
+          // HPLMN)
+          std::string key = {};
+          oai::model::common::Snssai snssai_3gpp_model =
+              sp.get()->get_snssai().to_model_snssai();
+          smf_app_inst->get_dnn_snssai_key(
+              sp.get()->get_dnn(), snssai_3gpp_model, key);
+          std::shared_ptr<oai::model::udm::SdmSubscription> sdm_subscription =
+              {};
+          get_sdm_subscription(key, sdm_subscription);
+          if (sdm_subscription)
+            unsubscribe_sdm_subscriptions(supi, sdm_subscription);
+
+          return false;
+        }
+
+        if (sp->get_upCnx_state() == upCnx_state_e::UPCNX_STATE_ACTIVATING) {
+          procedure_type = session_management_procedures_type_e::
+              SERVICE_REQUEST_UE_TRIGGERED_STEP2;
+          Logger::smf_app().info(
+              "UE-Triggered Service Request, processing N2 SM Information");
+        } else {
+          procedure_type = session_management_procedures_type_e::
+              PDU_SESSION_ESTABLISHMENT_UE_REQUESTED;
+          Logger::smf_app().info(
+              "PDU Session Establishment Request, processing N2 SM "
+              "Information");
+        }
+
+        // need to update UPF accordingly
+        update_upf = true;
+      } break;
+
+      case n2_sm_info_type_e::PDU_RES_SETUP_FAIL: {
+        // PDU Session Establishment procedure
+        // PDU Session Resource Setup Unsuccessful Transfer
+
+        Logger::smf_app().info(
+            "PDU Session Resource Setup Unsuccessful Transfer");
+
+        if (!handle_pdu_session_resource_setup_unsuccessful_transfer(
+                n2_sm_information, smreq)) {
+          // TODO:
+          return false;
+        }
+        // don't need to update UPF
+      } break;
+
+      case n2_sm_info_type_e::PDU_RES_MOD_RSP: {
+        // PDU Session Modification procedure (UE-initiated,
+        // Section 4.3.3.2@3GPP TS 23.502 or SMF-Requested)(Step 2)
+
+        Logger::smf_app().info(
+            "PDU Session Modification Procedure, processing N2 SM "
+            "Information");
+        procedure_type = session_management_procedures_type_e::
+            PDU_SESSION_MODIFICATION_UE_INITIATED_STEP2;
+
+        if (!handle_pdu_session_resource_modify_response_transfer(
+                n2_sm_information, smreq)) {
+          // TODO:
+          return false;
+        }
+        // need to update UPF accordingly
+        update_upf = true;
+      } break;
+
+      case n2_sm_info_type_e::PDU_RES_MOD_FAIL: {
+        // PDU Session Modification procedure
+
+        Logger::smf_app().info("PDU_RES_MOD_FAIL");
+        // TODO: To be completed
+      } break;
+
+      case n2_sm_info_type_e::PDU_RES_REL_RSP: {
+        // PDU Session Release procedure (UE-initiated, Section 4.3.4.2@3GPP
+        // TS 23.502 or SMF-Requested)(Step 2)
+        Logger::smf_app().info(
+            "PDU Session Release (UE-initiated), processing N2 SM "
+            "Information");
+
+        procedure_type = session_management_procedures_type_e::
+            PDU_SESSION_RELEASE_UE_REQUESTED_STEP2;
+
+        if (!handle_pdu_session_resource_release_response_transfer(
+                n2_sm_information, smreq, sp)) {
+          // TODO:
+          return false;
+        }
+
+        sm_context_resp_pending->session_procedure_type =
+            session_management_procedures_type_e::
+                PDU_SESSION_RELEASE_UE_REQUESTED_STEP2;
+
+        // Update PDU session status to PDU_SESSION_INACTIVE
+        sp.get()->set_pdu_session_status(pdu_session_status_t::Inactive);
+
+        // don't need to create a procedure to update UPF
+        pdu_session_release_procedure = true;
+      } break;
+
+      // Xn Handover
+      case n2_sm_info_type_e::PATH_SWITCH_REQ: {
+        // Xn based inter NG-RAN handover (Section 4.9.1.2@3GPP TS 23.502
+        // V16.0.0)
+
+        Logger::smf_app().info(
+            "Xn based inter NG-RAN Handover, processing N2 SM Information");
+        procedure_type =
+            session_management_procedures_type_e::HO_PATH_SWITCH_REQ;
+
+        if (!handle_ho_path_switch_req(
+                n2_sm_information, smreq, sm_context_resp_pending, sp)) {
+          // TODO:
+          return false;
+        }
+        // need to update UPF accordingly
+        update_upf = true;
+      } break;
+
+      // N2 Handover
+      case n2_sm_info_type_e::HANDOVER_REQUIRED: {
+        // Inter NG-RAN node N2 based handover (Section 4.9.1.3@3GPP TS 23.502
+        // V16.0.0)
+
+        Logger::smf_app().info(
+            "Inter NG-RAN node N2 based handover (Handover Preparation, Step "
+            "1), processing N2 SM "
+            "Information");
+        procedure_type =
+            session_management_procedures_type_e::N2_HO_PREPARATION_PHASE_STEP1;
+
+        if (!handle_ho_preparation_request(
+                n2_sm_information, smreq, sm_context_resp_pending, sp)) {
+          // TODO:
+          return false;
+        }
+        // Don't need to update UPF since we use the same UPF for now
+        // TODO: use another UPF
+        update_upf = false;
+      } break;
+
+      case n2_sm_info_type_e::HANDOVER_REQ_ACK: {
+        // Inter NG-RAN node N2 based handover (Section 4.9.1.3@3GPP TS 23.502
+        // V16.0.0)
+
+        Logger::smf_app().info(
+            "Inter NG-RAN node N2 based handover (Handover Preparation, Step "
+            "2), processing N2 SM "
+            "Information");
+        procedure_type =
+            session_management_procedures_type_e::N2_HO_PREPARATION_PHASE_STEP2;
+
+        if (!handle_ho_preparation_request_ack(
+                n2_sm_information, smreq, sm_context_resp_pending, sp)) {
+          // TODO:
+          return false;
+        }
+        // Update UPF with new DL Tunnel
+        update_upf = true;
+      } break;
+
+      case n2_sm_info_type_e::HANDOVER_RES_ALLOC_FAIL: {
+        // Inter NG-RAN node N2 based handover (Section 4.9.1.3@3GPP TS 23.502
+        // V16.0.0)
+
+        Logger::smf_app().info(
+            "Inter NG-RAN node N2 based handover (Handover Preparation, Step "
+            "2), processing N2 SM "
+            "Information");
+        procedure_type =
+            session_management_procedures_type_e::N2_HO_PREPARATION_PHASE_STEP2;
+
+        if (!handle_ho_preparation_request_fail(
+                n2_sm_information, smreq, sm_context_resp_pending, sp)) {
+          // TODO:
+          return false;
+        }
+
+        // TODO:
+        // Update UPF with new DL Tunnel
+        update_upf = false;
+      } break;
+
+      case n2_sm_info_type_e::SECONDARY_RAT_USAGE: {
+        // Inter NG-RAN node N2 based handover (Section 4.9.1.3@3GPP TS 23.502
+        // V16.0.0)
+        if (sm_context_req_msg.ho_state_is_set()) {
+          std::string ho_state = sm_context_req_msg.get_ho_state();
+          if (ho_state.compare("COMPLETED") == 0) {
+            // TODO:
+          }
+        }
+      } break;
+
+      case n2_sm_info_type_e::PDU_RES_NTY: {
+        // PDU Session Resource Notify (from AN to AMF/SMF, Section 8.2.4
+        // @3GPP TS 38.413) PDU Session Resource Notify Transfer
+        // TODO: to be completed
+      } break;
+
+      case n2_sm_info_type_e::PDU_RES_NTY_REL: {
+        // PDU Session Resource Notify (from AN to AMF/SMF, Section 8.2.4
+        // @3GPP TS 38.413) PDU Session Resource Notify Released Transfer
+        // TODO: to be completed
+      } break;
+
+      default: {
+        Logger::smf_app().warn(
+            "Unknown N2 SM info type %d", (int) n2_sm_info_type);
+      }
+
+    }  // end switch
+  }
+
+  // Step 3. For Service Request
+  if (!sm_context_req_msg.n1_sm_msg_is_set() and
+      !sm_context_req_msg.n2_sm_info_is_set() and
+      sm_context_req_msg.upCnx_state_is_set()) {
+    std::string up_cnx_state = {};
+    sm_context_req_msg.get_upCnx_state(up_cnx_state);
+
+    if (boost::iequals(up_cnx_state, "DEACTIVATED")) {
+      Logger::smf_app().info(
+          "Deactivation of User Plane connectivity of a PDU session");
+      procedure_type = session_management_procedures_type_e::
+          PDU_SESSION_RELEASE_AN_INITIATED;
+      if (!handle_an_release(smreq, sm_context_resp_pending, sp)) {
+        // TODO:
+        return false;
+      }
+    } else if (boost::iequals(up_cnx_state, "ACTIVATING")) {
+      Logger::smf_app().info("Service Request (UE-triggered, step 1)");
+      procedure_type = session_management_procedures_type_e::
+          SERVICE_REQUEST_UE_TRIGGERED_STEP1;
+      if (!handle_service_request(
+              n2_sm_info, smreq, sm_context_resp_pending, sp)) {
+        // TODO:
+        return false;
+      }
+    } else {
+      // TODO:
+      Logger::smf_app().warn(
+          "Invalid value for UpCnxState %s", up_cnx_state.c_str());
+      return false;
+    }
+
+    // do not need update UPF
+    update_upf = true;
+  }
+
+  // Step 4. For AMF-initiated Session Release (with release indication)
+  if (sm_context_req_msg.release_is_set()) {
+    procedure_type =
+        session_management_procedures_type_e::PDU_SESSION_RELEASE_AMF_INITIATED;
+    // get QFIs associated with PDU session ID
+    //    std::vector<smf_qos_flow> qos_flows = {};
+    //    sp.get()->get_qos_flows(qos_flows);
+    //    for (auto i : qos_flows) {
+    //      smreq->req.add_qfi(i.qfi.qfi);
+    //    }
+    std::vector<pfcp::qfi_t> qfis = sp->get_session_handler()->get_all_qfis();
+    for (const auto& qfi : qfis) {
+      smreq->req.add_qfi(qfi.qfi);
+    }
+
+    // need update UPF
+    update_upf                    = true;
+    pdu_session_release_procedure = true;
+  }
+
+  // Step 5. N2 Handover Execution/Cancellation
+  if (sm_context_req_msg.ho_state_is_set() or
+      sm_context_req_msg.n2_sm_info_is_set()) {
+    std::string ho_state = sm_context_req_msg.get_ho_state();
+
+    // Handover Execution
+    if (ho_state.compare("COMPLETED") == 0 or
+        n2_sm_info_type == n2_sm_info_type_e::SECONDARY_RAT_USAGE) {
+      Logger::smf_app().info(
+          "Inter NG-RAN node N2 based handover (Handover execution, "
+          "processing N2 SM Information");
+      procedure_type =
+          session_management_procedures_type_e::N2_HO_EXECUTION_PHASE;
+
+      if (!handle_ho_execution(
+              n2_sm_information, smreq, sm_context_resp_pending, sp)) {
+        // TODO:
+        return false;
+      }
+
+      // TODO:
+      // Update UPF with new DL Tunnel
+      update_upf = false;
+    }
+
+    // Handover Cancellation
+    if (ho_state.compare("CANCELLED") == 0) {
+      if (!handle_ho_cancellation(
+              n2_sm_information, smreq, sm_context_resp_pending, sp)) {
+        // TODO:
+        return false;
+      }
+      update_upf = false;
+    }
+  }
+
+  // For PCF-initiated SM Policy Association Modification
+  if (smreq->session_procedure_type ==
+      session_management_procedures_type_e::
+          PDU_SESSION_MODIFICATION_PCF_INITIATED) {
+    // Process the request -> update UPF if necesssary
+    // TODO:
+    // example:
+    pdu_session_release_procedure = false;
+    update_upf                    = false;
+  }
+
+  // Step 5. Create a procedure for update SM context and let the procedure
+  // handle the request if necessary
+  if (update_upf) {
+    if (!pdu_session_release_procedure) {
+      auto proc = std::make_shared<session_update_sm_context_procedure>(sp);
+      std::shared_ptr<smf_procedure> sproc = proc;
+      proc->session_procedure_type         = procedure_type;
+
+      insert_procedure(sproc);
+      if (proc->run(smreq, sm_context_resp_pending, shared_from_this()) ==
+          smf_procedure_code::ERROR) {
+        // error
+        Logger::smf_app().info(
+            "PDU Update SM Context Request procedure failed (session "
+            "procedure "
+            "type %s)",
+            session_management_procedures_type_e2str
+                .at(static_cast<int>(procedure_type))
+                .c_str());
+        remove_procedure(sproc.get());
+
+        // send error to AMF according to the procedure
+        switch (procedure_type) {
+          case session_management_procedures_type_e::
+              PDU_SESSION_ESTABLISHMENT_UE_REQUESTED: {
+            // PDU Session Establishment Reject
+            if (smf_n1::get_instance()
+                    .create_n1_pdu_session_establishment_reject(
+                        sm_context_req_msg, n1_sm_msg,
+                        k5gsmCauseNetworkFailure)) {
+              conv::convert_string_2_hex(n1_sm_msg, n1_sm_msg_hex);
+              // trigger to send reply to the NF consumer (AMF)
+              smf_app_inst->trigger_update_context_error_response(
+                  http_status_code::FORBIDDEN,
+                  PDU_SESSION_APPLICATION_ERROR_PEER_NOT_RESPONDING,
+                  smreq->pid);
+            } else {
+              smf_app_inst->trigger_http_response(
+                  http_status_code::INTERNAL_SERVER_ERROR, smreq->pid,
+                  N11_SESSION_UPDATE_SM_CONTEXT_RESPONSE);
+            }
+          } break;
+
+          case session_management_procedures_type_e::
+              SERVICE_REQUEST_UE_TRIGGERED_STEP1:
+          case session_management_procedures_type_e::
+              PDU_SESSION_MODIFICATION_SMF_REQUESTED:
+          case session_management_procedures_type_e::
+              PDU_SESSION_MODIFICATION_AN_REQUESTED:
+          case session_management_procedures_type_e::
+              PDU_SESSION_MODIFICATION_PCF_INITIATED:
+          case session_management_procedures_type_e::
+              PDU_SESSION_MODIFICATION_UE_INITIATED_STEP2: {
+            // trigger the reply to the NF consumer (AMF/PCF,..)
+            smf_app_inst->trigger_update_context_error_response(
+                http_status_code::FORBIDDEN,
+                PDU_SESSION_APPLICATION_ERROR_PEER_NOT_RESPONDING, smreq->pid);
+          } break;
+
+          default: {
+            // trigger the reply to the NF consumer
+            smf_app_inst->trigger_update_context_error_response(
+                http_status_code::FORBIDDEN,
+                PDU_SESSION_APPLICATION_ERROR_PEER_NOT_RESPONDING, smreq->pid);
+          }
+        }
+        return false;
+      }
+    } else {
+      // UE-triggered PDU Session Release
+      pdu_session_release_sm_context_request sm_context_rel_req_msg = {};
+
+      sm_context_rel_req_msg.set_supi(sm_context_req_msg.get_supi());
+      sm_context_rel_req_msg.set_pdu_session_id(
+          sm_context_req_msg.get_pdu_session_id());
+      sm_context_rel_req_msg.set_snssai(sm_context_req_msg.get_snssai());
+      sm_context_rel_req_msg.set_dnn(sm_context_req_msg.get_dnn());
+      sm_context_rel_req_msg.set_pti(sm_context_resp_pending->res.get_pti());
+
+      // check if update message contain N2 SM info
+      if (sm_context_req_msg.n2_sm_info_is_set()) {
+        // get necessary information (N2 SM information)
+        sm_context_rel_req_msg.set_n2_sm_information(
+            smreq->req.get_n2_sm_information());
+        sm_context_rel_req_msg.set_n2_sm_info_type(
+            smreq->req.get_n2_sm_info_type());
+      }
+
+      // check if update message contain N1 SM Msg
+      if (sm_context_req_msg.n1_sm_msg_is_set()) {
+        sm_context_rel_req_msg.set_n1_sm_message(
+            smreq->req.get_n1_sm_message());
+      }
+
+      // Create an itti_sbi_release_sm_context_request message and handling it
+      // accordingly
+      std::shared_ptr<itti_sbi_release_sm_context_request> smreq_release =
+          std::make_shared<itti_sbi_release_sm_context_request>(
+              TASK_SMF_APP, TASK_SMF_APP, smreq->pid, smreq->scid);
+      smreq_release->req = sm_context_rel_req_msg;
+
+      std::shared_ptr<itti_sbi_release_sm_context_response>
+          sm_context_rel_resp_pending =
+              std::make_shared<itti_sbi_release_sm_context_response>(
+                  TASK_SMF_APP, TASK_SMF_APP, smreq_release->pid);
+
+      sm_context_rel_resp_pending->res.set_http_code(http_status_code::OK);
+      sm_context_rel_resp_pending->res.set_supi(
+          sm_context_rel_req_msg.get_supi());
+      sm_context_rel_resp_pending->res.set_cause(k5gsmCauseRequestAccepted);
+      sm_context_rel_resp_pending->res.set_pdu_session_id(
+          sm_context_rel_req_msg.get_pdu_session_id());
+      sm_context_rel_resp_pending->res.set_snssai(
+          sm_context_rel_req_msg.get_snssai());
+      sm_context_rel_resp_pending->res.set_dnn(
+          sm_context_rel_req_msg.get_dnn());
+      sm_context_rel_resp_pending->res.set_pti(
+          sm_context_rel_req_msg.get_pti());
+
+      auto proc = std::make_shared<session_release_sm_context_procedure>(sp);
+      std::shared_ptr<smf_procedure> sproc = proc;
+      proc->session_procedure_type         = procedure_type;
+
+      insert_procedure(sproc);
+
+      if (proc->run(
+              smreq_release, sm_context_rel_resp_pending, shared_from_this()) ==
+          smf_procedure_code::ERROR) {
+        Logger::smf_app().info(
+            "PDU Release SM Context Request procedure failed");
+
+        remove_procedure(sproc.get());
+        // Trigger to send reply to AMF
+        smf_app_inst->trigger_http_response(
+            http_status_code::FORBIDDEN, smreq_release->pid,
+            N11_SESSION_RELEASE_SM_CONTEXT_RESPONSE);
+        // TODO: set cause PDU_SESSION_APPLICATION_ERROR_PEER_NOT_RESPONDING
+
+        return false;
+      }
+    }
+
+  } else {
+    Logger::smf_app().info(
+        "Sending ITTI message %s to task TASK_SMF_APP to trigger response",
+        sm_context_resp_pending->get_msg_name());
+    int ret = itti_inst->send_msg(sm_context_resp_pending);
+    if (RETURNok != ret) {
+      Logger::smf_app().error(
+          "Could not send ITTI message %s to task TASK_SMF_SBI",
+          sm_context_resp_pending->get_msg_name());
+    }
+    return true;
+  }
+
+  // TODO, Step 6
+  /*  If the PDU Session establishment is not successful, the SMF informs the
+   AMF by invoking Nsmf_PDUSession_SMContextStatusNotify (Release). The SMF
+   also releases any N4 session(s) created, any PDU Session address if
+   allocated (e.g. IP address) and releases the association with PCF, if any.
+   In this case, step 19 is skipped. see step 18, section 4.3.2.2.1@3GPP
+   TS 23.502)
+   */
+  return true;
+}
+
+//-------------------------------------------------------------------------------------
+void smf_context::handle_pdu_session_release_sm_context_request(
+    std::shared_ptr<itti_sbi_release_sm_context_request> smreq) {
+  Logger::smf_app().info("Handle a PDU Session Release SM Context Request");
+
+  // Step 1. get SMF PDU session context. At this stage, pdu_session must be
+  // existed
+  std::shared_ptr<smf_pdu_session> sp = {};
+  if (!find_pdu_session(smreq->req.get_pdu_session_id(), sp)) {
+    // error
+    Logger::smf_app().warn("PDU session context does not exist!");
+    // trigger to send reply to AMF
+    smf_app_inst->trigger_http_response(
+        http_status_code::NOT_FOUND, smreq->pid,
+        N11_SESSION_RELEASE_SM_CONTEXT_RESPONSE);
+    return;
+  }
+
+  std::string dnn = sp.get()->get_dnn();
+  if ((dnn.compare(smreq->req.get_dnn()) != 0) or
+      (!(sp.get()->get_snssai() == smreq->req.get_snssai()))) {
+    // error
+    Logger::smf_n1().warn("DNN/SNSSAI doesn't matched with this session!");
+    // trigger to send reply to AMF
+    smf_app_inst->trigger_http_response(
+        http_status_code::NOT_FOUND, smreq->pid,
+        N11_SESSION_RELEASE_SM_CONTEXT_RESPONSE);
+    return;
+  }
+
+  std::shared_ptr<itti_sbi_release_sm_context_response>
+      sm_context_resp_pending =
+          std::make_shared<itti_sbi_release_sm_context_response>(
+              TASK_SMF_SBI, TASK_SMF_APP, smreq->pid);
+
+  sm_context_resp_pending->res.set_http_code(http_status_code::OK);
+  sm_context_resp_pending->res.set_supi(smreq->req.get_supi());
+  sm_context_resp_pending->res.set_cause(k5gsmCauseRequestAccepted);
+  sm_context_resp_pending->res.set_pdu_session_id(
+      smreq->req.get_pdu_session_id());
+  sm_context_resp_pending->res.set_snssai(smreq->req.get_snssai());
+  sm_context_resp_pending->res.set_dnn(smreq->req.get_dnn());
+
+  auto proc = std::make_shared<session_release_sm_context_procedure>(sp);
+  std::shared_ptr<smf_procedure> sproc = proc;
+
+  insert_procedure(sproc);
+  uint16_t http_response_code = http_status_code::NO_CONTENT;
+
+  if (proc->run(smreq, sm_context_resp_pending, shared_from_this()) ==
+      smf_procedure_code::ERROR) {
+    Logger::smf_app().info("PDU Release SM Context Request procedure failed");
+
+    remove_procedure(sproc.get());
+    http_response_code = http_status_code::INTERNAL_SERVER_ERROR;
+  } else {
+    http_response_code = http_status_code::NO_CONTENT;
+  }
+  // Trigger to send reply to AMF
+  smf_app_inst->trigger_http_response(
+      http_response_code, smreq->pid, N11_SESSION_RELEASE_SM_CONTEXT_RESPONSE);
+}
+
+//------------------------------------------------------------------------------
+void smf_context::handle_pdu_session_modification_network_requested(
+    std::shared_ptr<itti_nx_trigger_pdu_session_modification> itti_msg) {
+  Logger::smf_app().info(
+      "Handle a PDU Session Modification Request (SMF-Requested)");
+
+  std::string n1_sm_msg      = {};
+  std::string n1_sm_msg_hex  = {};
+  std::string n2_sm_info     = {};
+  std::string n2_sm_info_hex = {};
+
+  // Step 1. get SMF PDU session context. At this stage, pdu_session must be
+  // existed
+  std::shared_ptr<smf_pdu_session> sp = {};
+
+  if (!find_pdu_session(itti_msg->msg.get_pdu_session_id(), sp)) {
+    Logger::smf_app().warn("PDU session context does not exist!");
+    return;
+  }
+
+  std::vector<pfcp::qfi_t> list_qfis_to_be_updated;
+  itti_msg->msg.get_qfis(list_qfis_to_be_updated);
+
+  // add QFI(s), QoS Profile(s), QoS Rules
+  sp->get_session_handler()->set_qfis_to_be_updated(list_qfis_to_be_updated);
+  for (const auto& flow :
+       sp->get_session_handler()->get_qos_flows_context_updated()) {
+    itti_msg->msg.add_qos_flow_context_updated(flow);
+  }
+
+  // Step 2. prepare information for N1N2MessageTransfer to send to AMF
+  Logger::smf_app().debug(
+      "Prepare N1N2MessageTransfer message and send to AMF");
+
+  // TODO: handle encode N1, N2 failure
+  // N1: PDU_SESSION_MODIFICATION_COMMAND
+  smf_n1::get_instance().create_n1_pdu_session_modification_command(
+      itti_msg->msg, n1_sm_msg, k5gsmCauseUnknown);
+  conv::convert_string_2_hex(n1_sm_msg, n1_sm_msg_hex);
+  itti_msg->msg.set_n1_sm_message(n1_sm_msg_hex);
+
+  // N2: PDU Session Resource Modify Response Transfer
+  smf_n2::get_instance().create_n2_pdu_session_resource_modify_request_transfer(
+      itti_msg->msg, n2_sm_info_type_e::PDU_RES_MOD_REQ, n2_sm_info);
+
+  conv::convert_string_2_hex(n2_sm_info, n2_sm_info_hex);
+  itti_msg->msg.set_n2_sm_information(n2_sm_info_hex);
+
+  // Fill N1N2MesasgeTransferRequestData
+  // get supi and put into URL
+  std::string supi_str    = itti_msg->msg.get_supi();
+  std::string api_version = smf_cfg->get_nf(oai::config::AMF_CONFIG_NAME)
+                                ->get_sbi()
+                                .get_api_version();
+  std::string url = get_amf_addr() +
+                    oai::smf::api::smf_sbi_helper::
+                        get_amf_comm_ue_context_n1_n2_message_base_uri(supi);
+  itti_msg->msg.set_amf_url(url);
+  Logger::smf_app().debug(
+      "N1N2MessageTransfer will be sent to AMF with URL: %s", url.c_str());
+
+  // Fill the json part
+  nlohmann::json json_data = {};
+  // N1SM
+  json_data["n1MessageContainer"]["n1MessageClass"] =
+      oai::utils::N1N2_MESSAGE_CLASS;
+  json_data["n1MessageContainer"]["n1MessageContent"]["contentId"] =
+      oai::utils::N1_SM_CONTENT_ID;  // NAS part
+  // N2SM
+  json_data["n2InfoContainer"]["n2InformationClass"] =
+      oai::utils::N1N2_MESSAGE_CLASS;
+  json_data["n2InfoContainer"]["smInfo"]["PduSessionId"] =
+      itti_msg->msg.get_pdu_session_id();
+  // N2InfoContent (section 6.1.6.2.27@3GPP TS 29.518)
+  json_data["n2InfoContainer"]["smInfo"]["n2InfoContent"]["ngapIeType"] =
+      "PDU_RES_MOD_REQ";  // NGAP message type
+  json_data["n2InfoContainer"]["smInfo"]["n2InfoContent"]["ngapData"]
+           ["contentId"] = N2_SM_CONTENT_ID;  // NGAP part
+  json_data["n2InfoContainer"]["smInfo"]["sNssai"]["sst"] =
+      itti_msg->msg.get_snssai().sst;
+  json_data["n2InfoContainer"]["smInfo"]["sNssai"]["sd"] =
+      itti_msg->msg.get_snssai().sd;
+  json_data["pduSessionId"] = itti_msg->msg.get_pdu_session_id();
+  itti_msg->msg.set_json_data(json_data);
+
+  // Step 3. Send ITTI message to N11 interface to trigger N1N2MessageTransfer
+  // towards AMFs
+  Logger::smf_app().info(
+      "Sending ITTI message %s to task TASK_SMF_SBI", itti_msg->get_msg_name());
+
+  int ret = itti_inst->send_msg(itti_msg);
+  if (RETURNok != ret) {
+    Logger::smf_app().error(
+        "Could not send ITTI message %s to task TASK_SMF_SBI",
+        itti_msg->get_msg_name());
+  }
+}
+
+//-------------------------------------------------------------------------------------
+bool smf_context::handle_ho_path_switch_req(
+    std::string& n2_sm_information,
+    std::shared_ptr<itti_sbi_update_sm_context_request>& sm_context_request,
+    std::shared_ptr<itti_sbi_update_sm_context_response>& sm_context_resp,
+    std::shared_ptr<smf_pdu_session>& sp) {
+  std::string n1_sm_msg     = {};
+  std::string n1_sm_msg_hex = {};
+
+  // If the PDU session is requested to be switched to a new N3 endpoint
+  if (sm_context_request->req.get_to_be_switched()) {
+    // PathSwitchRequestTransfer
+    std::shared_ptr<PathSwitchRequestTransfer> decoded_msg =
+        std::make_shared<PathSwitchRequestTransfer>();
+    int decode_status = smf_n2::get_instance().decode_n2_sm_information(
+        decoded_msg, n2_sm_information);
+    if (decode_status == KEncodeDecodeError) {
+      // error, send error to AMF
+      Logger::smf_app().warn(
+          "Decode N2 SM (Ngap_PathSwitchRequestTransfer) "
+          "failed!");
+      // trigger to send reply to AMF
+      // TODO: to be updated with correct status/cause
+      smf_app_inst->trigger_update_context_error_response(
+          http_status_code::FORBIDDEN,
+          PDU_SESSION_APPLICATION_ERROR_N2_SM_ERROR,
+          sm_context_request.get()->pid);
+      return false;
+    }
+
+    // store AN Tunnel Info + list of accepted QFIs
+    pfcp::fteid_t dl_teid = {};
+
+    UpTransportLayerInformation dl_ng_u_up_tnl_information = {};
+    decoded_msg->getDlNgUUpTnlInformation(dl_ng_u_up_tnl_information);
+
+    TransportLayerAddress transport_layer_address_ul = {};
+    GtpTeid gtp_teid_ul                              = {};
+    dl_ng_u_up_tnl_information.get(transport_layer_address_ul, gtp_teid_ul);
+    std::optional<struct in_addr> ipv4_addr_opt =
+        transport_layer_address_ul.getIpv4Address();
+    if (ipv4_addr_opt.has_value()) {
+      dl_teid.ipv4_address = ipv4_addr_opt.value();
+    }
+    gtp_teid_ul.get(dl_teid.teid);
+    dl_teid.v4 = 1;  // Only V4 for now
+    sm_context_request.get()->req.set_dl_fteid(dl_teid);
+
+    Logger::smf_app().debug(
+        "DL GTP F-TEID (AN F-TEID) "
+        "0x%" PRIx32 " ",
+        dl_teid.teid);
+    Logger::smf_app().debug(
+        "dL_NGU_UP_TNLInformation (AN IP Addr) %s",
+        conv::toString(dl_teid.ipv4_address).c_str());
+
+    // QoS Flow Accepted List
+    QosFlowAcceptedList qos_flow_accepted_list = {};
+    decoded_msg->getQosFlowAcceptedList(qos_flow_accepted_list);
+
+    std::vector<oai::ngap::QosFlowAcceptedItem> qos_flow_accepted_item_list;
+    qos_flow_accepted_list.get(qos_flow_accepted_item_list);
+    for (const auto& flow_item : qos_flow_accepted_item_list) {
+      QosFlowIdentifier qos_flow_identifier = {};
+      flow_item.getQosFlowIdentifier(qos_flow_identifier);
+      pfcp::qfi_t qfi((uint8_t) (qos_flow_identifier.get()));
+
+      sm_context_request.get()->req.add_qfi(qfi);
+      Logger::smf_app().debug(
+          "QoSFlowAcceptedList, QFI % d ",
+          (uint8_t) (qos_flow_identifier.get()));
+    }
+
+    // TODO: DL NG-U TNL Information Reused
+    // TODO: User Plane Security Information
+    // TODO: Additional DL QoS Flow per TNL Information
+    // TODO: Redundant DL NG-U UP TNL Information
+    // TODO: Redundant DL NG-U UP TNL Information Reused
+    // TODO: Additional Redundant DL QoS Flow per TNL Information
+    // TODO: Used RSN Information
+    // TODO: Global RAN Node ID of Secondary NG-RAN Node
+
+    return true;
+  }
+
+  // if the PDU session failed to be setup in the target RAN
+  // Release this session
+  if (sm_context_request->req.get_failed_to_be_switched()) {
+    // TODO:
+  }
+
+  return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool smf_context::handle_ho_preparation_request(
+    std::string& n2_sm_information,
+    std::shared_ptr<itti_sbi_update_sm_context_request>& sm_context_request,
+    std::shared_ptr<itti_sbi_update_sm_context_response>& sm_context_resp,
+    std::shared_ptr<smf_pdu_session>& sp) {
+  std::string n2_sm_info     = {};
+  std::string n2_sm_info_hex = {};
+
+  sm_context_resp->session_procedure_type =
+      session_management_procedures_type_e::N2_HO_PREPARATION_PHASE_STEP1;
+
+  // HandoverRequiredTransfer
+  std::shared_ptr<HandoverRequiredTransfer> decoded_msg =
+      std::make_shared<HandoverRequiredTransfer>();
+  int decode_status = smf_n2::get_instance().decode_n2_sm_information(
+      decoded_msg, n2_sm_information);
+  if (decode_status == KEncodeDecodeError) {
+    // error, send error to AMF
+    Logger::smf_app().warn(
+        "Decode N2 SM (HandoverRequiredTransfer) "
+        "failed!");
+    // trigger to send reply to AMF
+    // TODO: to be updated with correct status/cause
+    smf_app_inst->trigger_update_context_error_response(
+        http_status_code::FORBIDDEN, PDU_SESSION_APPLICATION_ERROR_N2_SM_ERROR,
+        sm_context_request.get()->pid);
+    return false;
+  }
+
+  if ((decoded_msg->getDirectForwardingPathAvailability()).has_value()) {
+    Logger::smf_app().debug(
+        "Ngap_HandoverRequiredTransfer, directForwardingPathAvailability");
+    // TODO:
+  } else {
+    Logger::smf_app().debug(
+        "Ngap_HandoverRequiredTransfer, In directForwardingPathAvailability");
+    // TODO:
+  }
+
+  ng_ran_target_id_t ran_target_id = {};
+  sm_context_request->req.get_target_id(ran_target_id);
+
+  pdu_session_id_t pdu_session_id =
+      sm_context_request->req.get_pdu_session_id();
+
+  // TODO: Check Target ID whether N2 Handover for the indicated PDU Session
+  // can be accepted Select UPF (should be done in Procedure)
+  if (!check_handover_possibility(ran_target_id, pdu_session_id)) {
+    // TODO:
+    return false;
+  }
+
+  if (!sp->get_session_handler()->has_session_graph()) {
+    // Abnormal condition when the PDU Session has no associate graph
+    // TODO: Check correct return code/error
+    smf_app_inst->trigger_update_context_error_response(
+        http_status_code::FORBIDDEN,
+        PDU_SESSION_APPLICATION_ERROR_NETWORK_FAILURE, sm_context_request->pid);
+    return false;
+  }
+
+  std::vector<pfcp::qfi_t> access_qfis =
+      sp->get_session_handler()->get_all_qfis();
+  for (const auto& qfi : access_qfis) {
+    qos_flow_context_updated qcu =
+        sp->get_session_handler()->get_qos_flow_context_updated(qfi);
+    sm_context_resp->res.add_qos_flow_context_updated(qcu);
+  }
+
+  smf_n2::get_instance().create_n2_pdu_session_resource_setup_request_transfer(
+      sm_context_resp->res, n2_sm_info_type_e::PDU_RES_SETUP_REQ, n2_sm_info);
+
+  conv::convert_string_2_hex(n2_sm_info, n2_sm_info_hex);
+  sm_context_resp->res.set_n2_sm_information(n2_sm_info_hex);
+
+  // Fill the content of SmContextUpdatedData
+  nlohmann::json json_data           = {};
+  json_data["n2SmInfo"]["contentId"] = N2_SM_CONTENT_ID;
+  json_data["n2SmInfoType"]          = "PDU_RES_SETUP_REQ";  // NGAP message
+  json_data["hoState"]               = "PREPARING";
+  sm_context_resp->res.set_json_data(json_data);
+  sm_context_resp->res.set_http_code(http_status_code::OK);
+
+  // Set HOStatus to PREPARING
+  sp->set_ho_state(ho_state_e::HO_STATE_PREPARING);
+
+  return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool smf_context::handle_ho_preparation_request_ack(
+    std::string& n2_sm_information,
+    std::shared_ptr<itti_sbi_update_sm_context_request>& sm_context_request,
+    std::shared_ptr<itti_sbi_update_sm_context_response>& sm_context_resp,
+    std::shared_ptr<smf_pdu_session>& sp) {
+  std::string n2_sm_info     = {};
+  std::string n2_sm_info_hex = {};
+
+  sm_context_resp.get()->session_procedure_type =
+      session_management_procedures_type_e::N2_HO_PREPARATION_PHASE_STEP2;
+
+  // HandoverRequestAcknowledgeTransfer
+  std::shared_ptr<HandoverRequestAcknowledgeTransfer> decoded_msg =
+      std::make_shared<HandoverRequestAcknowledgeTransfer>();
+  int decode_status = smf_n2::get_instance().decode_n2_sm_information(
+      decoded_msg, n2_sm_information);
+  if (decode_status == KEncodeDecodeError) {
+    // Error, send error to AMF
+    Logger::smf_app().warn(
+        "Decode N2 SM (HandoverRequestAcknowledgeTransfer) "
+        "failed!");
+    // Trigger to send reply to AMF
+    // TODO: to be updated with correct status/cause
+    smf_app_inst->trigger_update_context_error_response(
+        http_status_code::FORBIDDEN, PDU_SESSION_APPLICATION_ERROR_N2_SM_ERROR,
+        sm_context_request.get()->pid);
+    return false;
+  }
+
+  UpTransportLayerInformation dl_ng_u_up_tnl_information = {};
+  decoded_msg->getDlNgUUpTnlInformation(dl_ng_u_up_tnl_information);
+
+  // Store AN Tunnel Info + list of accepted QFIs
+  pfcp::fteid_t dl_teid                            = {};
+  TransportLayerAddress transport_layer_address_ul = {};
+  GtpTeid gtp_teid_ul                              = {};
+  dl_ng_u_up_tnl_information.get(transport_layer_address_ul, gtp_teid_ul);
+  std::optional<struct in_addr> ipv4_addr_opt =
+      transport_layer_address_ul.getIpv4Address();
+  if (ipv4_addr_opt.has_value()) {
+    dl_teid.ipv4_address = ipv4_addr_opt.value();
+  }
+  gtp_teid_ul.get(dl_teid.teid);
+  dl_teid.v4 = 1;  // Only V4 for now
+  dl_teid.v6 = 0;
+  sm_context_request.get()->req.set_dl_fteid(dl_teid);
+
+  Logger::smf_app().debug(
+      "DL GTP F-TEID (AN F-TEID) "
+      "0x%" PRIx32 " ",
+      dl_teid.teid);
+  Logger::smf_app().debug(
+      "uPTransportLayerInformation (AN IP Addr) %s",
+      conv::toString(dl_teid.ipv4_address).c_str());
+
+  // QoS Flow Setup Response List (Mandatory)
+  QosFlowListWithDataForwarding qos_flow_setup_response_list = {};
+  decoded_msg->getQosFlowSetupResponseList(qos_flow_setup_response_list);
+  std::vector<QosFlowItemWithDataForwarding> item_list;
+  qos_flow_setup_response_list.get(item_list);
+  for (const auto& item : item_list) {
+    QosFlowIdentifier qos_flow_identifier = {};
+    item.getQosFlowIdentifier(qos_flow_identifier);
+    pfcp::qfi_t qfi((uint8_t) (qos_flow_identifier.get()));
+    sm_context_request.get()->req.add_qfi(qfi);
+    Logger::smf_app().debug(
+        "QoSFlowPerTNLInformation, AssociatedQosFlowList, QFI %d",
+        (uint8_t) (qos_flow_identifier.get()));
+  }
+
+  return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool smf_context::handle_ho_preparation_request_fail(
+    std::string& n2_sm_information,
+    std::shared_ptr<itti_sbi_update_sm_context_request>& sm_context_request,
+    std::shared_ptr<itti_sbi_update_sm_context_response>& sm_context_resp,
+    std::shared_ptr<smf_pdu_session>& sp) {
+  std::string n2_sm_info     = {};
+  std::string n2_sm_info_hex = {};
+
+  sm_context_resp.get()->session_procedure_type =
+      session_management_procedures_type_e::N2_HO_PREPARATION_PHASE_STEP2;
+
+  // HandoverResourceAllocationUnsuccessfulTransfer
+  std::shared_ptr<HandoverResourceAllocationUnsuccessfulTransfer> decoded_msg =
+      std::make_shared<HandoverResourceAllocationUnsuccessfulTransfer>();
+  int decode_status = smf_n2::get_instance().decode_n2_sm_information(
+      decoded_msg, n2_sm_information);
+  if (decode_status == KEncodeDecodeError) {
+    // error, send error to AMF
+    Logger::smf_app().warn(
+        "Decode N2 SM (HandoverResourceAllocationUnsuccessfulTransfer) "
+        "failed!");
+    // trigger to send reply to AMF
+    // TODO: to be updated with correct status/cause
+    smf_app_inst->trigger_update_context_error_response(
+        http_status_code::FORBIDDEN, PDU_SESSION_APPLICATION_ERROR_N2_SM_ERROR,
+        sm_context_request->pid);
+    return false;
+  }
+
+  // decoded_msg->cause
+  // set HoState to NONE
+  sp.get()->set_ho_state(ho_state_e::HO_STATE_NONE);
+  // Release resource ??
+  // Create Handover Preparation Unsuccessful Transfer IE
+  smf_n2::get_instance().create_n2_handover_preparation_unsuccessful_transfer(
+      sm_context_resp->res, n2_sm_info_type_e::HANDOVER_RES_ALLOC_FAIL,
+      n2_sm_info);
+
+  conv::convert_string_2_hex(n2_sm_info, n2_sm_info_hex);
+
+  // Prepare SmContextUpdateError
+  oai::model::smf::SmContextUpdateError sm_context    = {};
+  oai::model::common::ProblemDetails problem_details  = {};
+  oai::model::common::RefToBinaryData refToBinaryData = {};
+  Logger::smf_app().warn("Create SmContextCreateError");
+  problem_details.setCause(pdu_session_application_error_e2str.at(
+      PDU_SESSION_APPLICATION_ERROR_HANDOVER_RESOURCE_ALLOCATION_FAILURE));
+  sm_context.setError(problem_details);
+  refToBinaryData.setContentId(N2_SM_CONTENT_ID);
+  sm_context.setN2SmInfo(refToBinaryData);
+  nlohmann::json json_data = {};
+  to_json(json_data, sm_context);
+  sm_context_resp.get()->res.set_json_data(json_data);
+  sm_context_resp.get()->res.set_json_format("application/problem+json");
+  sm_context_resp.get()->res.set_http_code(
+      http_status_code::NOT_ACCEPTABLE);  // To be
+                                          // verified
+  sm_context_resp.get()->res.set_n2_sm_information(n2_sm_info_hex);
+
+  return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool smf_context::handle_ho_execution(
+    std::string& n2_sm_information,
+    std::shared_ptr<itti_sbi_update_sm_context_request>& sm_context_request,
+    std::shared_ptr<itti_sbi_update_sm_context_response>& sm_context_resp,
+    std::shared_ptr<smf_pdu_session>& sp) {
+  std::string n2_sm_info     = {};
+  std::string n2_sm_info_hex = {};
+
+  sm_context_resp.get()->session_procedure_type =
+      session_management_procedures_type_e::N2_HO_EXECUTION_PHASE;
+
+  // SecondaryRatDataUsageReportTransfer
+  if (sm_context_request->req.n2_sm_info_is_set()) {
+    std::shared_ptr<SecondaryRatDataUsageReportTransfer> decoded_msg =
+        std::make_shared<SecondaryRatDataUsageReportTransfer>();
+    int decode_status = smf_n2::get_instance().decode_n2_sm_information(
+        decoded_msg, n2_sm_information);
+    if (decode_status == KEncodeDecodeError) {
+      // error, send error to AMF
+      Logger::smf_app().warn(
+          "Decode N2 SM (SecondaryRatDataUsageReportTransfer) "
+          "failed!");
+      // trigger to send reply to AMF
+      smf_app_inst->trigger_update_context_error_response(
+          http_status_code::FORBIDDEN,
+          PDU_SESSION_APPLICATION_ERROR_N2_SM_ERROR,
+          sm_context_request.get()->pid);
+      return false;
+    }
+    // TODO: process Ngap_SecondaryRATDataUsageReportTransfer
+  }
+  // Fill the content of SmContextUpdatedData
+  nlohmann::json json_data = {};
+  json_data["hoState"]     = "COMPLETED";
+  sm_context_resp.get()->res.set_json_data(json_data);
+  sm_context_resp.get()->res.set_http_code(http_status_code::OK);
+
+  // set HoState to NONE
+  sp.get()->set_ho_state(ho_state_e::HO_STATE_COMPLETED);
+  return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool smf_context::handle_ho_cancellation(
+    std::string& n2_sm_information,
+    std::shared_ptr<itti_sbi_update_sm_context_request>& sm_context_request,
+    std::shared_ptr<itti_sbi_update_sm_context_response>& sm_context_resp,
+    std::shared_ptr<smf_pdu_session>& sp) {
+  sm_context_resp.get()->session_procedure_type =
+      session_management_procedures_type_e::N2_HO_CANCELLATION_PHASE;
+
+  // set HoState to CANCELLED
+  sp.get()->set_ho_state(ho_state_e::HO_STATE_CANCELLED);
+  // TODO: release resources ...
+  sp.get()->set_ho_state(ho_state_e::HO_STATE_NONE);
+  // Delete targetServingNfId
+
+  return true;
+}
+
+//------------------------------------------------------------------------------
+void smf_context::get_snssai_key(const snssai_t& snssai, uint32_t& key) {
+  key = (snssai.get_sd_int() << 8 | snssai.sst);
+}
+
+//------------------------------------------------------------------------------
+void smf_context::insert_dnn_subscription(
+    const snssai_t& snssai,
+    std::shared_ptr<session_management_subscription>& ss) {
+  // Get a unique key from S-NSSAI
+  uint32_t key = 0;
+  get_snssai_key(snssai, key);
+
+  std::unique_lock<std::recursive_mutex> lock(m_context);
+  dnn_subscriptions[key] = ss;
+  Logger::smf_app().info(
+      "Inserted DNN Subscription, key: %ld %s", key,
+      snssai.to_model_snssai().to_string(0));
+}
+
+//------------------------------------------------------------------------------
+void smf_context::insert_dnn_subscription(
+    const snssai_t& snssai, const std::string& dnn,
+    std::shared_ptr<session_management_subscription>& ss) {
+  // Get a unique key from S-NSSAI
+  uint32_t key = 0;
+  get_snssai_key(snssai, key);
+
+  std::unique_lock<std::recursive_mutex> lock(m_context);
+  if (dnn_subscriptions.count(key) > 0) {
+    std::shared_ptr<session_management_subscription> old_ss =
+        dnn_subscriptions.at(key);
+    std::shared_ptr<dnn_configuration_t> dnn_configuration = {};
+    ss.get()->find_dnn_configuration(dnn, dnn_configuration);
+    if (dnn_configuration != nullptr) {
+      old_ss.get()->insert_dnn_configuration(dnn, dnn_configuration);
+    }
+
+  } else {
+    dnn_subscriptions[key] = ss;
+  }
+  Logger::smf_app().info(
+      "Inserted DNN Subscription, key: %ld dnn %s \n %s", key, dnn.c_str(),
+      snssai.to_model_snssai().to_string(0));
+}
+
+//------------------------------------------------------------------------------
+bool smf_context::is_dnn_snssai_subscription_data(
+    const std::string& dnn, const snssai_t& snssai) {
+  // Get a unique key from S-NSSAI
+  uint32_t key = 0;
+  get_snssai_key(snssai, key);
+
+  std::unique_lock<std::recursive_mutex> lock(m_context);
+  if (dnn_subscriptions.count(key) > 0) {
+    std::shared_ptr<session_management_subscription> ss =
+        dnn_subscriptions.at(key);
+    if (ss.get()->dnn_configuration(dnn))
+      return true;
+    else
+      return false;
+  }
+  return false;
+}
+
+//------------------------------------------------------------------------------
+bool smf_context::find_dnn_subscription(
+    const snssai_t& snssai,
+    std::shared_ptr<session_management_subscription>& ss) {
+  // Get a unique key from S-NSSAI
+  uint32_t key = 0;
+  get_snssai_key(snssai, key);
+
+  Logger::smf_app().info(
+      "Find a DNN Subscription with key: %ld, map size %ld and \n %s", key,
+      dnn_subscriptions.size(), snssai.to_model_snssai().to_string(0));
+
+  std::unique_lock<std::recursive_mutex> lock(m_context);
+  if (dnn_subscriptions.count(key) > 0) {
+    ss = dnn_subscriptions.at(key);
+    return true;
+  }
+
+  Logger::smf_app().info(
+      "DNN subscription not found: %s", snssai.to_model_snssai().to_string(0));
+  return false;
+}
+
+//------------------------------------------------------------------------------
+bool smf_context::verify_sm_context_request(
+    std::shared_ptr<itti_sbi_create_sm_context_request> smreq) {
+  // check the validity of the UE request according to the user subscription or
+  // local policies
+  // TODO: need to be implemented
+  return true;
+}
+
+//-----------------------------------------------------------------------------
+std::string smf_context::get_supi() const {
+  return supi;
+}
+
+//-----------------------------------------------------------------------------
+void smf_context::set_supi(const std::string& s) {
+  supi = s;
+}
+
+//------------------------------------------------------------------------------
+bool smf_context::find_pdu_session(
+    const pdu_session_id_t& psi, std::shared_ptr<smf_pdu_session>& sp) const {
+  Logger::smf_app().info("Find PDU Session with ID %d", psi);
+  std::shared_lock lock(m_pdu_sessions_mutex);
+  if (pdu_sessions.count(psi) > 0) {
+    sp = pdu_sessions.at(psi);
+    if (sp) return true;
+  }
+  return false;
+}
+
+//-----------------------------------------------------------------------------
+bool smf_context::find_pdu_session_from_seid(
+    uint64_t seid, std::shared_ptr<smf_pdu_session>& sp) {
+  std::shared_lock lock(m_pdu_sessions_mutex);
+  for (const auto& it : pdu_sessions) {
+    if (it.second->seid == seid) {
+      sp = it.second;
+      return true;
+    }
+  }
+
+  return false;
+}
+
+//------------------------------------------------------------------------------
+bool smf_context::add_pdu_session(
+    const pdu_session_id_t& psi, const std::shared_ptr<smf_pdu_session>& sp) {
+  std::unique_lock lock(
+      m_pdu_sessions_mutex,
+      std::defer_lock);  // Do not lock it first
+  Logger::smf_app().info("Add PDU Session with Id %d", psi);
+
+  if (((uint8_t) psi >= PDU_SESSION_IDENTITY_FIRST) and
+      ((uint8_t) psi <= PDU_SESSION_IDENTITY_LAST)) {
+    if (pdu_sessions.count(psi) > 0) {
+      Logger::smf_app().error(
+          "Failed to add PDU Session (Id %d), existed", psi);
+      return false;
+    } else {
+      lock.lock();  // Lock it here
+      pdu_sessions.insert(
+          std::pair<pdu_session_id_t, std::shared_ptr<smf_pdu_session>>(
+              psi, sp));
+      Logger::smf_app().debug(
+          "PDU Session Id (%d) has been added successfully", psi);
+      return true;
+    }
+
+  } else {
+    Logger::smf_app().error(
+        "Failed to add PDU Session (Id %d) failed: invalid Id", psi);
+    return false;
+  }
+}
+
+//------------------------------------------------------------------------------
+bool smf_context::remove_pdu_session(const pdu_session_id_t& psi) {
+  Logger::smf_app().debug(
+      "Failed to add PDU Session (Id %d) failed: invalid Id", psi);
+  std::unique_lock lock(m_pdu_sessions_mutex);
+  return (pdu_sessions.erase(psi) > 0);
+}
+
+//------------------------------------------------------------------------------
+size_t smf_context::get_number_pdu_sessions() const {
+  std::shared_lock lock(m_pdu_sessions_mutex);
+  return pdu_sessions.size();
+}
+
+//------------------------------------------------------------------------------
+void smf_context::get_pdu_sessions(
+    std::map<pdu_session_id_t, std::shared_ptr<smf_pdu_session>>& sessions) {
+  std::shared_lock lock(m_pdu_sessions_mutex);
+  for (auto it : pdu_sessions) {
+    sessions.insert(
+        std::pair<pdu_session_id_t, std::shared_ptr<smf_pdu_session>>(
+            it.first, it.second));
+  }
+}
+
+//------------------------------------------------------------------------------
+bool smf_context::get_pdu_session_info(
+    const scid_t& scid, std::string& supi,
+    pdu_session_id_t& pdu_session_id) const {
+  Logger::smf_app().debug(
+      "Get PDU Session information related to SMF Context ID " SCID_FMT " ",
+      scid);
+  std::shared_ptr<smf_context_ref> scf = {};
+
+  if (smf_app_inst->is_scid_2_smf_context(scid)) {
+    scf = smf_app_inst->scid_2_smf_context(scid);
+  } else {
+    Logger::smf_app().warn(
+        "SM Context associated with this id " SCID_FMT " does not exit!", scid);
+    return false;
+  }
+
+  std::shared_ptr<smf_pdu_session> sp = {};
+  if (!find_pdu_session(scf.get()->pdu_session_id, sp)) {
+    if (sp.get() == nullptr) {
+      Logger::smf_n1().warn("PDU session context does not exist!");
+      return false;
+    }
+  }
+
+  // Verify if SMF context exist
+  std::shared_ptr<smf_context> sc = {};
+
+  if (smf_app_inst->is_supi_2_smf_context(scf.get()->supi)) {
+    sc = smf_app_inst->supi_2_smf_context(scf.get()->supi);
+  } else {
+    Logger::smf_app().warn(
+        "Could not retrieve the corresponding SMF context with SUPI %s!", supi);
+    return false;
+  }
+
+  supi           = scf.get()->supi;
+  pdu_session_id = scf.get()->pdu_session_id;
+  return true;
+}
+
+//------------------------------------------------------------------------------
+bool smf_context::get_pdu_session_info(
+    const scid_t& scid, std::string& supi,
+    std::shared_ptr<smf_pdu_session>& sp) const {
+  Logger::smf_app().debug(
+      "Get PDU Session information related to SMF Context ID " SCID_FMT " ",
+      scid);
+
+  pdu_session_id_t pdu_session_id = {};
+  if (!get_pdu_session_info(scid, supi, pdu_session_id)) {
+    return false;
+  }
+
+  if (!find_pdu_session(pdu_session_id, sp)) {
+    Logger::smf_app().warn(
+        "Could not retrieve the PDU Session Info with PDU Session ID %d!",
+        pdu_session_id);
+    return false;
+  }
+
+  return true;
+}
+
+//------------------------------------------------------------------------------
+void smf_context::handle_sm_context_status_change(
+    const scid_t& scid, const std::string& status) const {
+  Logger::smf_app().debug(
+      "Send request to N11 to triger SM Context Status Notification to AMF, "
+      "SMF Context ID " SCID_FMT " ",
+      scid);
+  std::shared_ptr<smf_context_ref> scf = {};
+
+  if (smf_app_inst->is_scid_2_smf_context(scid)) {
+    scf = smf_app_inst->scid_2_smf_context(scid);
+  } else {
+    Logger::smf_app().warn(
+        "SM Context associated with this id " SCID_FMT " does not exit!", scid);
+    return;
+  }
+
+  std::shared_ptr<smf_pdu_session> sp = {};
+  if (!find_pdu_session(scf.get()->pdu_session_id, sp)) {
+    if (sp.get() == nullptr) {
+      Logger::smf_n1().warn("PDU session context does not exist!");
+      return;
+    }
+  }
+
+  // Send request to N11 to trigger the notification
+  Logger::smf_app().debug(
+      "Send ITTI msg to SMF N11 to trigger the status notification");
+  std::shared_ptr<itti_sbi_notify_sm_context_status> itti_msg =
+      std::make_shared<itti_sbi_notify_sm_context_status>(
+          TASK_SMF_APP, TASK_SMF_SBI);
+  itti_msg->scid              = scid;
+  itti_msg->sm_context_status = status;
+  itti_msg->amf_status_uri    = get_amf_status_uri();
+
+  int ret = itti_inst->send_msg(itti_msg);
+  if (RETURNok != ret) {
+    Logger::smf_app().error(
+        "Could not send ITTI message %s to task TASK_SMF_SBI",
+        itti_msg->get_msg_name());
+  }
+}
+
+//------------------------------------------------------------------------------
+void smf_context::trigger_pdu_session_release(
+    const scid_t& scid, const uint8_t& http_version) const {
+  event_sub.ee_pdu_session_release(scid, http_version);
+}
+
+//------------------------------------------------------------------------------
+void smf_context::handle_ee_pdu_session_release(
+    const scid_t& scid, const uint8_t& http_version) const {
+  Logger::smf_app().debug(
+      "Send request to N11 to triger PDU Session Release Notification, "
+      "SMF Context ID " SCID_FMT " ",
+      scid);
+
+  std::string supi                = {};
+  pdu_session_id_t pdu_session_id = {};
+  if (!get_pdu_session_info(scid, supi, pdu_session_id)) {
+    Logger::smf_app().debug(
+        "Could not retrieve info with "
+        "SMF Context ID " SCID_FMT " ",
+        scid);
+    return;
+  }
+
+  std::vector<std::shared_ptr<smf_subscription>> subscriptions = {};
+  smf_app_inst->get_ee_subscriptions(
+      smf_event_t::SMF_EVENT_PDU_SES_REL, subscriptions);
+
+  if (subscriptions.size() > 0) {
+    // Send request to N11 to trigger the notification to the subscribed event
+    Logger::smf_app().debug(
+        "Send ITTI msg to SMF N11 to trigger the event notification");
+    std::shared_ptr<itti_sbi_notify_subscribed_event> itti_msg =
+        std::make_shared<itti_sbi_notify_subscribed_event>(
+            TASK_SMF_APP, TASK_SMF_SBI);
+
+    for (auto i : subscriptions) {
+      event_notification ev_notif = {};
+      ev_notif.set_supi(supi);
+      ev_notif.set_pdu_session_id(pdu_session_id);
+      ev_notif.set_smf_event(smf_event_t::SMF_EVENT_PDU_SES_REL);
+      ev_notif.set_notif_uri(i.get()->notif_uri);
+      ev_notif.set_notif_id(i.get()->notif_id);
+      // custom json e.g., for FlexCN
+      // nlohmann::json cj = {};
+      // cj["ue_ipv4_addr"]  = "12.1.1.2";
+      // cj[""]
+      itti_msg->event_notifs.push_back(ev_notif);
+    }
+
+    itti_msg->http_version = http_version;
+
+    int ret = itti_inst->send_msg(itti_msg);
+    if (RETURNok != ret) {
+      Logger::smf_app().error(
+          "Could not send ITTI message %s to task TASK_SMF_SBI",
+          itti_msg->get_msg_name());
+    }
+  } else {
+    Logger::smf_app().debug("No subscription available for this event");
+  }
+}
+
+//------------------------------------------------------------------------------
+void smf_context::trigger_ddds(
+    const scid_t& scid, const uint8_t& http_version) const {
+  event_sub.ee_ddds(scid, http_version);
+}
+
+//------------------------------------------------------------------------------
+void smf_context::handle_ddds(
+    const scid_t& scid, const uint8_t& http_version) const {
+  Logger::smf_app().debug(
+      "Send request to N11 to triger FlexCN, "
+      "SMF Context ID " SCID_FMT " ",
+      scid);
+
+  std::string supi                = {};
+  pdu_session_id_t pdu_session_id = {};
+  if (!get_pdu_session_info(scid, supi, pdu_session_id)) {
+    Logger::smf_app().debug(
+        "Could not retrieve info with "
+        "SMF Context ID " SCID_FMT " ",
+        scid);
+    return;
+  }
+
+  std::vector<std::shared_ptr<smf_subscription>> subscriptions = {};
+  smf_app_inst->get_ee_subscriptions(
+      smf_event_t::SMF_EVENT_DDDS, subscriptions);
+
+  if (subscriptions.size() > 0) {
+    // Send request to N11 to trigger the notification to the subscribed event
+    Logger::smf_app().debug(
+        "Send ITTI msg to SMF N11 to trigger the event notification");
+    std::shared_ptr<itti_sbi_notify_subscribed_event> itti_msg =
+        std::make_shared<itti_sbi_notify_subscribed_event>(
+            TASK_SMF_APP, TASK_SMF_SBI);
+
+    for (auto i : subscriptions) {
+      event_notification ev_notif = {};
+      ev_notif.set_supi(supi);  // SUPI
+      // ev_notif.set_pdu_session_id(pdu_session_id);  // PDU session ID
+      ev_notif.set_smf_event(smf_event_t::SMF_EVENT_DDDS);
+      ev_notif.set_notif_uri(i.get()->notif_uri);
+      ev_notif.set_notif_id(i.get()->notif_id);
+      // timestamp
+      std::time_t time_epoch_ntp = std::time(nullptr);
+      uint64_t tv_ntp            = time_epoch_ntp + SECONDS_SINCE_FIRST_EPOCH;
+      ev_notif.set_timestamp(std::to_string(tv_ntp));
+
+      // DDDS Status
+      // TODO: where to get this information in SMF???
+      oai::model::smf::DddStatus ddds = oai::model::smf::DddStatus();
+      ev_notif.set_Ddds(ddds);
+      itti_msg->event_notifs.push_back(ev_notif);
+    }
+
+    itti_msg->http_version = http_version;
+
+    int ret = itti_inst->send_msg(itti_msg);
+    if (RETURNok != ret) {
+      Logger::smf_app().error(
+          "Could not send ITTI message %s to task TASK_SMF_SBI",
+          itti_msg->get_msg_name());
+    }
+  } else {
+    Logger::smf_app().debug("No subscription available for this event");
+  }
+}
+
+//------------------------------------------------------------------------------
+void smf_context::handle_ue_ip_change(
+    const scid_t& scid, const uint8_t& http_version) const {
+  Logger::smf_app().debug(
+      "Send request to N11 to triger FlexCN, "
+      "SMF Context ID " SCID_FMT " ",
+      scid);
+
+  std::string supi = {};
+  // get smf_pdu_session
+  std::shared_ptr<smf_pdu_session> sp = {};
+  if (!get_pdu_session_info(scid, supi, sp)) {
+    Logger::smf_app().debug(
+        "Could not retrieve info with "
+        "SMF Context ID " SCID_FMT " ",
+        scid);
+    return;
+  }
+
+  Logger::smf_app().debug(
+      "Send request to N11 to triger FlexCN (Event "
+      "Exposure), SUPI %s , PDU Session ID %u, HTTP version %u",
+      supi, sp->get_pdu_session_id(), http_version);
+
+  std::vector<std::shared_ptr<smf_subscription>> subscriptions = {};
+  smf_app_inst->get_ee_subscriptions(
+      smf_event_t::SMF_EVENT_UE_IP_CH, subscriptions);
+
+  if (subscriptions.size() > 0) {
+    // Send request to N11 to trigger the notification to the subscribed event
+    Logger::smf_app().debug(
+        "Send ITTI msg to SMF N11 to trigger the event notification");
+    std::shared_ptr<itti_sbi_notify_subscribed_event> itti_msg =
+        std::make_shared<itti_sbi_notify_subscribed_event>(
+            TASK_SMF_APP, TASK_SMF_SBI);
+
+    for (auto i : subscriptions) {
+      event_notification ev_notif = {};
+      ev_notif.set_supi(supi);                                // SUPI
+      ev_notif.set_pdu_session_id(sp->get_pdu_session_id());  // PDU session ID
+      ev_notif.set_smf_event(smf_event_t::SMF_EVENT_UE_IP_CH);
+      ev_notif.set_notif_uri(i.get()->notif_uri);
+      ev_notif.set_notif_id(i.get()->notif_id);
+      // timestamp
+      std::time_t time_epoch_ntp = std::time(nullptr);
+      uint64_t tv_ntp            = time_epoch_ntp + SECONDS_SINCE_FIRST_EPOCH;
+      ev_notif.set_timestamp(std::to_string(tv_ntp));
+
+      // New UE IPv4
+      if (sp->ipv4) {
+        ev_notif.set_ad_ipv4_addr(conv::toString(sp->ipv4_address));
+      }
+      // New UE IPv6 Prefix
+      if (sp->ipv6) {
+        char str_addr6[INET6_ADDRSTRLEN];
+        if (inet_ntop(
+                AF_INET6, &sp->ipv6_address, str_addr6, sizeof(str_addr6))) {
+          // TODO
+          // ev_notif.set_ad_ipv6_prefix(conv::toString(sp->ipv4_address));
+        }
+      }
+
+      // TODO: Release UE IP address/prefix as "reIpv4Addr", "reIpv6Prefix"
+
+      itti_msg->event_notifs.push_back(ev_notif);
+    }
+
+    itti_msg->http_version = http_version;
+
+    int ret = itti_inst->send_msg(itti_msg);
+    if (RETURNok != ret) {
+      Logger::smf_app().error(
+          "Could not send ITTI message %s to task TASK_SMF_SBI",
+          itti_msg->get_msg_name());
+    }
+  } else {
+    Logger::smf_app().debug("No subscription available for this event");
+  }
+}
+
+//------------------------------------------------------------------------------
+void smf_context::trigger_ue_ip_change(
+    const scid_t& scid, const uint8_t& http_version) const {
+  event_sub.ee_ue_ip_change(scid, http_version);
+}
+
+//------------------------------------------------------------------------------
+void smf_context::handle_qos_monitoring(
+    const seid_t& seid,
+    const oai::model::smf::EventNotification& ev_notif_model,
+    const uint8_t& http_version) const {
+  Logger::smf_app().debug(
+      "Send request to N11 to trigger QoS Monitoring (Usage Report) Event, "
+      "SMF Context-related SEID  " SEID_FMT,
+      seid);
+
+  // Get the smf context
+  std::shared_ptr<smf_context> pc = {};
+  if (!smf_app_inst->seid_2_smf_context(seid, pc)) {
+    Logger::smf_app().warn(
+        "Context associated with this SEID " SEID_FMT " does not exit!", seid);
+    return;
+  }
+
+  std::string supi                                             = pc.get()->supi;
+  std::vector<std::shared_ptr<smf_subscription>> subscriptions = {};
+  smf_app_inst->get_ee_subscriptions(
+      smf_event_t::SMF_EVENT_QOS_MON, subscriptions);
+
+  if (subscriptions.size() > 0) {
+    // Send request to N11 to trigger the notification to the subscribed event
+    Logger::smf_app().debug(
+        "Send ITTI msg to SMF N11 to trigger the event notification");
+    std::shared_ptr<itti_sbi_notify_subscribed_event> itti_msg =
+        std::make_shared<itti_sbi_notify_subscribed_event>(
+            TASK_SMF_APP, TASK_SMF_SBI);
+
+    for (auto i : subscriptions) {
+      event_notification ev_notif = {};
+      ev_notif.set_supi(supi);
+      ev_notif.set_smf_event(smf_event_t::SMF_EVENT_QOS_MON);
+      ev_notif.set_notif_uri(i.get()->notif_uri);
+      ev_notif.set_notif_id(i.get()->notif_id);
+      // timestamp
+      std::time_t time_epoch_ntp = std::time(nullptr);
+      uint64_t tv_ntp            = time_epoch_ntp + SECONDS_SINCE_FIRST_EPOCH;
+      ev_notif.set_timestamp(std::to_string(tv_ntp));
+
+      // Custom json for Usage Report
+      nlohmann::json cj = {};
+      to_json(cj, ev_notif_model);
+
+      ev_notif.set_custom_info(cj);
+      itti_msg->event_notifs.push_back(ev_notif);
+    }
+
+    itti_msg->http_version = http_version;
+
+    int ret = itti_inst->send_msg(itti_msg);
+    if (RETURNok != ret) {
+      Logger::smf_app().error(
+          "Could not send ITTI message %s to task TASK_SMF_SBI",
+          itti_msg->get_msg_name());
+    }
+  } else {
+    Logger::smf_app().debug("No subscription available for this event");
+  }
+}
+
+//------------------------------------------------------------------------------
+void smf_context::trigger_qos_monitoring(
+    const seid_t& seid,
+    const oai::model::smf::EventNotification& ev_notif_model,
+    const uint8_t& http_version) const {
+  event_sub.ee_qos_monitoring(seid, ev_notif_model, http_version);
+}
+
+//------------------------------------------------------------------------------
+void smf_context::handle_flexcn_event(
+    const scid_t& scid, const uint8_t& http_version) const {
+  Logger::smf_app().debug(
+      "Send request to N11 to triger FlexCN, "
+      "SMF Context ID " SCID_FMT " ",
+      scid);
+
+  std::string supi = {};
+  // get smf_pdu_session
+  std::shared_ptr<smf_pdu_session> sp = {};
+  if (!get_pdu_session_info(scid, supi, sp)) {
+    Logger::smf_app().debug(
+        "Could not retrieve info with "
+        "SMF Context ID " SCID_FMT " ",
+        scid);
+    return;
+  }
+
+  // Get SMF Context
+  std::shared_ptr<smf_context> sc = {};
+  if (smf_app_inst->is_supi_2_smf_context(supi)) {
+    sc = smf_app_inst->supi_2_smf_context(supi);
+  } else {
+    Logger::smf_app().warn(
+        "Could not retrieve the corresponding SMF context with SUPI %s!", supi);
+    return;
+  }
+
+  Logger::smf_app().debug(
+      "Send request to N11 to triger FlexCN (Event "
+      "Exposure), SUPI %s, PDU Session ID %u, HTTP version  %u",
+      supi, sp->get_pdu_session_id(), http_version);
+
+  std::vector<std::shared_ptr<smf_subscription>> subscriptions = {};
+  smf_app_inst->get_ee_subscriptions(
+      smf_event_t::SMF_EVENT_FLEXCN, subscriptions);
+
+  if (subscriptions.size() > 0) {
+    // Send request to N11 to trigger the notification to the subscribed event
+    Logger::smf_app().debug(
+        "Send ITTI msg to SMF N11 to trigger the event notification");
+    std::shared_ptr<itti_sbi_notify_subscribed_event> itti_msg =
+        std::make_shared<itti_sbi_notify_subscribed_event>(
+            TASK_SMF_APP, TASK_SMF_SBI);
+
+    for (auto i : subscriptions) {
+      event_notification ev_notif = {};
+      ev_notif.set_supi(supi);                                // SUPI
+      ev_notif.set_pdu_session_id(sp->get_pdu_session_id());  // PDU session ID
+      ev_notif.set_smf_event(smf_event_t::SMF_EVENT_FLEXCN);
+      ev_notif.set_notif_uri(i.get()->notif_uri);
+      ev_notif.set_notif_id(i.get()->notif_id);
+      // timestamp
+      std::time_t time_epoch_ntp = std::time(nullptr);
+      uint64_t tv_ntp            = time_epoch_ntp + SECONDS_SINCE_FIRST_EPOCH;
+      ev_notif.set_timestamp(std::to_string(tv_ntp));
+
+      // custom json e.g., for FlexCN
+      nlohmann::json cj = {};
+      // PLMN
+      plmn_t _plmn = {};
+      sc->get_plmn(_plmn);
+      cj["plmn"]["mcc"] = _plmn.mcc;
+      cj["plmn"]["mnc"] = _plmn.mnc;
+      // UE IPv4
+      if (sp->ipv4) {
+        cj["ue_ipv4_addr"] = conv::toString(sp->ipv4_address);
+      }
+      // UE IPv6
+      if (sp->ipv6) {
+        char str_addr6[INET6_ADDRSTRLEN];
+        if (inet_ntop(
+                AF_INET6, &sp->ipv6_address, str_addr6, sizeof(str_addr6))) {
+          cj["ue_ipv6_prefix"] = str_addr6;
+        }
+      }
+      cj["pdu_session_type"] =
+          sp->pdu_session_type.to_string();  // PDU Session Type
+      // NSSAI
+      cj["snssai"]["sst"] = sp->get_snssai().sst;
+      cj["snssai"]["sd"]  = sp->get_snssai().sd;
+      cj["dnn"]           = sp->get_dnn();       // DNN
+      cj["amf_addr"]      = sc->get_amf_addr();  // Serving AMF addr
+
+      cj["qos_flow"] = sp->get_session_handler()->create_qos_flows_json();
+
+      ev_notif.set_custom_info(cj);
+      itti_msg->event_notifs.push_back(ev_notif);
+    }
+
+    itti_msg->http_version = http_version;
+
+    int ret = itti_inst->send_msg(itti_msg);
+    if (RETURNok != ret) {
+      Logger::smf_app().error(
+          "Could not send ITTI message %s to task TASK_SMF_SBI",
+          itti_msg->get_msg_name());
+    }
+  } else {
+    Logger::smf_app().debug("No subscription available for this event");
+  }
+}
+
+//------------------------------------------------------------------------------
+void smf_context::trigger_flexcn_event(
+    const scid_t& scid, const uint8_t& http_version) const {
+  event_sub.ee_flexcn(scid, http_version);
+}
+
+//------------------------------------------------------------------------------
+void smf_context::handle_pdusesest(
+    const scid_t& scid, const uint8_t& http_version) const {
+  Logger::smf_app().debug(
+      "Send request to N11 to triger pdusesest, "
+      "SMF Context ID " SCID_FMT " ",
+      scid);
+
+  std::string supi = {};
+  // get smf_pdu_session
+  std::shared_ptr<smf_pdu_session> sp = {};
+  if (!get_pdu_session_info(scid, supi, sp)) {
+    Logger::smf_app().debug(
+        "Could not retrieve info with "
+        "SMF Context ID " SCID_FMT " ",
+        scid);
+    return;
+  }
+
+  Logger::smf_app().debug(
+      "Send request to N11 to triger PDU_SES_EST (Event "
+      "Exposure), SUPI %s, PDU Session ID %u, HTTP version %u",
+      supi, sp->get_pdu_session_id(), http_version);
+
+  std::vector<std::shared_ptr<smf_subscription>> subscriptions = {};
+  smf_app_inst->get_ee_subscriptions(
+      smf_event_t::SMF_EVENT_PDUSESEST, subscriptions);
+
+  if (subscriptions.size() > 0) {
+    // Send request to N11 to trigger the notification to the subscribed event
+    Logger::smf_app().debug(
+        "Send ITTI msg to SMF N11 to trigger the event notification");
+    std::shared_ptr<itti_sbi_notify_subscribed_event> itti_msg =
+        std::make_shared<itti_sbi_notify_subscribed_event>(
+            TASK_SMF_APP, TASK_SMF_SBI);
+
+    for (auto i : subscriptions) {
+      event_notification ev_notif = {};
+      ev_notif.set_supi(supi);                                // SUPI
+      ev_notif.set_pdu_session_id(sp->get_pdu_session_id());  // PDU session ID
+      ev_notif.set_smf_event(smf_event_t::SMF_EVENT_PDUSESEST);
+      ev_notif.set_notif_uri(i.get()->notif_uri);
+      ev_notif.set_notif_id(i.get()->notif_id);
+      // timestamp
+      std::time_t time_epoch_ntp = std::time(nullptr);
+      uint64_t tv_ntp            = time_epoch_ntp + SECONDS_SINCE_FIRST_EPOCH;
+      ev_notif.set_timestamp(std::to_string(tv_ntp));
+
+      //  UE IPv4
+      if (sp->ipv4) {
+        ev_notif.set_ad_ipv4_addr(conv::toString(sp->ipv4_address));
+      }
+      //  UE IPv6 Prefix
+      if (sp->ipv6) {
+        char str_addr6[INET6_ADDRSTRLEN];
+        if (inet_ntop(
+                AF_INET6, &sp->ipv6_address, str_addr6, sizeof(str_addr6))) {
+          // TODO
+          // ev_notif.set_ad_ipv6_prefix(conv::toString(sp->ipv4_address));
+        }
+      }
+      ev_notif.set_pdu_session_type(
+          sp->pdu_session_type.to_string());  // PDU Session Type
+      ev_notif.set_sst(sp->get_snssai().sst);
+      ev_notif.set_sd(sp->get_snssai().sd);
+      ev_notif.set_dnn(sp->get_dnn());
+
+      itti_msg->event_notifs.push_back(ev_notif);
+    }
+
+    itti_msg->http_version = http_version;
+
+    int ret = itti_inst->send_msg(itti_msg);
+    if (RETURNok != ret) {
+      Logger::smf_app().error(
+          "Could not send ITTI message %s to task TASK_SMF_SBI",
+          itti_msg->get_msg_name());
+    }
+  } else {
+    Logger::smf_app().debug("No subscription available for this event");
+  }
+}
+
+//------------------------------------------------------------------------------
+void smf_context::trigger_pdusesest(
+    const scid_t& scid, const uint8_t& http_version) const {
+  event_sub.ee_pdusesest(scid, http_version);
+}
+
+//------------------------------------------------------------------------------
+void smf_context::trigger_plmn_change(
+    const scid_t& scid, const uint8_t& http_version) const {
+  event_sub.ee_plmn_change(scid, http_version);
+}
+
+//------------------------------------------------------------------------------
+void smf_context::handle_plmn_change(
+    const scid_t& scid, const uint8_t& http_version) const {
+  Logger::smf_app().debug(
+      "Send request to N11 to triger FlexCN, "
+      "SMF Context ID " SCID_FMT " ",
+      scid);
+
+  std::string supi                = {};
+  pdu_session_id_t pdu_session_id = {};
+  if (!get_pdu_session_info(scid, supi, pdu_session_id)) {
+    Logger::smf_app().debug(
+        "Could not retrieve info with "
+        "SMF Context ID " SCID_FMT " ",
+        scid);
+    return;
+  }
+
+  // Get SMF Context
+  std::shared_ptr<smf_context> sc = {};
+  if (smf_app_inst->is_supi_2_smf_context(supi)) {
+    sc = smf_app_inst->supi_2_smf_context(supi);
+  } else {
+    Logger::smf_app().warn(
+        "Could not retrieve the corresponding SMF context with SUPI %s!", supi);
+    return;
+  }
+
+  std::vector<std::shared_ptr<smf_subscription>> subscriptions = {};
+  smf_app_inst->get_ee_subscriptions(
+      smf_event_t::SMF_EVENT_FLEXCN, subscriptions);
+
+  if (subscriptions.size() > 0) {
+    // Send request to N11 to trigger the notification to the subscribed event
+    Logger::smf_app().debug(
+        "Send ITTI msg to SMF N11 to trigger the event notification");
+    std::shared_ptr<itti_sbi_notify_subscribed_event> itti_msg =
+        std::make_shared<itti_sbi_notify_subscribed_event>(
+            TASK_SMF_APP, TASK_SMF_SBI);
+
+    for (auto i : subscriptions) {
+      event_notification ev_notif = {};
+      ev_notif.set_supi(supi);  // SUPI
+      // ev_notif.set_pdu_session_id(pdu_session_id);  // PDU session ID
+      ev_notif.set_smf_event(smf_event_t::SMF_EVENT_PLMN_CH);
+      ev_notif.set_notif_uri(i.get()->notif_uri);
+      ev_notif.set_notif_id(i.get()->notif_id);
+      // timestamp
+      std::time_t time_epoch_ntp = std::time(nullptr);
+      uint64_t tv_ntp            = time_epoch_ntp + SECONDS_SINCE_FIRST_EPOCH;
+      ev_notif.set_timestamp(std::to_string(tv_ntp));
+
+      // PLMN
+      plmn_t _plmn = {};
+      sc->get_plmn(_plmn);
+      oai::model::common::PlmnId plmnid;
+      plmnid.setMcc(_plmn.mcc);
+      plmnid.setMnc(_plmn.mnc);
+      ev_notif.set_PlmnId(plmnid);
+      itti_msg->event_notifs.push_back(ev_notif);
+    }
+
+    itti_msg->http_version = http_version;
+
+    int ret = itti_inst->send_msg(itti_msg);
+    if (RETURNok != ret) {
+      Logger::smf_app().error(
+          "Could not send ITTI message %s to task TASK_SMF_SBI",
+          itti_msg->get_msg_name());
+    }
+  } else {
+    Logger::smf_app().debug("No subscription available for this event");
+  }
+}
+
+//------------------------------------------------------------------------------
+void smf_context::update_qos_info(
+    std::shared_ptr<smf_pdu_session>& sp,
+    ::oai::app::smf::pdu_session_update_sm_context_response& res,
+    const std::shared_ptr<Nas5gsmMessage>& nas_message) {
+  // Process QoS rules and Qos Flow descriptions
+  // verify message type
+
+  // Message Type
+  uint8_t message_type = nas_message->GetHeader().GetMessageType();
+  if (message_type != kPduSessionModificationRequest) {
+    return;
+  }
+
+  std::optional<oai::nas::QosRules> qos_rule_opt = std::nullopt;
+  (std::dynamic_pointer_cast<oai::nas::PduSessionModificationRequest>(
+       nas_message))
+      ->GetRequestedQosRules(qos_rule_opt);
+
+  uint16_t length_of_rule_ie = {};
+  if (qos_rule_opt.has_value()) {
+    length_of_rule_ie = qos_rule_opt.value().GetLengthIndicator();
+  }
+
+  std::vector<QosRule> qos_rules;
+  if (qos_rule_opt.has_value()) {
+    qos_rule_opt.value().Get(qos_rules);
+  }
+
+  int i              = 0;
+  int length_of_rule = 0;
+  while (length_of_rule_ie > 0) {
+    oai::nas::QosRule qos_rules_ie = {};
+    if (qos_rules.size() < i) break;
+    qos_rules_ie = qos_rules[i];
+
+    length_of_rule = qos_rules_ie.GetIeLength();
+
+    // If UE requested a new GBR flow
+    if ((qos_rules_ie.GetRuleOperationCode() ==
+         oai::nas::kQosRuleRuleOperationCodeCreateNewQosRule) and
+        (qos_rules_ie.GetSegregation() ==
+         oai::nas::kQosRuleSegregationRequested)) {
+      // Add a new QoS Flow
+
+      std::optional<oai::nas::QosFlowDescriptions> qos_flow_descriptions_opt =
+          std::nullopt;
+      (std::dynamic_pointer_cast<PduSessionModificationRequest>(nas_message))
+          ->GetRequestedQosFlowDescriptions(qos_flow_descriptions_opt);
+
+      uint8_t number_of_flow_descriptions = {0};
+      std::vector<QosFlowDescription> qos_flow_descriptions;
+      if (qos_flow_descriptions_opt.has_value()) {
+        qos_flow_descriptions_opt.value().Get(qos_flow_descriptions);
+      }
+
+      if (qos_flow_descriptions_opt.has_value()) {
+        number_of_flow_descriptions = qos_flow_descriptions.size();
+      }
+
+      // Only one flow description for new requested QoS Flow
+      for (int j = 0; j < qos_flow_descriptions.size(); j++) {
+        if (qos_flow_descriptions[j].GetQfi() ==
+            NO_QOS_FLOW_IDENTIFIER_ASSIGNED) {
+          qos_flow_context_updated qcu =
+              sp->get_session_handler()->create_new_qos_rule(
+                  qos_rules_ie, qos_flow_descriptions[j]);
+          res.add_qos_flow_context_updated(qcu);
+          break;
+        }
+      }
+    } else if (
+        qos_rules_ie.GetRuleOperationCode() ==
+        oai::nas::
+            kQosFlowDescriptionRuleOperationCodeDeleteExistingQosFlowDescription) {
+      // TODO
+      Logger::smf_app().warn(
+          "Delete existing QRI %d requested but is not implemented yet",
+          qos_rules_ie.GetQosRuleId());
+    } else {  // update existing QRI
+      Logger::smf_app().debug(
+          "Update existing QRI %d", qos_rules_ie.GetQosRuleId());
+
+      std::optional<uint8_t> qfi_qos_rule = qos_rules_ie.GetQfi();
+      if (qfi_qos_rule.has_value()) {
+        if (sp->get_session_handler()->qfi_exists(qfi_qos_rule.value())) {
+          qos_flow_context_updated qcu =
+              sp->get_session_handler()->update_qos_rule(qos_rules_ie);
+          res.add_qos_flow_context_updated(qcu);
+        }
+      }
+    }
+    length_of_rule_ie -= length_of_rule;
+    i++;
+  }
+}
+
+//------------------------------------------------------------------------------
+std::string smf_context::get_amf_addr_from_amf_status_uri(
+    const std::string& status_uri) {
+  std::vector<std::string> split_result;
+  std::string amf_addr_str = smf_cfg->get_nf(oai::config::AMF_CONFIG_NAME)
+                                 ->get_sbi()
+                                 .get_url(smf_cfg->enable_tls());
+
+  boost::split(split_result, status_uri, boost::is_any_of("/"));
+  if (split_result.size() >= 3) {
+    std::string full_addr = split_result[2];
+    // Check if the AMF addr is valid
+    std::size_t found_port = full_addr.find(":");
+
+    std::string addr = {};  // Addr without port
+    if (found_port != std::string::npos) {
+      addr = full_addr.substr(0, found_port);
+    } else {
+      addr = full_addr;
+    }
+
+    std::string ip_addr = {};
+    uint32_t port       = {0};
+    uint8_t addr_type   = {0};
+
+    if (!oai::utils::fqdn::resolve(addr, ip_addr, port, addr_type)) {
+      Logger::smf_app().warn(
+          "Bad IPv4 for AMF  %s: cannot resolve the hostname!", addr.c_str());
+      ip_addr = addr;
+    }
+
+    struct in_addr amf_ipv4_addr;
+    if (inet_pton(AF_INET, trim(ip_addr).c_str(), &amf_ipv4_addr) == 0) {
+      Logger::smf_api_server().warn("Bad IPv4 for AMF");
+    } else {
+      if (smf_cfg->enable_tls())
+        amf_addr_str = "https://" + full_addr;
+      else
+        amf_addr_str = "http://" + full_addr;
+      ;
+      Logger::smf_api_server().debug("AMF IP Addr %s", amf_addr_str.c_str());
+    }
+  }
+  return amf_addr_str;
+}
+
+//------------------------------------------------------------------------------
+void smf_context::set_amf_addr(const std::string& addr) {
+  amf_addr = addr;
+}
+
+//------------------------------------------------------------------------------
+void smf_context::get_amf_addr(std::string& addr) const {
+  addr = amf_addr;
+}
+
+//------------------------------------------------------------------------------
+std::string smf_context::get_amf_addr() const {
+  return amf_addr;
+}
+
+//------------------------------------------------------------------------------
+void smf_context::set_amf_status_uri(const std::string& status_uri) {
+  amf_status_uri = status_uri;
+}
+
+//------------------------------------------------------------------------------
+void smf_context::get_amf_status_uri(std::string& status_uri) const {
+  status_uri = amf_status_uri;
+}
+
+//------------------------------------------------------------------------------
+std::string smf_context::get_amf_status_uri() const {
+  return amf_status_uri;
+}
+
+//------------------------------------------------------------------------------
+void smf_context::set_target_amf(const std::string& amf) {
+  target_amf = amf;
+}
+
+//------------------------------------------------------------------------------
+void smf_context::get_target_amf(std::string& amf) const {
+  amf = target_amf;
+}
+
+//------------------------------------------------------------------------------
+std::string smf_context::get_target_amf() const {
+  return target_amf;
+}
+
+//------------------------------------------------------------------------------
+void smf_context::set_plmn(const plmn_t& plmn) {
+  this->plmn = plmn;
+}
+
+//------------------------------------------------------------------------------
+void smf_context::get_plmn(plmn_t& plmn) const {
+  plmn = this->plmn;
+}
+
+//------------------------------------------------------------------------------
+bool smf_context::check_handover_possibility(
+    const ng_ran_target_id_t& ran_target_id,
+    const pdu_session_id_t& pdu_session_id) const {
+  // TODO:
+  return true;
+}
+
+//------------------------------------------------------------------------------
+void smf_context::send_pdu_session_establishment_response_reject(
+    const std::shared_ptr<itti_sbi_create_sm_context_request>& smreq,
+    uint8_t cause, pdu_session_application_error_e application_error,
+    uint16_t http_status) {
+  std::string n1_sm_message = {};
+  std::string n1_sm_msg_hex = {};
+
+  if (smf_n1::get_instance().create_n1_pdu_session_establishment_reject(
+          smreq->req, n1_sm_message, cause)) {
+    conv::convert_string_2_hex(n1_sm_message, n1_sm_msg_hex);
+    // trigger to send reply to AMF
+    smf_app_inst->trigger_create_context_error_response(
+        http_status, application_error, n1_sm_msg_hex, smreq->pid);
+  } else {
+    smf_app_inst->trigger_http_response(
+        http_status_code::INTERNAL_SERVER_ERROR, smreq->pid,
+        N11_SESSION_CREATE_SM_CONTEXT_RESPONSE);
+  }
+
+  // TODO this may be a good point to unsubscribe from UDM/PCF
+}
+
+//------------------------------------------------------------------------------
+void smf_context::send_pdu_session_create_response(
+    const std::shared_ptr<itti_sbi_create_sm_context_response>& resp) {
+  // fill content for N1N2MessageTransfer (including N1, N2 SM)
+  // Create N1 SM container & N2 SM Information
+  std::string n1_sm_msg      = {};
+  std::string n1_sm_msg_hex  = {};
+  std::string n2_sm_info     = {};
+  std::string n2_sm_info_hex = {};
+  uint8_t cause_n1           = {k5gsmCauseUnknown};
+
+  if (resp->res.get_cause() != k5gsmCauseRequestAccepted) {
+    // PDU Session Establishment Reject
+    Logger::smf_app().debug(
+        "Prepare a PDU Session Establishment Reject message and send to UE");
+    cause_n1 = k5gsmCauseNetworkFailure;
+    // TODO: Support IPv4 only for now
+    if (resp->res.get_pdu_session_type() == PDU_SESSION_TYPE_E_IPV6) {
+      resp->res.set_pdu_session_type(PDU_SESSION_TYPE_E_IPV4);
+      cause_n1 = k5gsmCausePduSessionTypeIpv4OnlyAllowed;
+    }
+
+    smf_n1::get_instance().create_n1_pdu_session_establishment_reject(
+        resp->res, n1_sm_msg, cause_n1);
+    conv::convert_string_2_hex(n1_sm_msg, n1_sm_msg_hex);
+    resp->res.set_n1_sm_message(n1_sm_msg_hex);
+
+  } else {  // PDU Session Establishment Accept
+    Logger::smf_app().debug(
+        "Prepare a PDU Session Establishment Accept message and send to UE");
+
+    // TODO: Support IPv4 only for now
+    if (resp->res.get_pdu_session_type() == PDU_SESSION_TYPE_E_IPV6) {
+      resp->res.set_pdu_session_type(PDU_SESSION_TYPE_E_IPV4);
+      cause_n1 = k5gsmCausePduSessionTypeIpv4OnlyAllowed;
+    }
+
+    smf_n1::get_instance().create_n1_pdu_session_establishment_accept(
+        resp->res, n1_sm_msg, cause_n1);
+    conv::convert_string_2_hex(n1_sm_msg, n1_sm_msg_hex);
+    resp->res.set_n1_sm_message(n1_sm_msg_hex);
+    // N2 SM Information (Step 11, section 4.3.2.2.1 @ 3GPP TS 23.502):
+    // PDUSessionRessourceSetupRequestTransfer IE
+    smf_n2::get_instance()
+        .create_n2_pdu_session_resource_setup_request_transfer(
+            resp->res, n2_sm_info_type_e::PDU_RES_SETUP_REQ, n2_sm_info);
+
+    conv::convert_string_2_hex(n2_sm_info, n2_sm_info_hex);
+    resp->res.set_n2_sm_information(n2_sm_info_hex);
+  }
+
+  // Fill N1N2MesasgeTransferRequestData
+  // get SUPI and put into URL
+  std::string supi = resp->res.get_supi();
+  std::string url  = get_amf_addr() +
+                    oai::smf::api::smf_sbi_helper::
+                        get_amf_comm_ue_context_n1_n2_message_base_uri(supi);
+  resp->res.set_amf_url(url);
+  Logger::smf_app().debug(
+      "N1N2MessageTransfer will be sent to AMF with URL: %s", url.c_str());
+
+  // HTTP version
+  resp->http_version = smf_cfg->http_version;
+
+  // Fill the json part
+  nlohmann::json json_data = {};
+  // N1SM
+  json_data["n1MessageContainer"]["n1MessageClass"] =
+      oai::utils::N1N2_MESSAGE_CLASS;
+  json_data["n1MessageContainer"]["n1MessageContent"]["contentId"] =
+      oai::utils::N1_SM_CONTENT_ID;  // NAS part
+  // N2SM
+  if (resp->res.get_cause() == k5gsmCauseRequestAccepted) {
+    json_data["n2InfoContainer"]["n2InformationClass"] =
+        oai::utils::N1N2_MESSAGE_CLASS;
+    json_data["n2InfoContainer"]["smInfo"]["pduSessionId"] =
+        resp->res.get_pdu_session_id();
+    // N2InfoContent (section 6.1.6.2.27@3GPP TS 29.518)
+    json_data["n2InfoContainer"]["smInfo"]["n2InfoContent"]["ngapIeType"] =
+        "PDU_RES_SETUP_REQ";  // NGAP message type
+    json_data["n2InfoContainer"]["smInfo"]["n2InfoContent"]["ngapData"]
+             ["contentId"] = N2_SM_CONTENT_ID;  // NGAP part
+    json_data["n2InfoContainer"]["smInfo"]["sNssai"]["sst"] =
+        resp->res.get_snssai().sst;
+    json_data["n2InfoContainer"]["smInfo"]["sNssai"]["sd"] =
+        resp->res.get_snssai().sd;
+    // N1N2MsgTxfrFailureNotification
+    std::string fmr_format_str = {};
+    oai::smf::api::smf_sbi_helper::get_fmt_format_form(
+        oai::smf::api::smf_sbi_helper::
+            SmfCallbackPathN1N2MessageTransferFailure,
+        fmr_format_str);
+    std::string callback_uri =
+        smf_cfg->local().get_sbi().get_url(smf_cfg->enable_tls()) +
+        oai::smf::api::smf_sbi_helper::SmfPduSessionBase() +
+        fmt::format(fmr_format_str, supi);
+    json_data["n1n2FailureTxfNotifURI"] = callback_uri.c_str();
+  }
+  // Others information
+  // resp->res.n1n2_message_transfer_data["pti"] = 1;  //Don't
+  // need this info for the moment
+  json_data["pduSessionId"] = resp->res.get_pdu_session_id();
+
+  resp->res.set_json_data(json_data);
+
+  // send ITTI message to APP to trigger N1N2MessageTransfer towards AMFs
+  Logger::smf_app().info(
+      "Sending ITTI message %s to task TASK_SMF_APP", resp->get_msg_name());
+
+  int ret = itti_inst->send_msg(resp);
+  if (RETURNok != ret) {
+    Logger::smf_app().error(
+        "Could not send ITTI message %s to task TASK_SMF_SBI",
+        resp->get_msg_name());
+  }
+}
+
+//------------------------------------------------------------------------------
+// TODO refactor: Break down this function and split logic (e.g. setting PDU
+// session values) from actual response, we should only need resp here
+void smf_context::send_pdu_session_update_response(
+    const std::shared_ptr<itti_sbi_update_sm_context_request>& req,
+    const std::shared_ptr<itti_sbi_update_sm_context_response>& resp,
+    const session_management_procedures_type_e& session_procedure_type,
+    const std::shared_ptr<smf_pdu_session>& sps) {
+  std::string n1_sm_msg      = {};
+  std::string n1_sm_msg_hex  = {};
+  std::string n2_sm_info     = {};
+  std::string n2_sm_info_hex = {};
+
+  // TODO: check we got all responses vs
+  // resp->res.flow_context_modified
+
+  // SMF registers to the UDM for this PDU Session
+  // see TS29503_Nudm_UECM.yaml, Nudm_UECM_Registration:
+  // nudm-uecm/v1/{ueId}/registrations/smf-registrations/{pduSessionId}:
+
+  std::string supi = req->req.get_supi();
+  pdu_session_id_t pdu_session_id =
+      (pdu_session_id_t) req->req.get_pdu_session_id();
+
+  // Set SMF registration info
+  oai::model::udm::SmfRegistration smf_registration = {};
+  smf_registration.setSmfInstanceId(smf_app_inst->get_smf_instance_id());
+  smf_registration.setPduSessionId(pdu_session_id);
+  auto smf_info = smf_cfg->smf()->get_smf_info();
+  if (smf_info.getSNssaiSmfInfoList().size() > 0) {
+    // Use the first SNssai
+    smf_registration.setSingleNssai(
+        (smf_info.getSNssaiSmfInfoList()[0]).getSNssai());
+  }
+  if (smf_info.getTaiList().size() > 0) {
+    // Use the first TAI
+    smf_registration.setPlmnId((smf_info.getTaiList()[0]).getPlmnId());
+  }
+  // Register with the UDM
+  register_with_udm(supi, pdu_session_id, smf_registration);
+
+  // Process the response
+  if (resp->res.get_cause() == k5gsmCauseRequestAccepted) {
+    switch (session_procedure_type) {
+      // PDU Session Establishment UE-Requested
+      case session_management_procedures_type_e::
+          PDU_SESSION_ESTABLISHMENT_UE_REQUESTED: {
+        // No need to create N1/N2 Container, just Cause
+        Logger::smf_app().info(
+            "PDU Session Establishment Request (UE-Initiated)");
+        nlohmann::json json_data = {};
+        json_data["cause"]       = resp->res.get_cause();
+        resp->res.set_json_data(json_data);
+
+        // Update PDU session status to ACTIVE
+        sps->set_pdu_session_status(pdu_session_status_t::Active);
+
+        // set UpCnxState to ACTIVATED
+        sps->set_upCnx_state(upCnx_state_e::UPCNX_STATE_ACTIVATED);
+        // Display UE Context Info
+        Logger::smf_app().info("SMF context: \n %s", toString().c_str());
+
+        // Trigger Event_exposure event
+        std::string str_scid = req.get()->scid;
+        // TODO: validate the str_scid
+
+        scid_t scid = (scid_t) std::stoul(str_scid, nullptr, 0);
+        trigger_ue_ip_change(scid, 1);
+        trigger_plmn_change(scid, 1);
+        trigger_ddds(scid, 1);
+        trigger_pdusesest(scid, 1);
+        trigger_flexcn_event(scid, 1);
+      } break;
+
+        // UE-Triggered Service Request Procedure (Step 1)
+      case session_management_procedures_type_e::
+          SERVICE_REQUEST_UE_TRIGGERED_STEP1: {
+        // Create N2 SM Information: PDU Session Resource Setup Request
+        // Transfer IE
+
+        // N2 SM Information
+        smf_n2::get_instance()
+            .create_n2_pdu_session_resource_setup_request_transfer(
+                resp->res, n2_sm_info_type_e::PDU_RES_SETUP_REQ, n2_sm_info);
+
+        conv::convert_string_2_hex(n2_sm_info, n2_sm_info_hex);
+        resp->res.set_n2_sm_information(n2_sm_info_hex);
+
+        // fill the content of SmContextUpdatedData
+        nlohmann::json json_data = {};
+
+        json_data["n2SmInfo"]["contentId"] = N2_SM_CONTENT_ID;
+        json_data["n2SmInfoType"] = "PDU_RES_SETUP_REQ";  // NGAP message
+        json_data["upCnxState"]   = "ACTIVATING";
+        resp->res.set_json_data(json_data);
+        // TODO: verify whether cause is needed (as in 23.502 but not in 3GPP
+        // TS 29.502)
+
+        // Update upCnxState to ACTIVATING
+        sps->set_upCnx_state(upCnx_state_e::UPCNX_STATE_ACTIVATING);
+      } break;
+
+        // UE-triggered Service Request (Step 2)
+      case session_management_procedures_type_e::
+          SERVICE_REQUEST_UE_TRIGGERED_STEP2: {
+        // No need to create N1/N2 Container, just Cause
+        Logger::smf_app().info("UE Triggered Service Request (Step 2)");
+        nlohmann::json json_data = {};
+        json_data["cause"]       = resp->res.get_cause();
+        json_data["upCnxState"]  = "ACTIVATED";
+        resp->res.set_json_data(json_data);
+        resp->res.set_http_code(http_status_code::OK);
+      } break;
+
+        // PDU Session Modification UE-initiated (Step 2)
+      case session_management_procedures_type_e::
+          PDU_SESSION_MODIFICATION_UE_INITIATED_STEP2: {
+        // No need to create N1/N2 Container
+        Logger::smf_app().info(
+            "PDU Session Modification UE-initiated (Step 2)");
+      } break;
+
+        // PDU Session Modification UE-initiated (Step 3)
+      case session_management_procedures_type_e::
+          PDU_SESSION_MODIFICATION_UE_INITIATED_STEP3: {
+        // No need to create N1/N2 Container
+        Logger::smf_app().info(
+            "PDU Session Modification UE-initiated (Step 3)");
+        // TODO: To be completed
+      } break;
+
+      case session_management_procedures_type_e::HO_PATH_SWITCH_REQ: {
+        // Create N2 SM Information: Path Switch Request Acknowledge Transfer
+        // IE
+
+        // N2 SM Information
+        smf_n2::get_instance().create_n2_path_switch_request_ack(
+            resp->res, n2_sm_info_type_e::PATH_SWITCH_REQ_ACK, n2_sm_info);
+
+        conv::convert_string_2_hex(n2_sm_info, n2_sm_info_hex);
+        resp->res.set_n2_sm_information(n2_sm_info_hex);
+
+        // fill the content of SmContextUpdatedData
+        nlohmann::json json_data           = {};
+        json_data["n2SmInfo"]["contentId"] = N2_SM_CONTENT_ID;
+        json_data["n2SmInfoType"] = "PATH_SWITCH_REQ_ACK";  // NGAP message
+        // NGAP message json_data["upCnxState"] ="ACTIVATING";
+        resp->res.set_json_data(json_data);
+
+      } break;
+
+      case session_management_procedures_type_e::
+          N2_HO_PREPARATION_PHASE_STEP2: {
+        // Create N2 SM Information: Handover Command Transfer IE
+
+        // N2 SM Information
+        smf_n2::get_instance().create_n2_handover_command_transfer(
+            resp->res, n2_sm_info_type_e::HANDOVER_CMD, n2_sm_info);
+
+        conv::convert_string_2_hex(n2_sm_info, n2_sm_info_hex);
+        resp->res.set_n2_sm_information(n2_sm_info_hex);
+
+        // fill the content of SmContextUpdatedData
+        nlohmann::json json_data = {};
+
+        json_data["n2SmInfo"]["contentId"] = N2_SM_CONTENT_ID;
+        json_data["n2SmInfoType"]          = "HANDOVER_CMD";  // NGAP message
+        json_data["hoState"]               = "PREPARED";
+        resp->res.set_json_data(json_data);
+
+        // Set HO State to prepared
+        sps->set_ho_state(ho_state_e::HO_STATE_PREPARED);
+      } break;
+
+      default: {
+        Logger::smf_app().info(
+            "Unknown session procedure type %d", (int) session_procedure_type);
+      }
+    }
+  } else {
+    resp->res.set_http_code(http_status_code::NOT_ACCEPTABLE);
+  }
+
+  // send ITTI message to SMF_APP interface to trigger
+  // SessionUpdateSMContextResponse towards AMFs
+  Logger::smf_app().info(
+      "Sending ITTI message %s to task TASK_SMF_APP", resp->get_msg_name());
+  resp->session_procedure_type = session_procedure_type;
+  int ret                      = itti_inst->send_msg(resp);
+  if (RETURNok != ret) {
+    Logger::smf_app().error(
+        "Could not send ITTI message %s to task TASK_SMF_APP",
+        resp->get_msg_name());
+  }
+
+  // The SMF may subscribe to the UE mobility event notification from the AMF
+  // (e.g. location reporting, UE  moving into or out of Area Of Interest), by
+  // invoking Namf_EventExposure_Subscribe service operation
+  // For LADN, the SMF subscribes to the UE moving into or out of LADN service
+  // area event notification by providing the LADN DNN as an indicator for the
+  // Area Of Interest
+  // see step 17@section 4.3.2.2.1@3GPP TS 23.502
+}
+
+//------------------------------------------------------------------------------
+void smf_context::send_pdu_session_release_response(
+    const std::shared_ptr<itti_sbi_release_sm_context_request>& req,
+    const std::shared_ptr<itti_sbi_release_sm_context_response>& resp,
+    const session_management_procedures_type_e& session_procedure_type,
+    const std::shared_ptr<smf_pdu_session>& sps) {
+  if (resp->res.get_cause() == k5gsmCauseRequestAccepted) {
+    switch (session_procedure_type) {
+      case session_management_procedures_type_e::
+          PDU_SESSION_RELEASE_UE_REQUESTED_STEP1: {
+        // UE-initiated PDU Session Release
+        Logger::smf_app().info("PDU Session Release UE-initiated (Step 1))");
+        std::shared_ptr<pdu_session_release_sm_context_response>
+            session_release_msg =
+                std::make_shared<pdu_session_release_sm_context_response>(
+                    resp->res);
+
+        // Create N1 SM message (PDU Session Release Command)
+        std::string n1_sm_msg     = {};
+        std::string n1_sm_msg_hex = {};
+        smf_n1::get_instance().create_n1_pdu_session_release_command(
+            session_release_msg, n1_sm_msg,
+            k5gsmCauseRegularDeactivation);  // TODO:
+                                             // check
+                                             // Cause
+        conv::convert_string_2_hex(n1_sm_msg, n1_sm_msg_hex);
+        resp->res.set_n1_sm_message(n1_sm_msg_hex);
+
+        // Create N2 SM info (if the UP connection of the PDU Session is
+        // active)
+        if (sps->get_upCnx_state() == upCnx_state_e::UPCNX_STATE_ACTIVATED) {
+          // N2 SM Information
+          std::string n2_sm_info     = {};
+          std::string n2_sm_info_hex = {};
+          oai::ngap::Cause cause     = {};
+          cause.set(1, Ngap_Cause_PR_radioNetwork);  // TODO: to be completed,
+                                                     // here's just an example
+          smf_n2::get_instance()
+              .create_n2_pdu_session_resource_release_command_transfer(
+                  cause, n2_sm_info_type_e::PDU_RES_REL_CMD, n2_sm_info);
+          conv::convert_string_2_hex(n2_sm_info, n2_sm_info_hex);
+          resp->res.set_n2_sm_information(n2_sm_info_hex);
+
+          // Prepare response to send to AMF
+          // (PDUSession_UpdateSMContextResponse)
+          nlohmann::json sm_context_response_data = {};
+          sm_context_response_data["n1SmMsg"]["contentId"] =
+              oai::utils::N1_SM_CONTENT_ID;
+          sm_context_response_data["n2SmInfo"]["contentId"] = N2_SM_CONTENT_ID;
+          sm_context_response_data["n2SmInfoType"] =
+              "PDU_RES_REL_CMD";  // NGAP message
+
+          resp->res.set_json_data(sm_context_response_data);
+        } else {
+          // fill the content of SmContextUpdatedData
+          nlohmann::json json_data          = {};
+          json_data["n1SmMsg"]["contentId"] = oai::utils::N1_SM_CONTENT_ID;
+          resp->res.set_json_data(json_data);
+        }
+
+        // Update PDU session status to PDU_SESSION_INACTIVE_PENDING
+        sps->set_pdu_session_status(pdu_session_status_t::InactivePending);
+
+        // set UpCnxState to DEACTIVATED
+        sps->set_upCnx_state(upCnx_state_e::UPCNX_STATE_DEACTIVATED);
+
+        // TODO: To be completed
+        // TODO: start timer T3592 (see Section 6.3.3@3GPP TS 24.501)
+        // get smf_pdu_session and set the corresponding timer
+
+        scid_t scid = {};
+        try {
+          scid = (scid_t) std::stoul(req->scid, nullptr, 10);
+        } catch (const std::exception& e) {
+          Logger::smf_n1().warn(
+              "Error when converting from string to int for SCID, "
+              "error: %s",
+              e.what());
+          // TODO Stefan: I could not find a better response code here
+          smf_app_inst->trigger_update_context_error_response(
+              http_status_code::FORBIDDEN,
+              PDU_SESSION_APPLICATION_ERROR_NETWORK_FAILURE, resp->pid);
+          return;
+        }
+        resp->res.set_http_code(http_status_code::OK);
+
+        // Store the context for the timer handling
+        sps.get()->set_pending_n11_msg(
+            std::dynamic_pointer_cast<itti_sbi_msg>(resp));
+
+        sps->timer_T3592 = itti_inst->timer_setup(
+            T3592_TIMER_VALUE_SEC, 0, TASK_SMF_APP, TASK_SMF_APP_TRIGGER_T3592,
+            scid);
+      } break;
+        // PDU Session Release UE-initiated (Step 2)
+      case session_management_procedures_type_e::
+          PDU_SESSION_RELEASE_UE_REQUESTED_STEP2: {
+        // No need to create N1/N2 Container
+        Logger::smf_app().info("PDU Session Release UE-initiated (Step 2)");
+        // TODO: To be completed
+      } break;
+
+        // PDU Session Release UE-initiated (Step 3)
+      case session_management_procedures_type_e::
+          PDU_SESSION_RELEASE_UE_REQUESTED_STEP3: {
+        // No need to create N1/N2 Container
+        Logger::smf_app().info("PDU Session Release UE-initiated (Step 3)");
+        // TODO: To be completed
+      } break;
+
+      case session_management_procedures_type_e::
+          PDU_SESSION_RELEASE_AMF_INITIATED: {
+        Logger::smf_app().info("PDU Session Release AMF-initiated");
+        // TODO: To be completed
+      } break;
+
+      case session_management_procedures_type_e::
+          PDU_SESSION_MODIFICATION_PCF_INITIATED: {
+        Logger::smf_app().info("PDU Session Release PCF-initiated");
+        // TODO: To be completed
+      } break;
+
+      default: {
+        resp->res.set_http_code(http_status_code::NO_CONTENT);
+      }
+    }
+
+  } else {
+    resp->res.set_http_code(http_status_code::NOT_ACCEPTABLE);
+  }
+
+  // clear the resources including addresses allocated to this Session and
+  // associated QoS flows
+  sps->deallocate_ressources(resp->res.get_dnn());
+
+  // send ITTI message to SMF_APP interface to trigger the response towards
+  // AMFs
+  Logger::smf_app().info(
+      "Sending ITTI message %s to task TASK_SMF_APP", resp->get_msg_name());
+  int ret = itti_inst->send_msg(resp);
+  if (RETURNok != ret) {
+    Logger::smf_app().error(
+        "Could not send ITTI message %s to task TASK_SMF_APP",
+        resp->get_msg_name());
+  }
+}
+
+//------------------------------------------------------------------------------
+bool smf_context::register_with_udm(
+    const std::string& supi, const pdu_session_id_t& pdu_session_id,
+    const oai::model::udm::SmfRegistration& smf_registration) {
+  Logger::smf_sbi().debug(
+      "Register with the UDM for this PDU Session (ID %d)", pdu_session_id);
+
+  nlohmann::json smf_registration_json = {};
+  to_json(smf_registration_json, smf_registration);
+
+  boost::shared_ptr<boost::promise<nlohmann::json>> p =
+      boost::make_shared<boost::promise<nlohmann::json>>();
+  boost::shared_future<nlohmann::json> f;
+  f = p->get_future();
+
+  // Generate ID for this promise (to be used in SMF-APP)
+  uint32_t promise_id = smf_app_inst->generate_promise_id();
+  Logger::smf_app().debug("Promise ID generated %d", promise_id);
+  smf_app_inst->add_promise(promise_id, p);
+
+  std::shared_ptr<itti_sbi_register_with_udm> itti_msg =
+      std::make_shared<itti_sbi_register_with_udm>(
+          TASK_SMF_APP, TASK_SMF_SBI, promise_id);
+
+  itti_msg->supi             = supi;
+  itti_msg->pdu_session_id   = pdu_session_id;
+  itti_msg->smf_registration = smf_registration_json;
+
+  int ret = itti_inst->send_msg(itti_msg);
+  if (RETURNok != ret) {
+    Logger::smf_app().error(
+        "Could not send ITTI message %s to task TASK_SMF_SBI",
+        itti_msg->get_msg_name());
+  }
+
+  // Wait for the result available and process accordingly
+  std::optional<nlohmann::json> result_opt = std::nullopt;
+  oai::utils::utils::wait_for_result(f, result_opt);
+
+  // process data
+  uint32_t http_response_code = 0;
+  nlohmann::json json_data    = {};
+
+  if (result_opt.has_value()) {
+    Logger::smf_app().debug("Got result for promise ID %d", promise_id);
+    nlohmann::json result = result_opt.value();
+
+    if (result.find(oai::http::kSbiResponseHttpResponseCode) != result.end()) {
+      http_response_code =
+          result[oai::http::kSbiResponseHttpResponseCode].get<int>();
+    }
+
+    if (result.find(oai::http::kSbiResponseJsonData) != result.end()) {
+      json_data = result[oai::http::kSbiResponseJsonData];
+    }
+
+    return true;
+  }
+  return false;
+}
+
+//------------------------------------------------------------------------------
+void smf_context::deregister_with_udm(
+    const std::string& supi, const pdu_session_id_t& pdu_session_id) {
+  Logger::smf_sbi().debug(
+      "Deregister with the UDM for this PDU Session (ID %d)", pdu_session_id);
+
+  std::shared_ptr<itti_sbi_deregister_with_udm> itti_msg =
+      std::make_shared<itti_sbi_deregister_with_udm>(
+          TASK_SMF_APP, TASK_SMF_SBI);
+
+  itti_msg->supi           = supi;
+  itti_msg->pdu_session_id = pdu_session_id;
+
+  int ret = itti_inst->send_msg(itti_msg);
+  if (RETURNok != ret) {
+    Logger::smf_app().error(
+        "Could not send ITTI message %s to task TASK_SMF_SBI",
+        itti_msg->get_msg_name());
+  }
+}
+
+//------------------------------------------------------------------------------
+bool smf_context::add_sdm_subscription(
+    const std::string& key,
+    const std::shared_ptr<oai::model::udm::SdmSubscription>& sdm_subscription) {
+  std::unique_lock lock(
+      m_sdm_subscriptions,
+      std::defer_lock);  // Do not lock it first
+  Logger::smf_app().info("Add SDM Subscription with key %s", key);
+
+  if (sdm_subscriptions.count(key) > 0) {
+    Logger::smf_app().error(
+        "Failed to add SDM Subscription with key %s existed", key);
+    return false;
+  } else {
+    lock.lock();  // Lock it here
+    sdm_subscriptions.insert(
+        std::pair<
+            std::string, std::shared_ptr<oai::model::udm::SdmSubscription>>(
+            key, sdm_subscription));
+
+    Logger::smf_app().debug(
+        "SDM Subscription with key %s has been added successfully", key);
+    return true;
+  }
+  return false;
+}
+
+//------------------------------------------------------------------------------
+void smf_context::get_sdm_subscription(
+    const std::string& key,
+    std::shared_ptr<oai::model::udm::SdmSubscription>& sdm_subscription) const {
+  std::shared_lock lock(m_sdm_subscriptions);
+  if (sdm_subscriptions.count(key) > 0) {
+    if (sdm_subscriptions.at(key)) sdm_subscription = sdm_subscriptions.at(key);
+  }
+}
+
+//------------------------------------------------------------------------------
+void smf_context::unsubscribe_sdm_subscriptions(
+    const std::string& supi,
+    const std::shared_ptr<oai::model::udm::SdmSubscription>& sdm_subscription) {
+  if (!sdm_subscription) return;
+  nlohmann::json sdm_subscription_json = {};
+  to_json(sdm_subscription_json, *sdm_subscription.get());
+
+  std::shared_ptr<itti_sbi_unsubscribe_sdm_subscriptions> itti_msg =
+      std::make_shared<itti_sbi_unsubscribe_sdm_subscriptions>(
+          TASK_SMF_APP, TASK_SMF_SBI);
+
+  itti_msg->supi            = supi;
+  itti_msg->subscription_id = sdm_subscription->getSubscriptionId();
+
+  int ret = itti_inst->send_msg(itti_msg);
+  if (RETURNok != ret) {
+    Logger::smf_app().error(
+        "Could not send ITTI message %s to task TASK_SMF_SBI",
+        itti_msg->get_msg_name());
+  }
+}

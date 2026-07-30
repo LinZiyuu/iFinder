@@ -1,0 +1,24 @@
+{
+  "message_name": "CreateForwardingTunnelResponse",
+  "Direction": "SGW -> SGSN/MME (S4/S11)",
+  "ies": [
+    {
+      "name": "Cause",
+      "requirement": "Mandatory",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "S1UDataForwarding",
+      "requirement": "Conditional",
+      "multiplicity": "List",
+      "is_grouped": false
+    },
+    {
+      "name": "PrivateExtension",
+      "requirement": "Optional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    }
+  ]
+}

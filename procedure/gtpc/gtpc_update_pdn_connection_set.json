@@ -1,0 +1,25 @@
+{
+  "procedure_id": "GTPC_Update_PDN_Connection_Set",
+  "direction": "SGW <-> PGW",
+  "dependency_procedures": [
+    "GTPC_Create_Session"
+  ],
+  "message_flow": [
+    {
+      "seq": 1,
+      "from": "SGW",
+      "to": "PGW",
+      "message": "UpdatePDNConnectionSetRequest",
+      "mandatory_ies": []
+    },
+    {
+      "seq": 2,
+      "from": "PGW",
+      "to": "SGW",
+      "message": "UpdatePDNConnectionSetResponse",
+      "mandatory_ies": [
+        "Cause"
+      ]
+    }
+  ]
+}

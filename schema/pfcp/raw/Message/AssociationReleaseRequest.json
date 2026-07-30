@@ -1,0 +1,12 @@
+{
+  "message_name": "AssociationReleaseRequest",
+  "Direction": "SMF <-> UPF",
+  "ies": [
+    {
+      "name": "NodeID",
+      "requirement": "Mandatory",
+      "multiplicity": "Single",
+      "is_grouped": false
+    }
+  ]
+}

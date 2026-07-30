@@ -1,0 +1,78 @@
+{
+  "message_name": "ForwardRelocationResponse",
+  "Direction": "Target MME/SGSN/S4-SGSN -> Source MME/SGSN/S4-SGSN (S3/S10/S16)",
+  "ies": [
+    {
+      "name": "Cause",
+      "requirement": "Mandatory",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "FullyQualifiedTEID",
+      "requirement": "Conditional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "Indication",
+      "requirement": "Conditional-Optional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "FContainer",
+      "requirement": "Conditional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "FCause",
+      "requirement": "Conditional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "BearerContext",
+      "requirement": "Conditional",
+      "multiplicity": "List",
+      "is_grouped": true
+    },
+    {
+      "name": "S1UDataForwarding",
+      "requirement": "Conditional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "FullyQualifiedCSID",
+      "requirement": "Conditional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "LocalDistinguishedName",
+      "requirement": "Optional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "NodeNumber",
+      "requirement": "Conditional-Optional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "NodeIdentifier",
+      "requirement": "Conditional-Optional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "PrivateExtension",
+      "requirement": "Optional",
+      "multiplicity": "List",
+      "is_grouped": false
+    }
+  ]
+}

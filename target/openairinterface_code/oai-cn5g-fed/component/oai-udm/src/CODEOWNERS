@@ -1,0 +1,20 @@
+# CODEOWNERS  
+UDM_APP:
+ - Keliang DU, BUPT
+ - Tien Thinh NGUYEN, Eurecom
+ - Lionel Gauthier, Eurecom
+
+COMMON
+ - Sebastien ROUX, Eurecom
+ - Lionel Gauthier, Eurecom
+ - Tien Thinh NGUYEN, Eurecom
+
+API_SERVER
+ - Tien Thinh NGUYEN, Eurecom
+ 
+5GAKA
+ - Keliang DU, BUPT
+ - Jian Yang, BUPT 
+ - Fengjiao He, BUPT
+ - Hongxin Wang, BUPT
+ - Tien Thinh NGUYEN, Eurecom  

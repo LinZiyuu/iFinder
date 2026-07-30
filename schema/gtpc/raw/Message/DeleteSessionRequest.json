@@ -1,0 +1,114 @@
+{
+  "message_name": "DeleteSessionRequest",
+  "Direction": "MME/SGSN/ePDG/TWAN -> SGW/PGW (S11/S4/S5/S8/S2a/S2b)",
+  "ies": [
+    {
+      "name": "Cause",
+      "requirement": "Conditional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "EPSBearerID",
+      "requirement": "Conditional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "UserLocationInformation",
+      "requirement": "Conditional-Optional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "Indication",
+      "requirement": "Conditional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "ProtocolConfigurationOptions",
+      "requirement": "Conditional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "NodeType",
+      "requirement": "Conditional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "FullyQualifiedTEID",
+      "requirement": "Conditional-Optional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "UETimeZone",
+      "requirement": "Conditional-Optional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "ULITimestamp",
+      "requirement": "Conditional-Optional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "RANNASCause",
+      "requirement": "Conditional-Optional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "TWANIdentifier",
+      "requirement": "Conditional-Optional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "TWANIdentifierTimestamp",
+      "requirement": "Conditional-Optional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "OverloadControlInformation",
+      "requirement": "Optional",
+      "multiplicity": "Single",
+      "is_grouped": true
+    },
+    {
+      "name": "IPAddress",
+      "requirement": "Conditional-Optional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "PortNumber",
+      "requirement": "Conditional-Optional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "ExtendedProtocolConfigurationOptions",
+      "requirement": "Conditional-Optional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "SecondaryRATUsageDataReport",
+      "requirement": "Conditional-Optional",
+      "multiplicity": "List",
+      "is_grouped": false
+    },
+    {
+      "name": "PrivateExtension",
+      "requirement": "Optional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    }
+  ]
+}

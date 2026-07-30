@@ -1,0 +1,133 @@
+/*
+ * SPDX-License-Identifier: LicenseRef-CSSL-1.0
+ */
+
+#ifndef FILE_PFCP_SESSION_HPP_SEEN
+#define FILE_PFCP_SESSION_HPP_SEEN
+
+#include "3gpp_29.244.h"
+#include "msg_pfcp.hpp"
+#include "pfcp_far.hpp"
+#include "pfcp_pdr.hpp"
+#include "pfcp_qer.hpp"
+#include "framed_routing/FramedRouting.hpp"
+
+namespace pfcp {
+
+#define PFCP
+
+class pfcp_session {
+ private:
+  void add(std::shared_ptr<pfcp::pfcp_far>);
+  void add(std::shared_ptr<pfcp::pfcp_pdr>);
+  void add(std::shared_ptr<pfcp::pfcp_qer>);
+
+  bool remove(const pfcp::far_id_t& far_id, uint8_t& cause_value);
+  bool remove(const pfcp::pdr_id_t& pdr_id, uint8_t& cause_value);
+  bool remove(const pfcp::qer_id_t& qer_id, uint8_t& cause_value);
+
+  std::mutex teid_mutex;
+  void set(const pfcp::fteid_t& fteid);
+
+  std::mutex pdn_type_mutex;
+  void set(pfcp::pdn_type_value_e type);
+
+ public:
+  pfcp::fseid_t cp_fseid;
+  uint64_t seid;                    // User plane
+  pfcp::pdn_type_value_e pdn_type;  // PDN type, default is 0 (undefined)
+  uint8_t qfi =
+      0x05;  // Set to default qfi if first ue packet is originated from DN
+
+  // TO DO better than this :(sooner the better)  when inserting or removing new
+  // PDRs, FARS, should not conflict with switching operations
+  std::vector<std::shared_ptr<pfcp::pfcp_pdr>> pdrs;
+  std::vector<std::shared_ptr<pfcp::pfcp_far>> fars;
+  std::vector<std::shared_ptr<pfcp::pfcp_qer>> qers;
+
+  std::vector<std::shared_ptr<pfcp::pfcp_pdr>> pdrs_uplink;
+  std::vector<std::shared_ptr<pfcp::pfcp_pdr>> pdrs_downlink;
+
+  std::vector<std::shared_ptr<pfcp::pfcp_qer>> qers_uplink;
+  std::vector<std::shared_ptr<pfcp::pfcp_qer>> qers_downlink;
+
+  pfcp::fteid_t teid_uplink = {};
+
+  /*---------------------------------------------------------------------------------------------------------------*/
+  pfcp_session() : cp_fseid(), seid(0), pdrs(), fars(), qers() {
+    pdrs.reserve(8);
+    fars.reserve(8);
+    qers.reserve(8);
+  }
+
+  /*---------------------------------------------------------------------------------------------------------------*/
+  pfcp_session(pfcp::fseid_t& cp, uint64_t up_seid) : pfcp_session() {
+    cp_fseid = cp;
+    seid     = up_seid;
+  }
+
+  /*---------------------------------------------------------------------------------------------------------------*/
+  pfcp_session(const pfcp_session& c)
+      : cp_fseid(c.cp_fseid),
+        seid(c.seid),
+        pdrs(c.pdrs),
+        fars(c.fars),
+        qers(c.qers),
+        teid_uplink(c.teid_uplink),
+        pdn_type(c.pdn_type) {}
+
+  /*---------------------------------------------------------------------------------------------------------------*/
+  virtual ~pfcp_session() {
+    cleanup();
+    cp_fseid = {};
+    seid     = {};
+  };
+
+  /*---------------------------------------------------------------------------------------------------------------*/
+  void cleanup();
+
+  /*---------------------------------------------------------------------------------------------------------------*/
+  std::string to_string() const;
+
+  /*---------------------------------------------------------------------------------------------------------------*/
+  uint64_t get_up_seid() const { return seid; };
+
+  /*---------------------------------------------------------------------------------------------------------------*/
+  bool get(const uint32_t, std::shared_ptr<pfcp::pfcp_far>&) const;
+  bool get(const uint16_t, std::shared_ptr<pfcp::pfcp_pdr>&) const;
+  bool get(const uint16_t, std::shared_ptr<pfcp::pfcp_qer>&) const;
+  bool get(const uint32_t, std::shared_ptr<pfcp::pfcp_qer>&) const;
+
+  /*---------------------------------------------------------------------------------------------------------------*/
+  bool update(const pfcp::update_far& update, uint8_t& cause_value);
+  bool update(const pfcp::update_pdr& update, uint8_t& cause_value);
+  bool update(const pfcp::update_qer& update, uint8_t& cause_value);
+
+  /*---------------------------------------------------------------------------------------------------------------*/
+  bool create(
+      const pfcp::create_far& cr_far, pfcp::cause_t& cause,
+      uint16_t& offending_ie);
+  bool create(
+      const pfcp::create_pdr& cr_pdr, pfcp::cause_t& cause,
+      uint16_t& offending_ie, pfcp::fteid_t& allocated_fteid);
+  bool create(
+      const pfcp::create_qer& cr_qer, pfcp::cause_t& cause,
+      uint16_t& offending_ie);
+
+  /*---------------------------------------------------------------------------------------------------------------*/
+  bool remove(
+      const pfcp::remove_far& rm_far, pfcp::cause_t& cause,
+      uint16_t& offending_ie);
+  bool remove(
+      const pfcp::remove_pdr& rm_pdr, pfcp::cause_t& cause,
+      uint16_t& offending_ie);
+  bool remove(
+      const pfcp::remove_qer& rm_qer, pfcp::cause_t& cause,
+      uint16_t& offending_ie);
+
+  bool get(pfcp::fteid_t& fteid);
+
+  pfcp::pdn_type_value_e get_pdn_type();
+};
+}  // namespace pfcp
+#endif

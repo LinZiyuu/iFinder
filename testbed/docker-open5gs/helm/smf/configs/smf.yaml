@@ -1,0 +1,47 @@
+logger:
+  file:
+    path: /var/log/open5gs/smf.log
+
+global:
+
+smf:
+  sbi:
+    server:
+      - dev: eth0
+        port: {{ .Values.global.containerPorts.sbi }}
+    client:
+      nrf:
+        {{- if eq .Release.Name "nrf" }}
+        - uri: http://nrf-service-sbi:{{ .Values.global.containerPorts.sbi }}
+        {{- else }}
+        - uri: http://{{ .Release.Name }}-nrf-service-sbi:{{ .Values.global.containerPorts.sbi }}
+        {{- end }}
+  pfcp:
+    server:
+      - dev: eth0
+        {{- if eq .Values.services.pfcp.type "LoadBalancer" }}
+        advertise: {{ .Values.services.pfcp.loadBalancerIP }}
+        {{- else if eq .Values.services.pfcp.type "ClusterIP" }}
+        advertise: {{ include "common.names.fullname" . }}-service-pfcp
+        {{- end }}
+    client:
+      {{- $upf := .Values.global.networkFunctions.upf | default list }}
+      {{- if $upf }}
+      upf:
+        {{- range $upf }}
+        - address: {{ . }}
+        {{- end }}
+      {{- end }}
+  gtpu:
+    server:
+      - dev: eth0
+  session:
+    - subnet: {{ .Values.global.mobileNetwork.dataNetwork.subnet }}
+      gateway: {{ .Values.global.mobileNetwork.dataNetwork.gateway }}
+      {{- if .Values.global.mobileNetwork.dataNetwork.dnn }}
+      dnn: {{ .Values.global.mobileNetwork.dataNetwork.dnn }}
+      {{- end }}
+  dns:
+    - 8.8.8.8
+    - 8.8.4.4
+  mtu: 1400

@@ -1,0 +1,11 @@
+{
+  "ie_name": "TSCManagementInformationWithinSessionModificationResponse",
+  "ie_type_id": 200,
+  "is_grouped": true,
+  "sub_ies": [
+    {
+      "name": "PortManagementInformationContainer",
+      "ie_type_id": 202
+    }
+  ]
+}

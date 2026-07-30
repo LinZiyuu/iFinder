@@ -1,0 +1,9 @@
+[submodule "component/oai-hss"]
+	path = component/oai-hss
+	url = https://github.com/OPENAIRINTERFACE/openair-hss.git
+[submodule "component/oai-spgwc"]
+	path = component/oai-spgwc
+	url = https://github.com/OPENAIRINTERFACE/openair-spgwc.git
+[submodule "component/oai-spgwu-tiny"]
+	path = component/oai-spgwu-tiny
+	url = https://github.com/OPENAIRINTERFACE/openair-spgwu-tiny.git

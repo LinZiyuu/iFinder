@@ -1,0 +1,23 @@
+# SPDX-License-Identifier: MIT
+# ---------------------------------------------------------------------
+#
+kind: BuildConfig
+apiVersion: build.openshift.io/v1
+metadata:
+  name: "upf-build-cfg"
+  namespace: oaicicd-core
+spec:
+    runPolicy: "Serial"
+    source:
+        type: "Binary"
+        secrets:
+          - secret:
+              name: etc-pki-entitlement
+            destinationDir: etc-pki-entitlement
+    strategy:
+        dockerStrategy:
+            dockerfilePath: "docker/Dockerfile.upf.rhel9"
+    output:
+        to:
+            kind: "ImageStreamTag"
+            name: "oai-upf:latest"

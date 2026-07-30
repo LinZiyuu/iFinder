@@ -1,0 +1,24 @@
+{
+  "message_name": "DeletePDNConnectionSetResponse",
+  "Direction": "PGW/SGW -> SGW/MME/SGSN (S5/S8, S11/S4)",
+  "ies": [
+    {
+      "name": "Cause",
+      "requirement": "Mandatory",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "Recovery",
+      "requirement": "Conditional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "PrivateExtension",
+      "requirement": "Optional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    }
+  ]
+}

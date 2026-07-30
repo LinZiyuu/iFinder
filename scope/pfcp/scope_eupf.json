@@ -1,0 +1,14 @@
+{
+  "scope_name": "eupf-pfcp",
+  "targets": [
+    {
+      "name": "eupf",
+      "version": "v0.7.1",
+      "target_codebase": "target/eupf_code/eupf",
+      "scan_dirs": [
+        "cmd/core/"
+      ],
+      "protocol": "pfcp"
+    }
+  ]
+}

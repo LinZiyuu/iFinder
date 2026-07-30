@@ -1,0 +1,59 @@
+{
+  "procedure_id": "GTPC_Delete_Bearer_Command",
+  "direction": "MME/SGSN <-> SGW <-> PGW",
+  "dependency_procedures": [
+    "GTPC_Create_Session"
+  ],
+  "message_flow": [
+    {
+      "seq": 1,
+      "from": "MME/SGSN",
+      "to": "SGW",
+      "message": "DeleteBearerCommand",
+      "mandatory_ies": [
+        "BearerContext"
+      ]
+    },
+    {
+      "seq": 2,
+      "from": "SGW",
+      "to": "PGW",
+      "message": "DeleteBearerCommand",
+      "mandatory_ies": [
+        "BearerContext"
+      ]
+    },
+    {
+      "seq": 3,
+      "from": "PGW",
+      "to": "SGW",
+      "message": "DeleteBearerRequest",
+      "mandatory_ies": []
+    },
+    {
+      "seq": 4,
+      "from": "SGW",
+      "to": "MME/SGSN",
+      "message": "DeleteBearerRequest",
+      "mandatory_ies": []
+    },
+    {
+      "seq": 5,
+      "from": "MME/SGSN",
+      "to": "SGW",
+      "message": "DeleteBearerResponse",
+      "mandatory_ies": [
+        "Cause"
+      ]
+    },
+    {
+      "seq": 6,
+      "from": "SGW",
+      "to": "PGW",
+      "message": "DeleteBearerResponse",
+      "mandatory_ies": [
+        "Cause"
+      ]
+    }
+  ]
+}

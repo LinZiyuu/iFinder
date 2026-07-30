@@ -1,0 +1,67 @@
+{
+  "procedure_id": "GTPC_Modify_Bearer_Command",
+  "direction": "MME/SGSN <-> SGW <-> PGW",
+  "dependency_procedures": [
+    "GTPC_Create_Session"
+  ],
+  "message_flow": [
+    {
+      "seq": 1,
+      "from": "MME/SGSN",
+      "to": "SGW",
+      "message": "ModifyBearerCommand",
+      "mandatory_ies": [
+        "AggregateMaximumBitRate",
+        "BearerContext"
+      ]
+    },
+    {
+      "seq": 2,
+      "from": "SGW",
+      "to": "PGW",
+      "message": "ModifyBearerCommand",
+      "mandatory_ies": [
+        "AggregateMaximumBitRate",
+        "BearerContext"
+      ]
+    },
+    {
+      "seq": 3,
+      "from": "PGW",
+      "to": "SGW",
+      "message": "UpdateBearerRequest",
+      "mandatory_ies": [
+        "BearerContext"
+      ]
+    },
+    {
+      "seq": 4,
+      "from": "SGW",
+      "to": "MME/SGSN",
+      "message": "UpdateBearerRequest",
+      "mandatory_ies": [
+        "BearerContext"
+      ]
+    },
+    {
+      "seq": 5,
+      "from": "MME/SGSN",
+      "to": "SGW",
+      "message": "UpdateBearerResponse",
+      "mandatory_ies": [
+        "Cause",
+        "BearerContext"
+      ]
+    },
+    {
+      "seq": 6,
+      "from": "SGW",
+      "to": "PGW",
+      "message": "UpdateBearerResponse",
+      "mandatory_ies": [
+        "Cause",
+        "BearerContext"
+      ]
+    }
+  ]
+}

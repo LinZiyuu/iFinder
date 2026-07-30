@@ -1,0 +1,5 @@
+{
+  "message_name": "VersionNotSupportedIndication",
+  "Direction": "GTP-C node -> peer GTP-C node (path management, any interface)",
+  "ies": []
+}

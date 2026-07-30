@@ -1,0 +1,18 @@
+{
+  "message_name": "SessionReportResponse",
+  "Direction": "SMF -> UPF",
+  "ies": [
+    {
+      "name": "Cause",
+      "requirement": "Mandatory",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "OffendingIE",
+      "requirement": "Optional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    }
+  ]
+}

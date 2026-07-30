@@ -1,0 +1,35 @@
+{
+  "ie_name": "EthernetPacketFilter",
+  "ie_type_id": 132,
+  "is_grouped": true,
+  "sub_ies": [
+    {
+      "name": "SDFFilter",
+      "ie_type_id": 23
+    },
+    {
+      "name": "MACAddress",
+      "ie_type_id": 133
+    },
+    {
+      "name": "CTAG",
+      "ie_type_id": 134
+    },
+    {
+      "name": "STAG",
+      "ie_type_id": 135
+    },
+    {
+      "name": "Ethertype",
+      "ie_type_id": 136
+    },
+    {
+      "name": "EthernetFilterID",
+      "ie_type_id": 138
+    },
+    {
+      "name": "EthernetFilterProperties",
+      "ie_type_id": 139
+    }
+  ]
+}

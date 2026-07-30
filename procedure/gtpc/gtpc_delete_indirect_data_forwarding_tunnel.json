@@ -1,0 +1,25 @@
+{
+  "procedure_id": "GTPC_Delete_Indirect_Data_Forwarding_Tunnel",
+  "direction": "MME/SGSN <-> SGW",
+  "dependency_procedures": [
+    "GTPC_Create_Indirect_Data_Forwarding_Tunnel"
+  ],
+  "message_flow": [
+    {
+      "seq": 1,
+      "from": "MME/SGSN",
+      "to": "SGW",
+      "message": "DeleteIndirectDataForwardingTunnelRequest",
+      "mandatory_ies": []
+    },
+    {
+      "seq": 2,
+      "from": "SGW",
+      "to": "MME/SGSN",
+      "message": "DeleteIndirectDataForwardingTunnelResponse",
+      "mandatory_ies": [
+        "Cause"
+      ]
+    }
+  ]
+}

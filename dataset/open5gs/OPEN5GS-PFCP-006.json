@@ -1,0 +1,57 @@
+{
+  "id": "OPEN5GS-PFCP-006",
+  "aliases": [
+    "GH-3839"
+  ],
+  "source": {
+    "paper_ref": null,
+    "issue_url": "https://github.com/open5gs/open5gs/issues/3839",
+    "fix_pr_url": null,
+    "cve": null,
+    "disclosure_date": "2025-04-08",
+    "reporter": "shellwayxw"
+  },
+  "target": {
+    "project": "open5gs",
+    "nf": "UPF",
+    "interface": "N4/PFCP",
+    "vuln_version": "v2.7.5",
+    "vuln_commit": "v2.7.5",
+    "build": "ASan (meson -Db_sanitize=address)",
+    "config": "configs/open5gs/upf.yaml",
+    "docker_image": null
+  },
+  "classification": {
+    "cwe": "CWE-121",
+    "vuln_type": "stack-buffer-overflow",
+    "ifinder_pattern": "PA1",
+    "impact": "DoS (crash)"
+  },
+  "trigger": {
+    "procedure": null,
+    "message": "PFCP message with an oversized Node ID IE",
+    "ie_path": "Node ID IE",
+    "field": "Node ID length: ogs_pfcp_extract_node_id() memcpy's an attacker-controlled length (size 1000) into the fixed 257-byte 'node_id' stack buffer of pfcp_recv_cb",
+    "precondition": "None \u2014 node_id is extracted in pfcp_recv_cb on every received datagram (pre-association)"
+  },
+  "ground_truth": {
+    "crash_site": {
+      "file": "lib/pfcp/util.c",
+      "line": 197,
+      "function": "ogs_pfcp_extract_node_id"
+    },
+    "sanitizer": "AddressSanitizer",
+    "crash_type": "stack-buffer-overflow (WRITE size 1000 via memcpy; overflows 257-byte 'node_id' in pfcp_recv_cb frame)",
+    "root_cause": {
+      "file": "src/upf/pfcp-path.c",
+      "line": 69,
+      "function": "pfcp_recv_cb",
+      "note": "Fixed-size node_id[257] stack buffer in pfcp_recv_cb. Same buffer is the OOB-READ source in OPEN5GS-PFCP-009 (#3847) via ogs_pfcp_node_id_to_string_static \u2014 distinct function/bug."
+    },
+    "call_stack": [
+      "ogs_pfcp_extract_node_id lib/pfcp/util.c:197",
+      "pfcp_recv_cb src/upf/pfcp-path.c:96",
+      "epoll_process lib/core/ogs-epoll.c:264"
+    ]
+  }
+}

@@ -1,0 +1,186 @@
+{
+  "message_name": "ForwardRelocationRequest",
+  "Direction": "Source MME/SGSN/S4-SGSN -> Target MME/SGSN/S4-SGSN (S3/S10/S16)",
+  "ies": [
+    {
+      "name": "IMSI",
+      "requirement": "Conditional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "FullyQualifiedTEID",
+      "requirement": "Mandatory",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "MMContextGSMKeyAndTriplets",
+      "requirement": "Conditional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "MMContextUMTSKeyUsedCipherAndQuintuplets",
+      "requirement": "Conditional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "MMContextGSMKeyUsedCipherAndQuintuplets",
+      "requirement": "Conditional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "MMContextUMTSKeyAndQuintuplets",
+      "requirement": "Conditional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "MMContextEPSSecurityContextQuadrupletsAndQuintuplets",
+      "requirement": "Conditional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "MMContextUMTSKeyQuadrupletsAndQuintuplets",
+      "requirement": "Conditional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "PDNConnection",
+      "requirement": "Conditional",
+      "multiplicity": "List",
+      "is_grouped": true
+    },
+    {
+      "name": "TargetIdentification",
+      "requirement": "Conditional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "FContainer",
+      "requirement": "Conditional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "FCause",
+      "requirement": "Conditional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "SelectionMode",
+      "requirement": "Conditional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "UserLocationInformation",
+      "requirement": "Conditional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "RFSPIndex",
+      "requirement": "Conditional-Optional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "Indication",
+      "requirement": "Conditional-Optional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "FullyQualifiedCSID",
+      "requirement": "Conditional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "UserCSGInformation",
+      "requirement": "Conditional-Optional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "ServingNetwork",
+      "requirement": "Conditional-Optional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "LocalDistinguishedName",
+      "requirement": "Optional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "AdditionalMMContextForSRVCC",
+      "requirement": "Conditional-Optional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "AdditionalFlagsForSRVCC",
+      "requirement": "Conditional-Optional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "UETimeZone",
+      "requirement": "Conditional-Optional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "MDTConfiguration",
+      "requirement": "Optional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "AdditionalProtocolConfigurationOptions",
+      "requirement": "Conditional-Optional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "CSGID",
+      "requirement": "Conditional-Optional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "HopCounter",
+      "requirement": "Conditional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "TraceInformation",
+      "requirement": "Conditional-Optional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "CIoTOptimizationsSupportIndication",
+      "requirement": "Conditional-Optional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "PrivateExtension",
+      "requirement": "Optional",
+      "multiplicity": "List",
+      "is_grouped": false
+    }
+  ]
+}

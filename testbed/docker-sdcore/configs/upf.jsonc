@@ -1,0 +1,70 @@
+// SPDX-License-Identifier: Apache-2.0
+// BESS-UPF (upf-epc v2.1.2) config for the SD-Core docker-compose testbed.
+// Read by BOTH bessd (conf/up4.bess -> Parser('conf/upf.jsonc')) and pfcpiface
+// (--config). Mounted into both containers at /opt/bess/bessctl/conf/upf.jsonc.
+{
+    // af_packet keeps everything inside plain containers (no DPDK NICs / SR-IOV).
+    "mode": "af_packet",
+
+    "table_sizes": {
+        "pdrLookup": 50000,
+        "flowMeasure": 200000,
+        "appQERLookup": 200000,
+        "sessionQERLookup": 100000,
+        "farLookup": 150000
+    },
+
+    "log_level": "info",
+    "hwcksum": false,
+    "gtppsc": false,
+    "ddp": false,
+    "measure_upf": true,
+    "measure_flow": false,
+
+    // Single-container UPF: pfcpiface reads the access/core IPv4 off the container's
+    // own eth0 (the pinned 10.100.1.4). No bessd veths -> no shared netns, so the EA
+    // restarts/tails this exact container. Both point at eth0 (control plane only).
+    "access": {
+        "ifname": "eth0"
+    },
+    "core": {
+        "ifname": "eth0"
+    },
+
+    "workers": 1,
+    "max_req_retries": 5,
+    "resp_timeout": "2s",
+    "enable_ntf": false,
+    "enable_hbTimer": false,
+    "enable_gtpu_path_monitoring": false,
+
+    "qci_qos_config": [
+        { "qci": 0, "cbs": 50000, "ebs": 50000, "pbs": 50000, "burst_duration_ms": 10, "priority": 7 },
+        { "qci": 9, "cbs": 2048,  "ebs": 2048,  "pbs": 2048,  "priority": 6 },
+        { "qci": 8, "cbs": 2048,  "ebs": 2048,  "pbs": 2048,  "priority": 5 }
+    ],
+
+    "slice_rate_limit_config": {
+        "n6_bps": 500000000,
+        "n6_burst_bytes": 625000,
+        "n3_bps": 500000000,
+        "n3_burst_bytes": 625000
+    },
+
+    // Control-plane / N4 settings.
+    //   - hostname : NodeID this UPF advertises in PFCP (matches the docker
+    //                service name the SMF resolves -> clean association).
+    //   - peers    : empty => the UPF stays PASSIVE and waits for the SMF to
+    //                initiate the association (the SD-Core flow). Set it to the
+    //                SMF IP only if you want the UPF to initiate instead.
+    // n4_addr is intentionally omitted -> pfcpiface listens on 0.0.0.0:8805,
+    // reachable from the SMF over the compose network.
+    "cpiface": {
+        "peers": [],
+        "hostname": "upf",
+        "dnn": "internet",
+        "http_port": "8080",
+        "enable_ue_ip_alloc": false,
+        "ue_ip_pool": "10.250.0.0/16"
+    }
+}

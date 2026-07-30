@@ -1,0 +1,18 @@
+{
+  "scope_name": "open5gs-pfcp-275",
+  "targets": [
+    {
+      "name": "open5gs_275",
+      "version": "2.7.5",
+      "target_codebase": "target/open5gs_code/open5gs_275",
+      "scan_dirs": [
+        "lib/pfcp/",
+        "lib/core/",
+        "lib/ipfw/",
+        "src/smf/",
+        "src/upf/"
+      ],
+      "protocol": "pfcp"
+    }
+  ]
+}

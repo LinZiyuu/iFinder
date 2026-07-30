@@ -1,0 +1,23 @@
+{
+  "ie_name": "CreateBAR",
+  "ie_type_id": 85,
+  "is_grouped": true,
+  "sub_ies": [
+    {
+      "name": "DownlinkDataNotificationDelay",
+      "ie_type_id": 46
+    },
+    {
+      "name": "BARID",
+      "ie_type_id": 88
+    },
+    {
+      "name": "SuggestedBufferingPacketsCount",
+      "ie_type_id": 140
+    },
+    {
+      "name": "MTEDTControlInformation",
+      "ie_type_id": 249
+    }
+  ]
+}

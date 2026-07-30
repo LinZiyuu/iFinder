@@ -1,0 +1,67 @@
+{
+  "ie_name": "BearerContext",
+  "ie_type_id": 93,
+  "is_grouped": true,
+  "sub_ies": [
+    {
+      "name": "EPSBearerID",
+      "ie_type_id": 73
+    },
+    {
+      "name": "Cause",
+      "ie_type_id": 2
+    },
+    {
+      "name": "BearerTFT",
+      "ie_type_id": 84
+    },
+    {
+      "name": "FullyQualifiedTEID",
+      "ie_type_id": 87
+    },
+    {
+      "name": "BearerQoS",
+      "ie_type_id": 80
+    },
+    {
+      "name": "ChargingID",
+      "ie_type_id": 94
+    },
+    {
+      "name": "BearerFlags",
+      "ie_type_id": 97
+    },
+    {
+      "name": "ProtocolConfigurationOptions",
+      "ie_type_id": 78
+    },
+    {
+      "name": "ExtendedProtocolConfigurationOptions",
+      "ie_type_id": 197
+    },
+    {
+      "name": "AdditionalProtocolConfigurationOptions",
+      "ie_type_id": 163
+    },
+    {
+      "name": "PacketFlowID",
+      "ie_type_id": 123
+    },
+    {
+      "name": "RANNASCause",
+      "ie_type_id": 172
+    },
+    {
+      "name": "TI",
+      "ie_type_id": 137
+    },
+    {
+      "name": "MaximumPacketLossRate",
+      "ie_type_id": 203
+    },
+    {
+      "name": "FContainer",
+      "ie_type_id": 118
+    }
+  ]
+}

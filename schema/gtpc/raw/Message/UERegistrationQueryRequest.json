@@ -1,0 +1,18 @@
+{
+  "message_name": "UERegistrationQueryRequest",
+  "Direction": "MME -> MME (S10)",
+  "ies": [
+    {
+      "name": "IMSI",
+      "requirement": "Mandatory",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "PrivateExtension",
+      "requirement": "Optional",
+      "multiplicity": "List",
+      "is_grouped": false
+    }
+  ]
+}

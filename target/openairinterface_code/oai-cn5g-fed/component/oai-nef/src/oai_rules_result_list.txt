@@ -1,0 +1,7 @@
+src/common/common_defs.h
+src/common/utils/conversions.hpp
+src/common/utils/uint_generator.hpp
+src/nef_app/nef_app.hpp
+src/nef_app/nef_client.hpp
+src/api-server/api/IPTVConfigurationsApi.cpp
+src/common/utils/pid_file.cpp

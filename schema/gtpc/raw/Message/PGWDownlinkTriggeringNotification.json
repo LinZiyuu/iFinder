@@ -1,0 +1,30 @@
+{
+  "message_name": "PGWDownlinkTriggeringNotification",
+  "Direction": "PGW -> MME/S4-SGSN (S5/S8, S3/S16 via SGW/HSS)",
+  "ies": [
+    {
+      "name": "IMSI",
+      "requirement": "Conditional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "IPAddress",
+      "requirement": "Conditional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "FullyQualifiedTEID",
+      "requirement": "Conditional-Optional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "PrivateExtension",
+      "requirement": "Optional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    }
+  ]
+}

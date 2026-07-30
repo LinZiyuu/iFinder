@@ -1,0 +1,28 @@
+{
+  "procedure_id": "GTPC_Detach",
+  "direction": "MME <-> SGSN",
+  "dependency_procedures": [
+    "GTPC_Create_Session"
+  ],
+  "message_flow": [
+    {
+      "seq": 1,
+      "from": "MME",
+      "to": "SGSN",
+      "message": "DetachNotification",
+      "mandatory_ies": [
+        "Cause",
+        "DetachType"
+      ]
+    },
+    {
+      "seq": 2,
+      "from": "SGSN",
+      "to": "MME",
+      "message": "DetachAcknowledge",
+      "mandatory_ies": [
+        "Cause"
+      ]
+    }
+  ]
+}

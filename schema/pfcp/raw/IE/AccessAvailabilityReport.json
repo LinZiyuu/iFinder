@@ -1,0 +1,11 @@
+{
+  "ie_name": "AccessAvailabilityReport",
+  "ie_type_id": 218,
+  "is_grouped": true,
+  "sub_ies": [
+    {
+      "name": "AccessAvailabilityInformation",
+      "ie_type_id": 219
+    }
+  ]
+}

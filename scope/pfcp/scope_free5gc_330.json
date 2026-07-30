@@ -1,0 +1,16 @@
+{
+  "scope_name": "free5gc-pfcp-330",
+  "targets": [
+    {
+      "name": "free5gc_330",
+      "version": "3.3.0",
+      "target_codebase": "target/free5gc_code/free5gc_330",
+      "scan_dirs": [
+        "NFs/smf/internal/pfcp/",
+        "NFs/upf/internal/pfcp/",
+        "NFs/upf/internal/forwarder/"
+      ],
+      "protocol": "pfcp"
+    }
+  ]
+}

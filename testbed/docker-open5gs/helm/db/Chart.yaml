@@ -1,0 +1,16 @@
+apiVersion: v2
+
+name: db
+description: Open5GS DB Helm chart
+version: 0.3.4
+type: application
+appVersion: "8.0"
+
+#icon:
+
+dependencies:
+- name: common
+  repository: oci://registry-1.docker.io/bitnamicharts
+  tags:
+  - bitnami-common
+  version: 2.x.x

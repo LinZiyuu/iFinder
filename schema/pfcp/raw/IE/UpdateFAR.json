@@ -1,0 +1,35 @@
+{
+  "ie_name": "UpdateFAR",
+  "ie_type_id": 10,
+  "is_grouped": true,
+  "sub_ies": [
+    {
+      "name": "UpdateForwardingParameters",
+      "ie_type_id": 11
+    },
+    {
+      "name": "NetworkInstance",
+      "ie_type_id": 22
+    },
+    {
+      "name": "ApplyAction",
+      "ie_type_id": 44
+    },
+    {
+      "name": "OuterHeaderCreation",
+      "ie_type_id": 84
+    },
+    {
+      "name": "BARID",
+      "ie_type_id": 88
+    },
+    {
+      "name": "UpdateDuplicatingParameters",
+      "ie_type_id": 105
+    },
+    {
+      "name": "FARID",
+      "ie_type_id": 108
+    }
+  ]
+}

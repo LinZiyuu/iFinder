@@ -1,0 +1,45 @@
+{
+  "procedure_id": "GTPC_Change_Notification",
+  "direction": "MME/SGSN <-> SGW <-> PGW",
+  "dependency_procedures": [
+    "GTPC_Create_Session"
+  ],
+  "message_flow": [
+    {
+      "seq": 1,
+      "from": "MME/SGSN",
+      "to": "SGW",
+      "message": "ChangeNotificationRequest",
+      "mandatory_ies": [
+        "RATType"
+      ]
+    },
+    {
+      "seq": 2,
+      "from": "SGW",
+      "to": "PGW",
+      "message": "ChangeNotificationRequest",
+      "mandatory_ies": [
+        "RATType"
+      ]
+    },
+    {
+      "seq": 3,
+      "from": "PGW",
+      "to": "SGW",
+      "message": "ChangeNotificationResponse",
+      "mandatory_ies": [
+        "Cause"
+      ]
+    },
+    {
+      "seq": 4,
+      "from": "SGW",
+      "to": "MME/SGSN",
+      "message": "ChangeNotificationResponse",
+      "mandatory_ies": [
+        "Cause"
+      ]
+    }
+  ]
+}

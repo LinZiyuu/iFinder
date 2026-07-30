@@ -1,0 +1,16 @@
+{
+  "scope_name": "free5gc-pfcp-202",
+  "targets": [
+    {
+      "name": "free5gc_202",
+      "version": "2.0.2",
+      "target_codebase": "target/free5gc_code/free5gc_202",
+      "scan_dirs": [
+        "lib/pfcp/",
+        "src/smf/",
+        "src/upf/"
+      ],
+      "protocol": "pfcp"
+    }
+  ]
+}

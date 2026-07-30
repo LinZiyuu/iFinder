@@ -1,0 +1,42 @@
+{
+  "message_name": "ReleaseAccessBearersResponse",
+  "Direction": "SGW -> MME/SGSN (S11/S4)",
+  "ies": [
+    {
+      "name": "Cause",
+      "requirement": "Mandatory",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "Recovery",
+      "requirement": "Conditional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "Indication",
+      "requirement": "Conditional-Optional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "LoadControlInformation",
+      "requirement": "Optional",
+      "multiplicity": "Single",
+      "is_grouped": true
+    },
+    {
+      "name": "OverloadControlInformation",
+      "requirement": "Optional",
+      "multiplicity": "Single",
+      "is_grouped": true
+    },
+    {
+      "name": "PrivateExtension",
+      "requirement": "Optional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    }
+  ]
+}

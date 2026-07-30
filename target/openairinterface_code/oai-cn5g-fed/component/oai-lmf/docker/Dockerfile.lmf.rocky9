@@ -1,0 +1,121 @@
+#/*
+# * SPDX-License-Identifier: LicenseRef-CSSL-1.0
+# */
+
+#---------------------------------------------------------------------
+#
+# Dockerfile for the Open-Air-Interface LMF service
+#   Valid for Rocky Linux 9.+
+#
+#---------------------------------------------------------------------
+
+#---------------------------------------------------------------------
+# BUILDER IMAGE
+#---------------------------------------------------------------------
+FROM docker.io/rockylinux:9 AS oai-lmf-builder
+
+ENV IS_DOCKERFILE=1
+
+RUN dnf install 'dnf-command(config-manager)' -y && \
+    dnf install epel-release -y && crb enable && \
+    dnf update -y && \
+    # here just to display the current version
+    cat /etc/os-release && \
+    dnf install -y \
+        psmisc \
+        git \
+        diffutils \
+        libasan \
+        wget \
+        file \
+        lapack-devel \
+        blas-devel && \
+    echo "/usr/local/lib" > /etc/ld.so.conf.d/local-lib.conf && \
+    echo "/usr/local/lib64" >> /etc/ld.so.conf.d/local-lib.conf
+
+# Some GIT configuration command quite useful
+RUN git config --global https.postBuffer 123289600 && \
+    git config --global https.maxRequestBuffer 123289600 && \
+    git config --global core.compression 0 && \
+    git config --global http.sslverify false
+
+# Copying source code
+WORKDIR /openair-lmf
+COPY . /openair-lmf
+
+# Installing and Building LMF
+WORKDIR /openair-lmf/build/scripts
+RUN ./build_lmf --install-deps --force && \
+    ldconfig
+RUN ./build_lmf --clean --Verbose --build-type Release --jobs && \
+    ldd /openair-lmf/build/lmf/build/lmf && \
+    mv /openair-lmf/build/lmf/build/lmf /openair-lmf/build/lmf/build/oai_lmf
+
+FROM mikefarah/yq:latest as yq-source
+
+#---------------------------------------------------------------------
+# TARGET IMAGE
+#---------------------------------------------------------------------
+FROM docker.io/rockylinux:9-minimal as oai-lmf
+ENV TZ=Europe/Paris
+
+# We install some debug tools for the moment in addition of mandatory libraries
+RUN microdnf update -y && \
+    microdnf install -y \
+      python3 \
+      python3-pip \
+      tzdata \
+#      libasan \
+      procps-ng \
+      psmisc \
+      net-tools \
+      libicu \
+      boost \
+      libevent \
+      findutils \
+      libconfig \
+      lapack \
+      blas && \
+    pip3 install jinja2 && \
+    microdnf clean all -y && \
+    rm -rf /var/cache/yum /var/cache/dnf
+
+# Copying executable and generated libraries
+WORKDIR /openair-lmf/bin
+COPY --from=oai-lmf-builder \
+    /openair-lmf/build/lmf/build/oai_lmf \
+    /openair-lmf/scripts/healthcheck.sh \
+    ./
+COPY --from=yq-source /usr/bin/yq /usr/bin
+
+WORKDIR /usr/lib64
+COPY --from=oai-lmf-builder \
+# Copying only the packages built from source
+    /usr/local/lib64/libpistache.so.0 \
+    /usr/local/lib/libnghttp2_asio.so \
+    /usr/local/lib/libnghttp2_asio.so.1 \
+    /usr/local/lib64/libspdlog.so \
+    /usr/local/lib64/libfmt.so \
+    /usr/local/lib64/libyaml-cpp.so.0.? \
+    /usr/local/lib64/libcpr.so.1 \
+    /usr/lib64/
+
+RUN ldconfig -v && \
+    echo "Checking target oai_lmf executable shared libraries" && \
+    ldd /openair-lmf/bin/oai_lmf
+
+WORKDIR /openair-lmf/etc
+COPY --from=oai-lmf-builder \
+    /openair-lmf/etc/config.yaml \
+    .
+
+WORKDIR /openair-lmf
+
+EXPOSE 80/tcp
+# healthcheck
+HEALTHCHECK --interval=10s \
+            --timeout=15s \
+            --retries=6 \
+    CMD /openair-lmf/bin/healthcheck.sh
+
+CMD ["/openair-lmf/bin/oai_lmf", "-c" , "/openair-lmf/etc/config.yaml", "-o"]

@@ -1,0 +1,57 @@
+{
+  "id": "FREE5GC-PFCP-022",
+  "aliases": [
+    "GH-free5gc-17"
+  ],
+  "source": {
+    "paper_ref": null,
+    "issue_url": "https://github.com/free5gc/free5gc/issues/17",
+    "fix_pr_url": null,
+    "cve": null,
+    "disclosure_date": "2020-04-21",
+    "reporter": "endrigoshi"
+  },
+  "target": {
+    "project": "free5gc",
+    "nf": "UPF",
+    "interface": "N4/PFCP",
+    "vuln_version": "v2.0.2",
+    "vuln_commit": "v2.0.2",
+    "build": "default C build (utlt_buff)",
+    "config": "config/upfcfg.yaml (free5gc UPF default)",
+    "docker_image": null
+  },
+  "classification": {
+    "cwe": "CWE-770",
+    "vuln_type": "segfault on exhausted fixed-size buffer pool (allocation failure not handled)",
+    "ifinder_pattern": "PC1",
+    "impact": "DoS (UPF crash on 9-th consecutive Session Establishment)"
+  },
+  "trigger": {
+    "procedure": "Session Establishment",
+    "message": "9-th (or later) consecutive PFCP Session Establishment Request without resetting NFs",
+    "ie_path": "N/A (resource-creating request; the bug is in per-session buffer allocation)",
+    "field": "bufPool64 (fixed-size 64-byte buffer pool in utlt_buff). PFCP-Session-Establishment-related buffers are never freed across consecutive establishments, so the pool drains after ~8 sessions. SelectBufblkOption logs 'bufPool64 is empty' and returns failure; downstream code dereferences the failed allocation -> segfault. PC1 'Resource Exhaustion' \u2014 bounded pool exhausted by resource-creating requests, no graceful failure path.",
+    "precondition": "PFCP association established; multiple consecutive SERs without NF restart"
+  },
+  "ground_truth": {
+    "crash_site": {
+      "file": "src/github.com/free5gc/free5gc/NFs/upf/lib/utlt/src/utlt_buff.c",
+      "line": 80,
+      "function": "SelectBufblkOption"
+    },
+    "sanitizer": null,
+    "crash_type": "ERRO 'bufPool64 is empty' (utlt_buff.c:80 SelectBufblkOption) immediately followed by Segmentation fault on the failed-allocation pointer",
+    "root_cause": {
+      "file": null,
+      "line": null,
+      "function": "SelectBufblkOption (downstream caller)",
+      "note": "SelectBufblkOption returns failure when bufPool64 is empty; the caller does not check the return and dereferences the (NULL/invalid) bufblk pointer -> segfault. Pool size is hard-coded in utlt_buff and the per-session buffers are not released."
+    },
+    "call_stack": [
+      "SelectBufblkOption c/upf/lib/utlt/src/utlt_buff.c:80",
+      "(per-session buffer allocator, caller not in stack but dereferences failed alloc)",
+      "(PFCP Session Establishment handler) free5gc/NFs/upf/"
+    ]
+  }
+}

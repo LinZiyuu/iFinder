@@ -1,0 +1,24 @@
+{
+  "message_name": "EchoResponse",
+  "Direction": "GTP-C node -> peer GTP-C node (path management, any interface)",
+  "ies": [
+    {
+      "name": "Recovery",
+      "requirement": "Mandatory",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "NodeFeatures",
+      "requirement": "Optional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "PrivateExtension",
+      "requirement": "Optional",
+      "multiplicity": "List",
+      "is_grouped": false
+    }
+  ]
+}

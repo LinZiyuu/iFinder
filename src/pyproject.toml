@@ -1,0 +1,23 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "ifinder"
+version = "0.0.1"
+description = "iFinder — LLM multi-agent system for finding implicit-trust errors (iTrues) in 5G core networks. See the iFinder_artifact-v4/README.md and the USENIX Security 2026 paper for the design."
+requires-python = ">=3.10"
+dependencies = [
+    "claude-agent-sdk>=0.1.0",
+    "pydantic>=2.0.0",
+    "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=7.0.0", "pytest-asyncio>=0.21.0"]
+
+[project.scripts]
+ifinder = "ifinder.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["ifinder"]

@@ -1,0 +1,10 @@
+{
+  "pattern_id": "PC1",
+  "pattern_name": "Resource Exhaustion",
+  "validation_class": "resource",
+  "element": "A bounded protocol-related resource / object pool with a fixed upper limit (e.g., sessions)",
+  "dangerous_operation": "Allocating the resource on a resource-creating request, and the handling path taken when the limit is reached (e.g., fatal error on count >= MAX, or dereferencing a failed allocation)",
+  "missing_validation": "Availability/capacity handling that treats resource exhaustion as a normal error case (reject with an appropriate error cause) instead of crashing",
+  "security_impact": "Crash when the resource pool is exhausted by resource-creating requests -> DoS or other security impact",
+  "pattern_description": "The component enforces fixed upper bounds on protocol-related resources (e.g., sessions), but the message handling path does not correctly treat resource exhaustion as a normal error case. Instead of rejecting the request with an appropriate error cause, the implementation crashes when a resource limit is hit (e.g., fatal error on count >= MAX, dereferencing a failed allocation). An attacker can exhaust these object pools by sending resource-creating protocol requests, leading to DoS or other security impact."
+}

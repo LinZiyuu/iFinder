@@ -1,0 +1,22 @@
+mcc: '001'          # Mobile Country Code (matches amf.yaml plmn_id)
+mnc: '01'           # Mobile Network Code
+
+nci: '0x000000010'  # NR Cell Identity (36-bit)
+idLength: 32        # NR gNB id length in bits [22...32]
+tac: 1              # Tracking Area Code (matches amf.yaml tai.tac)
+
+linkIp: 10.33.33.20 # gNB's own IP on the open5gs bridge (radio sim link)
+ngapIp: 10.33.33.20 # gNB's N2 (NGAP) bind IP
+gtpIp: 10.33.33.20  # gNB's N3 (GTP-U) bind IP
+
+# AMF on the open5gs bridge (amf.open5gs.org = 10.33.33.10), NGAP/SCTP 38412
+amfConfigs:
+  - address: 10.33.33.10
+    port: 38412
+
+# Supported S-NSSAI(s) — must match amf.yaml plmn_support (sst 1, sd 0x000001)
+slices:
+  - sst: 1
+    sd: 0x000001
+
+ignoreStreamIds: true

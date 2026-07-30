@@ -1,0 +1,19 @@
+{
+  "ie_name": "LoadControlInformation",
+  "ie_type_id": 181,
+  "is_grouped": true,
+  "sub_ies": [
+    {
+      "name": "SequenceNumber",
+      "ie_type_id": 183
+    },
+    {
+      "name": "Metric",
+      "ie_type_id": 182
+    },
+    {
+      "name": "APNAndRelativeCapacity",
+      "ie_type_id": 184
+    }
+  ]
+}

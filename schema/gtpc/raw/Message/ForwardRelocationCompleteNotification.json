@@ -1,0 +1,24 @@
+{
+  "message_name": "ForwardRelocationCompleteNotification",
+  "Direction": "Target MME/SGSN/S4-SGSN -> Source MME/SGSN/S4-SGSN (S3/S10/S16)",
+  "ies": [
+    {
+      "name": "Indication",
+      "requirement": "Conditional-Optional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "SecondaryRATUsageDataReport",
+      "requirement": "Conditional-Optional",
+      "multiplicity": "List",
+      "is_grouped": false
+    },
+    {
+      "name": "PrivateExtension",
+      "requirement": "Optional",
+      "multiplicity": "List",
+      "is_grouped": false
+    }
+  ]
+}

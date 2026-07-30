@@ -1,0 +1,31 @@
+{
+  "ie_name": "QoSMonitoringPerQoSFlowControlInformation",
+  "ie_type_id": 242,
+  "is_grouped": true,
+  "sub_ies": [
+    {
+      "name": "MeasurementPeriod",
+      "ie_type_id": 64
+    },
+    {
+      "name": "QFI",
+      "ie_type_id": 124
+    },
+    {
+      "name": "RequestedQoSMonitoring",
+      "ie_type_id": 243
+    },
+    {
+      "name": "ReportingFrequency",
+      "ie_type_id": 244
+    },
+    {
+      "name": "PacketDelayThresholds",
+      "ie_type_id": 245
+    },
+    {
+      "name": "MinimumWaitTime",
+      "ie_type_id": 246
+    }
+  ]
+}

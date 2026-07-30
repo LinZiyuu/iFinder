@@ -1,0 +1,36 @@
+# SPDX-License-Identifier: MIT
+
+version: '3.8'
+services:
+    oai-nrf:
+        container_name: "cicd-oai-nrf"
+        image: oaisoftwarealliance/oai-nrf:develop
+        environment:
+            - TZ=Europe/Paris
+        volumes:
+            - ./sanity-check.yaml:/openair-nrf/etc/config.yaml
+        networks:
+            sanity_net:
+                ipv4_address: 192.168.60.130
+    oai-lmf:
+        container_name: "cicd-oai-lmf"
+        image: oaisoftwarealliance/oai-lmf:develop
+        environment:
+            - TZ=Europe/Paris
+        volumes:
+            - ./sanity-check.yaml:/openair-lmf/etc/config.yaml
+        depends_on:
+            - oai-nrf
+        networks:
+            sanity_net:
+                ipv4_address: 192.168.60.131
+
+networks:
+    sanity_net:
+        driver: bridge
+        name: sanity-oai-public-net
+        ipam:
+            config:
+                - subnet: 192.168.60.128/26
+        driver_opts:
+            com.docker.network.bridge.name: "sanity-oai"

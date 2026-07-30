@@ -1,0 +1,11 @@
+{
+  "ie_name": "RemoveTrafficEndpoint",
+  "ie_type_id": 130,
+  "is_grouped": true,
+  "sub_ies": [
+    {
+      "name": "TrafficEndpointID",
+      "ie_type_id": 131
+    }
+  ]
+}

@@ -1,0 +1,70 @@
+# SPDX-FileCopyrightText: 2021 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+version: "2"
+run:
+  tests: true
+linters:
+  enable:
+    - asciicheck
+    - dogsled
+    - goconst
+    - gomodguard
+    - govet
+    - misspell
+    - noctx
+    - nilerr
+    - nilnil
+    - predeclared
+    - unconvert
+    - unparam
+    - unused
+    - whitespace
+  disable:
+    - errcheck
+    - godox
+    - nakedret
+    - staticcheck
+  settings:
+    errcheck:
+      check-type-assertions: false
+      check-blank: true
+    goconst:
+      min-len: 3
+      min-occurrences: 3
+    govet:
+      enable-all: true
+      disable:
+        - fieldalignment
+      settings:
+        printf:
+          funcs:
+            - (github.com/golangci/golangci-lint/pkg/logutils.Log).Infof
+            - (github.com/golangci/golangci-lint/pkg/logutils.Log).Warnf
+            - (github.com/golangci/golangci-lint/pkg/logutils.Log).Errorf
+            - (github.com/golangci/golangci-lint/pkg/logutils.Log).Fatalf
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    paths:
+      - .*\.pb\.go
+      - third_party$
+      - builtin$
+      - examples$
+issues:
+  uniq-by-line: true
+formatters:
+  enable:
+    - gofmt
+    - goimports
+  exclusions:
+    generated: lax
+    paths:
+      - .*\.pb\.go
+      - third_party$
+      - builtin$
+      - examples$

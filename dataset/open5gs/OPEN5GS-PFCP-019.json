@@ -1,0 +1,57 @@
+{
+  "id": "OPEN5GS-PFCP-019",
+  "aliases": [
+    "GH-3574"
+  ],
+  "source": {
+    "paper_ref": null,
+    "issue_url": "https://github.com/open5gs/open5gs/issues/3574",
+    "fix_pr_url": null,
+    "cve": null,
+    "disclosure_date": "2024-11-14",
+    "reporter": "lxy (open5gs#3574 author)"
+  },
+  "target": {
+    "project": "open5gs",
+    "nf": "UPF",
+    "interface": "N4/PFCP",
+    "vuln_version": "v2.7.2",
+    "vuln_commit": "v2.7.2",
+    "build": "default (assertions enabled)",
+    "config": "configs/open5gs/upf.yaml",
+    "docker_image": null
+  },
+  "classification": {
+    "cwe": "CWE-617",
+    "vuln_type": "assert-abort (out-of-range TEID used as array index)",
+    "ifinder_pattern": "PB1",
+    "impact": "DoS (UPF crash)"
+  },
+  "trigger": {
+    "procedure": "Session Establishment",
+    "message": "PFCP Session Establishment Request with F-TEID inside Create PDR carrying a TEID outside the local PDR TEID pool range",
+    "ie_path": "Create PDR > PDI > F-TEID > teid",
+    "field": "F-TEID.teid value. open5gs uses the attacker-supplied TEID directly as a pool array index, then asserts at lib/pfcp/context.c:1147 that it lies in (0, pool.size]. PB1 'Invalid Value' (ID outside valid range, used directly as lookup key).",
+    "precondition": "PFCP association established (issue's pcap shows Assoc Setup before the malicious SER)"
+  },
+  "ground_truth": {
+    "crash_site": {
+      "file": "lib/pfcp/context.c",
+      "line": 1147,
+      "function": "ogs_pfcp_pdr_swap_teid"
+    },
+    "sanitizer": null,
+    "crash_type": "reachable assertion: `pdr->f_teid.teid > 0 && pdr->f_teid.teid <= ogs_pfcp_pdr_teid_pool.size' failed -> abort (core dumped)",
+    "root_cause": {
+      "file": "lib/pfcp/context.c",
+      "line": 1147,
+      "function": "ogs_pfcp_pdr_swap_teid",
+      "note": "DISTINCT FROM OPEN5GS-PFCP-018 (#3747): same crash function (`ogs_pfcp_pdr_swap_teid`) and same assertion text, but DIFFERENT assert call site \u2014 019 fires at line 1147 (non-restoration path), 018 fires at line 1365 (restoration path with PFCPSEReqFlags.RESTI=1). Per dataset dedup convention, function + line + crash_type disambiguate; this counts as a separate bug."
+    },
+    "call_stack": [
+      "ogs_pfcp_pdr_swap_teid lib/pfcp/context.c:1147",
+      "(upf SER handler) src/upf/",
+      "ogs_fsm_dispatch lib/core/ogs-fsm.c"
+    ]
+  }
+}

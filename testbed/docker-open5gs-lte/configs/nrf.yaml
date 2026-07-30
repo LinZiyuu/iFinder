@@ -1,0 +1,12 @@
+# Open5GS NRF — required by the converged SMF/PGW-C: open5gs-smfd registers over SBI at
+# startup and aborts ([No-NRF:No-SCP] ... should not be reached) if no NRF/SCP exists, even
+# in a 4G-only EPC. Minimal plain-HTTP SBI server (no TLS), pinned to 10.100.2.7.
+global:
+  max:
+    ue: 1024
+
+nrf:
+  sbi:
+    server:
+      - address: 10.100.2.7
+        port: 7777

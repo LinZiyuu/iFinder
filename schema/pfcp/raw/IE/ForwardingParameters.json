@@ -1,0 +1,51 @@
+{
+  "ie_name": "ForwardingParameters",
+  "ie_type_id": 4,
+  "is_grouped": true,
+  "sub_ies": [
+    {
+      "name": "NetworkInstance",
+      "ie_type_id": 22
+    },
+    {
+      "name": "TransportLevelMarking",
+      "ie_type_id": 30
+    },
+    {
+      "name": "RedirectInformation",
+      "ie_type_id": 38
+    },
+    {
+      "name": "ForwardingPolicy",
+      "ie_type_id": 41
+    },
+    {
+      "name": "DestinationInterface",
+      "ie_type_id": 42
+    },
+    {
+      "name": "OuterHeaderCreation",
+      "ie_type_id": 84
+    },
+    {
+      "name": "HeaderEnrichment",
+      "ie_type_id": 98
+    },
+    {
+      "name": "TrafficEndpointID",
+      "ie_type_id": 131
+    },
+    {
+      "name": "Proxying",
+      "ie_type_id": 137
+    },
+    {
+      "name": "TGPPInterfaceType",
+      "ie_type_id": 160
+    },
+    {
+      "name": "DataNetworkAccessIdentifier",
+      "ie_type_id": 232
+    }
+  ]
+}

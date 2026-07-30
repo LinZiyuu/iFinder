@@ -1,0 +1,54 @@
+{
+  "message_name": "DeleteBearerCommand",
+  "Direction": "MME/SGSN -> SGW -> PGW (S11/S4/S5/S8)",
+  "ies": [
+    {
+      "name": "BearerContext",
+      "requirement": "Mandatory",
+      "multiplicity": "List",
+      "is_grouped": true
+    },
+    {
+      "name": "UserLocationInformation",
+      "requirement": "Conditional-Optional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "ULITimestamp",
+      "requirement": "Conditional-Optional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "UETimeZone",
+      "requirement": "Conditional-Optional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "OverloadControlInformation",
+      "requirement": "Optional",
+      "multiplicity": "Single",
+      "is_grouped": true
+    },
+    {
+      "name": "FullyQualifiedTEID",
+      "requirement": "Conditional-Optional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "SecondaryRATUsageDataReport",
+      "requirement": "Conditional-Optional",
+      "multiplicity": "List",
+      "is_grouped": false
+    },
+    {
+      "name": "PrivateExtension",
+      "requirement": "Optional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    }
+  ]
+}

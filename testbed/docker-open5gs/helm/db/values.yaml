@@ -1,0 +1,28 @@
+# Default values for db
+
+image:
+  registry: docker.io
+  repository: mongo
+  tag: "8.0"
+  pullPolicy: IfNotPresent
+
+services:
+  db:
+    type: NodePort
+    nodePort: 30007
+
+config: {}
+
+storage:
+  volumeClaimTemplate:
+    spec:
+      storageClassName: ""
+      resources:
+        requests:
+          storage: 1Gi
+      accessModes:
+        - ReadWriteOnce
+
+global:
+  containerPorts:
+    db: 27017

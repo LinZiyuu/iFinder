@@ -1,0 +1,49 @@
+{
+  "id": "OPEN5GS-PFCP-011",
+  "aliases": [
+    "GH-3207/upf_poc/poc9"
+  ],
+  "source": {
+    "paper_ref": null,
+    "issue_url": "https://github.com/open5gs/open5gs/issues/3207",
+    "fix_pr_url": null,
+    "cve": null,
+    "disclosure_date": "2024-05-18",
+    "reporter": "shellwayxw"
+  },
+  "target": {
+    "project": "open5gs",
+    "nf": "UPF",
+    "interface": "N4/PFCP",
+    "vuln_version": "v2.4.14",
+    "vuln_commit": "v2.4.14",
+    "build": "default (assertions enabled)",
+    "config": "configs/open5gs/upf.yaml",
+    "docker_image": null
+  },
+  "classification": {
+    "cwe": "CWE-617",
+    "vuln_type": "assert-abort",
+    "ifinder_pattern": "PA1",
+    "impact": "DoS (crash)"
+  },
+  "trigger": {
+    "procedure": "Session Establishment / Modification",
+    "message": "PFCP Session message carrying a malformed Volume IE",
+    "ie_path": "Volume Quota / Volume Threshold / Subsequent Volume Quota etc. -> Volume IE",
+    "field": "Malformed Volume IE (e.g. flags claim TOVOL/ULVOL/DLVOL but length too short) that ogs_pfcp_parse_volume asserts on instead of rejecting",
+    "precondition": "PFCP association established"
+  },
+  "ground_truth": {
+    "crash_site": {
+      "file": "lib/pfcp/types.c",
+      "line": 500,
+      "function": "ogs_pfcp_parse_volume"
+    },
+    "sanitizer": null,
+    "crash_type": "reachable assertion in ogs_pfcp_parse_volume -> abort",
+    "call_stack": [
+      "ogs_pfcp_parse_volume lib/pfcp/types.c:500"
+    ]
+  }
+}

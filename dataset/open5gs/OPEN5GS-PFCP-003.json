@@ -1,0 +1,51 @@
+{
+  "id": "OPEN5GS-PFCP-003",
+  "aliases": [
+    "GH-2523"
+  ],
+  "source": {
+    "paper_ref": null,
+    "issue_url": "https://github.com/open5gs/open5gs/issues/2523",
+    "fix_pr_url": null,
+    "cve": null,
+    "disclosure_date": "2023-08-17",
+    "reporter": "raefko (FuzzingLabs)"
+  },
+  "target": {
+    "project": "open5gs",
+    "nf": "UPF",
+    "interface": "N4/PFCP",
+    "vuln_version": "v2.4.14",
+    "vuln_commit": "v2.4.14",
+    "build": "default (assertions enabled); docker focal",
+    "config": "configs/open5gs/upf.yaml",
+    "docker_image": null
+  },
+  "classification": {
+    "cwe": "CWE-617",
+    "vuln_type": "assert-abort",
+    "ifinder_pattern": "PA1",
+    "impact": "DoS (crash)"
+  },
+  "trigger": {
+    "procedure": null,
+    "message": "Malformed PFCP message (from fuzzing corpus)",
+    "ie_path": "Top-level IE -> nested/grouped TLV parse",
+    "field": "An IE whose type maps to a grouped-IE descriptor with empty child_descs[]; ogs_tlv_parse_msg asserts desc->child_descs[0] instead of rejecting the malformed structure",
+    "precondition": "None \u2014 pre-association, unauthenticated UDP datagram to PFCP/8805"
+  },
+  "ground_truth": {
+    "crash_site": {
+      "file": "lib/core/ogs-tlv-msg.c",
+      "line": 753,
+      "function": "ogs_tlv_parse_msg"
+    },
+    "sanitizer": null,
+    "crash_type": "reachable assertion: `desc->child_descs[0]' failed -> abort (core dumped)",
+    "call_stack": [
+      "ogs_tlv_parse_msg lib/core/ogs-tlv-msg.c:753",
+      "ogs_pfcp_parse_msg lib/pfcp/message.c",
+      "ogs_fsm_dispatch lib/core/ogs-fsm.c"
+    ]
+  }
+}

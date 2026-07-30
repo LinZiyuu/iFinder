@@ -1,0 +1,15 @@
+{
+  "ie_name": "RedundantTransmissionForwardingParameters",
+  "ie_type_id": 270,
+  "is_grouped": true,
+  "sub_ies": [
+    {
+      "name": "NetworkInstance",
+      "ie_type_id": 22
+    },
+    {
+      "name": "OuterHeaderCreation",
+      "ie_type_id": 84
+    }
+  ]
+}

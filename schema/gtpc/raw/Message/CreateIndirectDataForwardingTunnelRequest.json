@@ -1,0 +1,48 @@
+{
+  "message_name": "CreateIndirectDataForwardingTunnelRequest",
+  "Direction": "MME/SGSN -> SGW (S11/S4)",
+  "ies": [
+    {
+      "name": "IMSI",
+      "requirement": "Conditional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "MobileEquipmentIdentity",
+      "requirement": "Conditional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "Indication",
+      "requirement": "Conditional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "FullyQualifiedTEID",
+      "requirement": "Conditional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "BearerContext",
+      "requirement": "Mandatory",
+      "multiplicity": "List",
+      "is_grouped": true
+    },
+    {
+      "name": "Recovery",
+      "requirement": "Conditional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "PrivateExtension",
+      "requirement": "Optional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    }
+  ]
+}

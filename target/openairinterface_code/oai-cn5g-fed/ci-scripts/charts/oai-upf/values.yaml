@@ -1,0 +1,96 @@
+# SPDX-License-Identifier: MIT
+
+kubernetesType: Openshift  #Vanilla for community kubernetes distribution
+
+nfimage:
+  repository: image-registry.openshift-image-registry.svc:5000/oaicicd-core/oai-upf # dockerhub oaisoftwarealliance/oai-upf
+  version: UPF_TAG           #image tag, develop tag for experimental features
+  # pullPolicy: IfNotPresent or Never or Always
+  pullPolicy: IfNotPresent
+
+tcpdumpimage:
+  repository: image-registry.openshift-image-registry.svc:5000/oaicicd-core/oai-traffic-gen
+  version: latest
+  #pullPolicy: IfNotPresent or Never or Always
+  pullPolicy: Always
+
+initContainer:
+  repository: image-registry.openshift-image-registry.svc:5000/oaicicd-core/oai-init
+  version: latest
+  #pullPolicy: IfNotPresent or Never or Always
+  pullPolicy: IfNotPresent
+
+
+## good to use when pulling images from docker-hub
+#imagePullSecrets:
+#  - name: "regcred"
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: "oai-upf"
+
+podSecurityContext:
+  runAsUser: 0
+  runAsGroup: 0
+
+securityContext:
+  privileged: true
+
+#service type is fixed to clusterIP, it is only support for non multus interface (eth0)
+
+service:
+  pfcpPort: 8805 # default port no need to change unless necessary
+  gtpuPort: 2152 # default port no need to change unless necessary
+
+# Just for debugging
+start:
+  upf: true
+  tcpdump: true
+
+# create an extra interface for N3 incase the gNB is outside the cluster network or there is a need to have dedicated interface for N3
+multus:
+  create: true
+  n3Ip: "172.21.6.201"
+  n3Netmask: "22"
+  n6Gw: "172.21.7.254"
+  hostInterface: "br-ex"
+
+config:
+  nrfFqdn: "oai-nrf"  # amf communicates using FQDN
+
+## currently only used by tcpdump container to store the tcpdump, this volume will be shared between all the network functions
+persistent:
+  sharedvolume: true  # should be true when if wants to store the tcpdump of all the network functions at same place
+  volumneName: nfs-client
+  size: 1Gi
+
+
+resources:
+  define: true
+  limits:
+    tcpdump:
+      cpu: 1000m
+      memory: 128Mi
+    nf:
+      cpu: 1000m
+      memory: 512Mi
+  requests:
+    tcpdump:
+      cpu: 1000m
+      memory: 128Mi
+    nf:
+      cpu: 1000m
+      memory: 512Mi
+
+readinessProbe: true
+
+livenessProbe: false
+
+terminationGracePeriodSeconds: 5
+
+nodeSelector: {}
+
+nodeName:

@@ -1,0 +1,10 @@
+{
+  "pattern_id": "PA2",
+  "pattern_name": "Absent Field",
+  "validation_class": "syntactic",
+  "element": "A mandatory information element (IE) defined by the protocol specification",
+  "dangerous_operation": "Direct dereference or access of the element (reading its value or indexing into it)",
+  "missing_validation": "Presence check that the mandatory element exists, appears the required number of times, and actually carries the required field values",
+  "security_impact": "Null pointer dereference or out-of-bounds indexing on empty lists -> DoS or other security impact",
+  "pattern_description": "Protocol messages have mandatory information elements (fields) defined by specification. The code directly dereferences the corresponding element without first checking that the mandatory element is actually present, appears the required number of times. (2) An element whose header and length are syntactically valid does not actually carry the mandatory field values required by the protocol specification. These unchecked accesses can lead to null pointer dereferences, out-of-bounds indexing on empty lists, leading to DoS or other security impact."
+}

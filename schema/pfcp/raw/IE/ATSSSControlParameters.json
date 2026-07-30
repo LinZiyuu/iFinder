@@ -1,0 +1,19 @@
+{
+  "ie_name": "ATSSSControlParameters",
+  "ie_type_id": 221,
+  "is_grouped": true,
+  "sub_ies": [
+    {
+      "name": "MPTCPParameters",
+      "ie_type_id": 225
+    },
+    {
+      "name": "ATSSSLLParameters",
+      "ie_type_id": 226
+    },
+    {
+      "name": "PMFParameters",
+      "ie_type_id": 227
+    }
+  ]
+}

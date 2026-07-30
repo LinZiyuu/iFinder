@@ -1,0 +1,18 @@
+{
+  "message_name": "RemoteUEReportNotification",
+  "Direction": "MME/SGSN -> SGW -> PGW (S11/S4/S5/S8)",
+  "ies": [
+    {
+      "name": "RemoteUEContext",
+      "requirement": "Conditional",
+      "multiplicity": "List",
+      "is_grouped": true
+    },
+    {
+      "name": "PrivateExtension",
+      "requirement": "Optional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    }
+  ]
+}

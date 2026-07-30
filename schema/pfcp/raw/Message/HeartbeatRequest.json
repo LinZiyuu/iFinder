@@ -1,0 +1,18 @@
+{
+  "message_name": "HeartbeatRequest",
+  "Direction": "SMF <-> UPF",
+  "ies": [
+    {
+      "name": "RecoveryTimeStamp",
+      "requirement": "Mandatory",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "SourceIPAddress",
+      "requirement": "Optional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    }
+  ]
+}

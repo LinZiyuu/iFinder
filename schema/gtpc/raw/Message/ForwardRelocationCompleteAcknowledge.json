@@ -1,0 +1,30 @@
+{
+  "message_name": "ForwardRelocationCompleteAcknowledge",
+  "Direction": "Source MME/SGSN/S4-SGSN -> Target MME/SGSN/S4-SGSN (S3/S10/S16)",
+  "ies": [
+    {
+      "name": "Cause",
+      "requirement": "Mandatory",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "Recovery",
+      "requirement": "Conditional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "SecondaryRATUsageDataReport",
+      "requirement": "Conditional-Optional",
+      "multiplicity": "List",
+      "is_grouped": false
+    },
+    {
+      "name": "PrivateExtension",
+      "requirement": "Optional",
+      "multiplicity": "List",
+      "is_grouped": false
+    }
+  ]
+}

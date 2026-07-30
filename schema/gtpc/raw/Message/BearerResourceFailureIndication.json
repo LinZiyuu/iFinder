@@ -1,0 +1,54 @@
+{
+  "message_name": "BearerResourceFailureIndication",
+  "Direction": "PGW -> SGW -> MME/SGSN (S5/S8, S11/S4)",
+  "ies": [
+    {
+      "name": "Cause",
+      "requirement": "Mandatory",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "EPSBearerID",
+      "requirement": "Mandatory",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "ProcedureTransactionID",
+      "requirement": "Mandatory",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "Indication",
+      "requirement": "Conditional-Optional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "OverloadControlInformation",
+      "requirement": "Optional",
+      "multiplicity": "List",
+      "is_grouped": true
+    },
+    {
+      "name": "Recovery",
+      "requirement": "Optional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "FContainer",
+      "requirement": "Conditional-Optional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "PrivateExtension",
+      "requirement": "Optional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    }
+  ]
+}

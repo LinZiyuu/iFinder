@@ -1,0 +1,57 @@
+{
+  "id": "OPEN5GS-PFCP-021",
+  "aliases": [
+    "GH-3964"
+  ],
+  "source": {
+    "paper_ref": null,
+    "issue_url": "https://github.com/open5gs/open5gs/issues/3964",
+    "fix_pr_url": null,
+    "cve": null,
+    "disclosure_date": "2025-04-21",
+    "reporter": "27RObert99"
+  },
+  "target": {
+    "project": "open5gs",
+    "nf": "UPF",
+    "interface": "N4/PFCP",
+    "vuln_version": "v2.7.5",
+    "vuln_commit": "v2.7.5",
+    "build": "default (assertions enabled); Ubuntu 22.04.5 LTS",
+    "config": "configs/open5gs/upf.yaml (default \u2014 pool.sess = 4096)",
+    "docker_image": null
+  },
+  "classification": {
+    "cwe": "CWE-617",
+    "vuln_type": "assert-abort (failed allocation dereferenced \u2014 bounded resource pool exhausted)",
+    "ifinder_pattern": "PC1",
+    "impact": "DoS (UPF crash; service disruption for all sessions)"
+  },
+  "trigger": {
+    "procedure": "Session Establishment",
+    "message": "4097-th PFCP Session Establishment Request after the per-UPF session pool (default cap = 4096) has been filled",
+    "ie_path": "N/A (resource-creating request; payload contents don't matter \u2014 empty rules also trigger per the issue)",
+    "field": "PFCP session object slot. ogs_pool_alloc returns NULL once 4096 sessions are live; upf_sess_add then `ogs_assert(sess)` instead of returning a Cause = 'No Resources Available'. PC1 'Resource Exhaustion' \u2014 exact match to the pattern's 'fatal error on count >= MAX, or dereferencing a failed allocation' wording.",
+    "precondition": "PFCP association established with the UPF; 4096 prior Session Establishment Requests succeeded (pool full)"
+  },
+  "ground_truth": {
+    "crash_site": {
+      "file": "src/upf/context.c",
+      "line": 181,
+      "function": "upf_sess_add"
+    },
+    "sanitizer": null,
+    "crash_type": "reachable assertion: `sess' failed -> abort (core dumped)",
+    "root_cause": {
+      "file": "src/upf/context.c",
+      "line": 181,
+      "function": "upf_sess_add",
+      "note": "Originating defect: ogs_pool_alloc returned NULL on full pool. The caller should reject the SER with Cause = 'No Resources Available' instead of asserting. The 4096 cap comes from ogs_app()->pool.sess in the default config."
+    },
+    "call_stack": [
+      "upf_sess_add src/upf/context.c:181",
+      "upf_pfcp_state_associated src/upf/pfcp-sm.c:161",
+      "ogs_fsm_dispatch lib/core/ogs-fsm.c"
+    ]
+  }
+}

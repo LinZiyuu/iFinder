@@ -1,0 +1,8 @@
+# SPDX-License-Identifier: Apache-2.0
+# SMF requires a uerouting file (-uerouting flag). For this non-ULCL testbed it
+# is intentionally empty: there are no pre-configured UE branching/anchor paths.
+info:
+  version: 1.0.0
+  description: Routing information for UE (empty - no ULCL in this testbed)
+
+ueRoutingInfo: []

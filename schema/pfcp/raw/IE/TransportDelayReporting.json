@@ -1,0 +1,15 @@
+{
+  "ie_name": "TransportDelayReporting",
+  "ie_type_id": 271,
+  "is_grouped": true,
+  "sub_ies": [
+    {
+      "name": "TransportLevelMarking",
+      "ie_type_id": 30
+    },
+    {
+      "name": "RemoteGTPUPeer",
+      "ie_type_id": 103
+    }
+  ]
+}

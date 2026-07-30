@@ -1,0 +1,15 @@
+{
+  "ie_name": "ApplicationIDsPFDs",
+  "ie_type_id": 58,
+  "is_grouped": true,
+  "sub_ies": [
+    {
+      "name": "ApplicationID",
+      "ie_type_id": 24
+    },
+    {
+      "name": "PFDContext",
+      "ie_type_id": 59
+    }
+  ]
+}

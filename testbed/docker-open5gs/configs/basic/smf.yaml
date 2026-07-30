@@ -1,0 +1,33 @@
+logger:
+  file:
+    path: /var/log/open5gs/smf.log
+
+global:
+
+smf:
+  sbi:
+    server:
+      - address: smf.open5gs.org
+        port: 80
+    client:
+      nrf:
+        - uri: http://nrf.open5gs.org:80
+  pfcp:
+    server:
+      - address: smf.open5gs.org
+    client:
+      upf:
+        # Use the UPF's bridge IP (not the docker DNS alias) so the SMF can still parse its config
+        # and start even after `docker compose stop upf` (the alias disappears when the container
+        # exits; an IP literal needs no DNS). Required for the rogue-UPF SMF-side reproduction.
+        - address: 10.33.33.12
+  gtpu:
+    server:
+      - address: smf.open5gs.org
+  session:
+    - subnet: 10.45.0.0/16
+      gateway: 10.45.0.1
+  dns:
+    - 8.8.8.8
+    - 8.8.4.4
+  mtu: 1400

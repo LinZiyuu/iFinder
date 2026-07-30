@@ -1,0 +1,17 @@
+# Open5GS SGW-C (4G EPC) — S11 GTP-C from MME, S5 GTP-C to SMF/PGW-C, Sxa PFCP to SGW-U.
+# Pinned to 10.100.2.11. This is iFinder's EA *default* GTP-C target (S11): its GTP-C
+# listener binds at startup and parses incoming GTPv2-C regardless of any session/association.
+global:
+  max:
+    ue: 1024
+
+sgwc:
+  gtpc:
+    server:
+      - address: 10.100.2.11
+  pfcp:
+    server:
+      - address: 10.100.2.11
+    client:
+      sgwu:
+        - address: 10.100.2.12

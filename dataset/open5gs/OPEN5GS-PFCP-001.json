@@ -1,0 +1,53 @@
+{
+  "id": "OPEN5GS-PFCP-001",
+  "aliases": [
+    "GH-3840"
+  ],
+  "source": {
+    "paper_ref": null,
+    "issue_url": "https://github.com/open5gs/open5gs/issues/3840",
+    "fix_pr_url": null,
+    "cve": null,
+    "disclosure_date": "2025-04-09",
+    "reporter": "shellwayxw"
+  },
+  "target": {
+    "project": "open5gs",
+    "nf": "UPF",
+    "interface": "N4/PFCP",
+    "vuln_version": "v2.7.5",
+    "vuln_commit": "v2.7.5",
+    "build": "ASan (meson -Db_sanitize=address)",
+    "config": "configs/open5gs/upf.yaml",
+    "docker_image": null
+  },
+  "classification": {
+    "cwe": "CWE-121",
+    "vuln_type": "stack-buffer-overflow",
+    "ifinder_pattern": "PA1",
+    "impact": "DoS (crash)"
+  },
+  "trigger": {
+    "procedure": "Session Establishment",
+    "message": "PFCP Session Establishment Request",
+    "ie_path": "Create PDR > PDI > SDF Filter > Flow Description",
+    "field": "IPFW rule token count: av[] array filled past its bound by an over-tokenized flow description",
+    "precondition": "PFCP association established; session context creatable"
+  },
+  "ground_truth": {
+    "crash_site": {
+      "file": "lib/ipfw/ogs-ipfw.c",
+      "line": 83,
+      "function": "ogs_ipfw_compile_rule"
+    },
+    "sanitizer": "AddressSanitizer",
+    "crash_type": "stack-buffer-overflow (WRITE size 8)",
+    "call_stack": [
+      "ogs_ipfw_compile_rule lib/ipfw/ogs-ipfw.c:83",
+      "ogs_pfcp_handle_create_pdr lib/pfcp/handler.c:471",
+      "upf_n4_handle_session_establishment_request src/upf/n4-handler.c:85",
+      "upf_pfcp_state_associated src/upf/pfcp-sm.c:271",
+      "ogs_fsm_dispatch lib/core/ogs-fsm.c:127"
+    ]
+  }
+}

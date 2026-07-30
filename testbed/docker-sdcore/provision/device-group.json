@@ -1,0 +1,14 @@
+{
+  "group-name": "internet",
+  "imsis": ["208930000000001"],
+  "site-info": "site1",
+  "ip-domain-name": "pool1",
+  "ip-domains": [
+    {
+      "dnn": "internet",
+      "ue-ip-pool": "10.250.0.0/16",
+      "dns-primary": "8.8.8.8",
+      "mtu": 1460
+    }
+  ]
+}

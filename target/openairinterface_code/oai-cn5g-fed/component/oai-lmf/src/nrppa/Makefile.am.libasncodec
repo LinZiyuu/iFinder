@@ -1,0 +1,456 @@
+ASN_MODULE_SRCS =
+    nrppa / NRPPA -
+    PDU.c nrppa / InitiatingMessage.c nrppa / SuccessfulOutcome.c nrppa /
+        UnsuccessfulOutcome.c nrppa / E -
+    CIDMeasurementInitiationRequest.c nrppa / E -
+    CIDMeasurementInitiationResponse.c nrppa / E -
+    CIDMeasurementInitiationFailure.c nrppa / E -
+    CIDMeasurementFailureIndication.c nrppa / E -
+    CIDMeasurementReport.c nrppa / E -
+    CIDMeasurementTerminationCommand.c nrppa / OTDOAInformationRequest.c nrppa /
+        OTDOA -
+    Information - Type.c nrppa / OTDOA - Information - Type -
+    Item.c nrppa / OTDOAInformationResponse.c nrppa /
+        OTDOAInformationFailure.c nrppa / AssistanceInformationControl.c nrppa /
+        AssistanceInformationFeedback.c nrppa / ErrorIndication.c nrppa /
+        PrivateMessage.c nrppa / PositioningInformationRequest.c nrppa /
+        PositioningInformationResponse.c nrppa /
+        PositioningInformationFailure.c nrppa /
+        PositioningInformationUpdate.c nrppa / MeasurementRequest.c nrppa /
+        MeasurementResponse.c nrppa / MeasurementFailure.c nrppa /
+        MeasurementReport.c nrppa / MeasurementUpdate.c nrppa /
+        MeasurementAbort.c nrppa / MeasurementFailureIndication.c nrppa /
+        TRPInformationRequest.c nrppa / TRPInformationResponse.c nrppa /
+        TRPInformationFailure.c nrppa / PositioningActivationRequest.c nrppa /
+        SRSType.c nrppa / SemipersistentSRS.c nrppa / AperiodicSRS.c nrppa /
+        PositioningActivationResponse.c nrppa /
+        PositioningActivationFailure.c nrppa / PositioningDeactivation.c nrppa /
+        AbortTransmission.c nrppa / ActiveULBWP.c nrppa /
+        ActivationTime.c nrppa / AdditionalPathList.c nrppa /
+        AdditionalPathListItem.c nrppa /
+        AperiodicSRSResourceTriggerList.c nrppa /
+        AperiodicSRSResourceTrigger.c nrppa / Assistance -
+    Information.c nrppa / AssistanceInformationFailureList.c nrppa /
+        AssistanceInformationMetaData.c nrppa / BandwidthSRS.c nrppa /
+        BCCH.c nrppa / Broadcast.c nrppa / BroadcastPeriodicity.c nrppa /
+        PositioningBroadcastCells.c nrppa / BSSID.c nrppa / Cause.c nrppa /
+        CauseMisc.c nrppa / CauseProtocol.c nrppa / CauseRadioNetwork.c nrppa /
+        Cell -
+    Portion - ID.c nrppa / CGI - EUTRA.c nrppa / CGI - NR.c nrppa / CPLength -
+    EUTRA.c nrppa / CriticalityDiagnostics.c nrppa / CriticalityDiagnostics -
+    IE - List.c nrppa / DL - Bandwidth - EUTRA.c nrppa / DL - PRS.c nrppa / DL -
+    PRSMutingPattern.c nrppa / DLPRSResourceCoordinates.c nrppa /
+        DLPRSResourceSetARP.c nrppa / DL -
+    PRSResourceSetARPLocation.c nrppa / DLPRSResourceARP.c nrppa / DL -
+    PRSResourceARPLocation.c nrppa / E - CID -
+    MeasurementResult.c nrppa / EUTRACellIdentifier.c nrppa / EARFCN.c nrppa /
+        GeographicalCoordinates.c nrppa / GNB -
+    RxTxTimeDiff.c nrppa / GNBRxTxTimeDiffMeas.c nrppa / HESSID.c nrppa / LCG -
+    to - GCS -
+    TranslationItem.c nrppa / LocationUncertainty.c nrppa / Measurement -
+    ID.c nrppa / MeasurementBeamInfoRequest.c nrppa /
+        MeasurementBeamInfo.c nrppa / MeasurementPeriodicity.c nrppa /
+        MeasurementQuantities.c nrppa / MeasurementQuantities -
+    Item.c nrppa / MeasurementQuantitiesValue.c nrppa /
+        MeasuredResults.c nrppa / MeasuredResultsValue.c nrppa /
+        NarrowBandIndex.c nrppa / NG -
+    RANAccessPointPosition.c nrppa /
+        NGRANHighAccuracyAccessPointPosition.c nrppa / NG -
+    RAN - CGI.c nrppa / NG - RANCell.c nrppa / NR -
+    ARFCN.c nrppa / NRCellIdentifier.c nrppa / NR - PCI.c nrppa / NR - PRS -
+    Beam - Information.c nrppa / NR - PRS - Beam -
+    InformationItem.c nrppa / NumberOfAntennaPorts -
+    EUTRA.c nrppa / NumberOfDlFrames - EUTRA.c nrppa / NumberOfDlFrames -
+    Extended - EUTRA.c nrppa / NumberOfFrequencyHoppingBands.c nrppa / NZP -
+    CSI - RS - ResourceID.c nrppa / OTDOACells.c nrppa / OTDOACell -
+    Information.c nrppa / OTDOACell - Information - Item.c nrppa / OTDOA -
+    Information -
+    Item.c nrppa / OtherRATMeasurementQuantities.c nrppa /
+        OtherRATMeasurementQuantities -
+    Item.c nrppa / OtherRATMeasurementQuantitiesValue.c nrppa /
+        OtherRATMeasurementResult.c nrppa /
+        OtherRATMeasuredResultsValue.c nrppa / Outcome.c nrppa /
+        PathlossReferenceInformation.c nrppa / PathlossReferenceSignal.c nrppa /
+        PCI -
+    EUTRA.c nrppa / PhysCellIDGERAN.c nrppa / PhysCellIDUTRA -
+    FDD.c nrppa / PhysCellIDUTRA - TDD.c nrppa / PLMN -
+    Identity.c nrppa / PeriodicityList.c nrppa / PeriodicityItem.c nrppa /
+        PosSIBs.c nrppa / PosSIB -
+    Segments.c nrppa / PosSIB - Type.c nrppa / PosSRSResource -
+    List.c nrppa / PosSRSResource - Item.c nrppa / PosSRSResourceSet -
+    List.c nrppa / PosSRSResourceID - List.c nrppa / PosSRSResourceSet -
+    Item.c nrppa / PosResourceSetType.c nrppa /
+        PosResourceSetTypePeriodic.c nrppa / PosResourceSetTypeSemi -
+    persistent.c nrppa / PosResourceSetTypeAperiodic.c nrppa / PRS - Bandwidth -
+    EUTRA.c nrppa / PRSAngleItem.c nrppa / PRSInformationPos.c nrppa /
+        PRSConfiguration.c nrppa / PRS -
+    ConfigurationIndex - EUTRA.c nrppa / PRS - ID -
+    EUTRA.c nrppa / PRSMutingConfiguration - EUTRA.c nrppa / PRSOccasionGroup -
+    EUTRA.c nrppa / PRSFrequencyHoppingConfiguration -
+    EUTRA.c nrppa / PRSMuting.c nrppa / PRSMutingOption1.c nrppa /
+        PRSMutingOption2.c nrppa / PRSResource -
+    List.c nrppa / PRSResource - Item.c nrppa / PRSResource -
+    QCLInfo.c nrppa / PRSResource - QCLSourcePRSInfo.c nrppa / PRSResourceSet -
+    List.c nrppa / PRSResourceSet - Item.c nrppa / PRS - Resource -
+    ID.c nrppa / PRS - Resource - Set - ID.c nrppa / PRS -
+    ID.c nrppa / ReferenceSignal.c nrppa / ReferencePoint.c nrppa /
+        CoordinateID.c nrppa / RelativeGeodeticLocation.c nrppa /
+        RelativeCartesianLocation.c nrppa / RelativePathDelay.c nrppa /
+        ReportCharacteristics.c nrppa /
+        RequestedSRSTransmissionCharacteristics.c nrppa / SRSResourceSet -
+    Item.c nrppa / ResourceSetType.c nrppa / ResourceSetTypePeriodic.c nrppa /
+        ResourceSetTypeSemi -
+    persistent.c nrppa / ResourceSetTypeAperiodic.c nrppa /
+        ResourceType.c nrppa / ResourceTypePeriodic.c nrppa / ResourceTypeSemi -
+    persistent.c nrppa / ResourceTypeAperiodic.c nrppa /
+        ResourceTypePos.c nrppa / ResourceTypePeriodicPos.c nrppa /
+        ResourceTypeSemi -
+    persistentPos.c nrppa / ResourceTypeAperiodicPos.c nrppa / ResultCSI -
+    RSRP.c nrppa / ResultCSI - RSRP - Item.c nrppa / ResultCSI - RSRP - PerCSI -
+    RS.c nrppa / ResultCSI - RSRP - PerCSI - RS - Item.c nrppa / ResultCSI -
+    RSRQ.c nrppa / ResultCSI - RSRQ - Item.c nrppa / ResultCSI - RSRQ - PerCSI -
+    RS.c nrppa / ResultCSI - RSRQ - PerCSI - RS -
+    Item.c nrppa / ResultEUTRA.c nrppa / ResultEUTRA -
+    Item.c nrppa / ResultRSRP - EUTRA.c nrppa / ResultRSRP - EUTRA -
+    Item.c nrppa / ResultRSRQ - EUTRA.c nrppa / ResultRSRQ - EUTRA -
+    Item.c nrppa / ResultSS - RSRP.c nrppa / ResultSS - RSRP -
+    Item.c nrppa / ResultSS - RSRP - PerSSB.c nrppa / ResultSS - RSRP - PerSSB -
+    Item.c nrppa / ResultSS - RSRQ.c nrppa / ResultSS - RSRQ -
+    Item.c nrppa / ResultSS - RSRQ - PerSSB.c nrppa / ResultSS - RSRQ - PerSSB -
+    Item.c nrppa / ResultGERAN.c nrppa / ResultGERAN -
+    Item.c nrppa / ResultNR.c nrppa / ResultNR -
+    Item.c nrppa / ResultUTRAN.c nrppa / ResultUTRAN -
+    Item.c nrppa / RSSI.c nrppa / SCS - SpecificCarrier.c nrppa / Search -
+    window -
+    information.c nrppa / SFNInitialisationTime.c nrppa /
+        SFNInitialisationTime -
+    EUTRA.c nrppa / SlotNumber.c nrppa / SpatialDirectionInformation.c nrppa /
+        SpatialRelationInfo.c nrppa / SpatialRelationforResourceID.c nrppa /
+        SpatialRelationforResourceIDItem.c nrppa / SpatialRelationPos.c nrppa /
+        SRSConfig.c nrppa / SRSCarrier -
+    List.c nrppa / SRSCarrier - List -
+    Item.c nrppa / SRSConfiguration.c nrppa / SRSPosResourceID.c nrppa /
+        SRSResource.c nrppa / SRSResourceID.c nrppa / SRSResource -
+    List.c nrppa / SRSResourceSet - List.c nrppa / SRSResourceID -
+    List.c nrppa / SRSResourceSet.c nrppa / SRSResourceSetID.c nrppa /
+        SRSResourceTrigger.c nrppa / SRSSpatialRelation.c nrppa /
+        SSBInfo.c nrppa / SSBInfoList.c nrppa / SSB.c nrppa / SSBPos.c nrppa /
+        SSBBurstPosition.c nrppa / SSB -
+    Index.c nrppa / SSID.c nrppa / SystemFrameNumber.c nrppa /
+        SystemInformation.c nrppa / TAC.c nrppa / TDD -
+    Config - EUTRA - Item.c nrppa / TF -
+    Configuration.c nrppa / TimeStamp.c nrppa / TimeStampSlotIndex.c nrppa /
+        TP -
+    ID - EUTRA.c nrppa / TP - Type -
+    EUTRA.c nrppa / TransmissionComb.c nrppa / TransmissionCombPos.c nrppa /
+        TRPMeasurementQuantities.c nrppa / TRPMeasurementQuantitiesList -
+    Item.c nrppa / TRPMeasurementQuantities -
+    Item.c nrppa / TrpMeasurementResult.c nrppa /
+        TrpMeasurementResultItem.c nrppa / TrpMeasuredResultsValue.c nrppa /
+        TrpMeasurementQuality.c nrppa / TrpMeasurementTimingQuality.c nrppa /
+        TrpMeasurementAngleQuality.c nrppa / TRP -
+    MeasurementRequestList.c nrppa / TRP -
+    MeasurementRequestItem.c nrppa / TRP -
+    MeasurementResponseList.c nrppa / TRP -
+    MeasurementResponseItem.c nrppa / TRPInformationList.c nrppa /
+        TRPInformation.c nrppa / TRPInformationItem.c nrppa /
+        TRPInformationTypeList.c nrppa / TRPInformationTypeItem.c nrppa /
+        TRPList.c nrppa / TRPItem.c nrppa / TRP -
+    ID.c nrppa / TRPPositionDefinitionType.c nrppa / TRPPositionDirect.c nrppa /
+        TRPPositionDirectAccuracy.c nrppa / TRPPositionReferenced.c nrppa /
+        TRPReferencePointType.c nrppa / TypeOfError.c nrppa / UARFCN.c nrppa /
+        UE -
+    Measurement - ID.c nrppa / UTRA - EcN0.c nrppa / UTRA - RSCP.c nrppa / UL -
+    AoA.c nrppa / UL - RTOAMeasurement.c nrppa / ULRTOAMeas.c nrppa / UL - SRS -
+    RSRP.c nrppa / UplinkChannelBW - PerSCS - List.c nrppa / ValueRSRP -
+    EUTRA.c nrppa / ValueRSRQ - EUTRA.c nrppa / ValueRSRP -
+    NR.c nrppa / ValueRSRQ -
+    NR.c nrppa / WLANMeasurementQuantities.c nrppa / WLANMeasurementQuantities -
+    Item.c nrppa / WLANMeasurementQuantitiesValue.c nrppa /
+        WLANMeasurementResult.c nrppa / WLANMeasurementResult -
+    Item.c nrppa / WLAN -
+    RSSI.c nrppa / WLANBand.c nrppa / WLANChannelList.c nrppa /
+        WLANChannel.c nrppa / WLANCountryCode.c nrppa /
+        WLANOperatingClass.c nrppa / Criticality.c nrppa /
+        NRPPATransactionID.c nrppa / Presence.c nrppa / PrivateIE -
+    ID.c nrppa / ProcedureCode.c nrppa / ProtocolIE -
+    ID.c nrppa / TriggeringMessage.c nrppa / ProtocolIE -
+    Container.c nrppa / ProtocolIE - Single - Container.c nrppa / ProtocolIE -
+    Field.c nrppa / ProtocolIE -
+    ContainerList.c nrppa / ProtocolExtensionContainer.c nrppa /
+        ProtocolExtensionField.c nrppa / PrivateIE -
+    Container.c nrppa / PrivateIE -
+    Field.c
+
+        ASN_MODULE_HDRS =
+        nrppa / NRPPA -
+        PDU.h nrppa / InitiatingMessage.h nrppa / SuccessfulOutcome.h nrppa /
+            UnsuccessfulOutcome.h nrppa / E -
+        CIDMeasurementInitiationRequest.h nrppa / E -
+        CIDMeasurementInitiationResponse.h nrppa / E -
+        CIDMeasurementInitiationFailure.h nrppa / E -
+        CIDMeasurementFailureIndication.h nrppa / E -
+        CIDMeasurementReport.h nrppa / E -
+        CIDMeasurementTerminationCommand.h nrppa /
+            OTDOAInformationRequest.h nrppa / OTDOA -
+        Information - Type.h nrppa / OTDOA - Information - Type -
+        Item.h nrppa / OTDOAInformationResponse.h nrppa /
+            OTDOAInformationFailure.h nrppa /
+            AssistanceInformationControl.h nrppa /
+            AssistanceInformationFeedback.h nrppa / ErrorIndication.h nrppa /
+            PrivateMessage.h nrppa / PositioningInformationRequest.h nrppa /
+            PositioningInformationResponse.h nrppa /
+            PositioningInformationFailure.h nrppa /
+            PositioningInformationUpdate.h nrppa / MeasurementRequest.h nrppa /
+            MeasurementResponse.h nrppa / MeasurementFailure.h nrppa /
+            MeasurementReport.h nrppa / MeasurementUpdate.h nrppa /
+            MeasurementAbort.h nrppa / MeasurementFailureIndication.h nrppa /
+            TRPInformationRequest.h nrppa / TRPInformationResponse.h nrppa /
+            TRPInformationFailure.h nrppa /
+            PositioningActivationRequest.h nrppa / SRSType.h nrppa /
+            SemipersistentSRS.h nrppa / AperiodicSRS.h nrppa /
+            PositioningActivationResponse.h nrppa /
+            PositioningActivationFailure.h nrppa /
+            PositioningDeactivation.h nrppa / AbortTransmission.h nrppa /
+            ActiveULBWP.h nrppa / ActivationTime.h nrppa /
+            AdditionalPathList.h nrppa / AdditionalPathListItem.h nrppa /
+            AperiodicSRSResourceTriggerList.h nrppa /
+            AperiodicSRSResourceTrigger.h nrppa / Assistance -
+        Information.h nrppa / AssistanceInformationFailureList.h nrppa /
+            AssistanceInformationMetaData.h nrppa / BandwidthSRS.h nrppa /
+            BCCH.h nrppa / Broadcast.h nrppa / BroadcastPeriodicity.h nrppa /
+            PositioningBroadcastCells.h nrppa / BSSID.h nrppa / Cause.h nrppa /
+            CauseMisc.h nrppa / CauseProtocol.h nrppa /
+            CauseRadioNetwork.h nrppa / Cell -
+        Portion - ID.h nrppa / CGI - EUTRA.h nrppa / CGI -
+        NR.h nrppa / CPLength -
+        EUTRA.h nrppa / CriticalityDiagnostics.h nrppa /
+            CriticalityDiagnostics -
+        IE - List.h nrppa / DL - Bandwidth - EUTRA.h nrppa / DL -
+        PRS.h nrppa / DL -
+        PRSMutingPattern.h nrppa / DLPRSResourceCoordinates.h nrppa /
+            DLPRSResourceSetARP.h nrppa / DL -
+        PRSResourceSetARPLocation.h nrppa / DLPRSResourceARP.h nrppa / DL -
+        PRSResourceARPLocation.h nrppa / E - CID -
+        MeasurementResult.h nrppa / EUTRACellIdentifier.h nrppa /
+            EARFCN.h nrppa / GeographicalCoordinates.h nrppa / GNB -
+        RxTxTimeDiff.h nrppa / GNBRxTxTimeDiffMeas.h nrppa / HESSID.h nrppa /
+            LCG -
+        to - GCS -
+        TranslationItem.h nrppa / LocationUncertainty.h nrppa / Measurement -
+        ID.h nrppa / MeasurementBeamInfoRequest.h nrppa /
+            MeasurementBeamInfo.h nrppa / MeasurementPeriodicity.h nrppa /
+            MeasurementQuantities.h nrppa / MeasurementQuantities -
+        Item.h nrppa / MeasurementQuantitiesValue.h nrppa /
+            MeasuredResults.h nrppa / MeasuredResultsValue.h nrppa /
+            NarrowBandIndex.h nrppa / NG -
+        RANAccessPointPosition.h nrppa /
+            NGRANHighAccuracyAccessPointPosition.h nrppa / NG -
+        RAN - CGI.h nrppa / NG - RANCell.h nrppa / NR -
+        ARFCN.h nrppa / NRCellIdentifier.h nrppa / NR - PCI.h nrppa / NR - PRS -
+        Beam - Information.h nrppa / NR - PRS - Beam -
+        InformationItem.h nrppa / NumberOfAntennaPorts -
+        EUTRA.h nrppa / NumberOfDlFrames - EUTRA.h nrppa / NumberOfDlFrames -
+        Extended - EUTRA.h nrppa / NumberOfFrequencyHoppingBands.h nrppa / NZP -
+        CSI - RS - ResourceID.h nrppa / OTDOACells.h nrppa / OTDOACell -
+        Information.h nrppa / OTDOACell - Information - Item.h nrppa / OTDOA -
+        Information -
+        Item.h nrppa / OtherRATMeasurementQuantities.h nrppa /
+            OtherRATMeasurementQuantities -
+        Item.h nrppa / OtherRATMeasurementQuantitiesValue.h nrppa /
+            OtherRATMeasurementResult.h nrppa /
+            OtherRATMeasuredResultsValue.h nrppa / Outcome.h nrppa /
+            PathlossReferenceInformation.h nrppa /
+            PathlossReferenceSignal.h nrppa / PCI -
+        EUTRA.h nrppa / PhysCellIDGERAN.h nrppa / PhysCellIDUTRA -
+        FDD.h nrppa / PhysCellIDUTRA - TDD.h nrppa / PLMN -
+        Identity.h nrppa / PeriodicityList.h nrppa / PeriodicityItem.h nrppa /
+            PosSIBs.h nrppa / PosSIB -
+        Segments.h nrppa / PosSIB - Type.h nrppa / PosSRSResource -
+        List.h nrppa / PosSRSResource - Item.h nrppa / PosSRSResourceSet -
+        List.h nrppa / PosSRSResourceID - List.h nrppa / PosSRSResourceSet -
+        Item.h nrppa / PosResourceSetType.h nrppa /
+            PosResourceSetTypePeriodic.h nrppa / PosResourceSetTypeSemi -
+        persistent.h nrppa / PosResourceSetTypeAperiodic.h nrppa / PRS -
+        Bandwidth -
+        EUTRA.h nrppa / PRSAngleItem.h nrppa / PRSInformationPos.h nrppa /
+            PRSConfiguration.h nrppa / PRS -
+        ConfigurationIndex - EUTRA.h nrppa / PRS - ID -
+        EUTRA.h nrppa / PRSMutingConfiguration -
+        EUTRA.h nrppa / PRSOccasionGroup -
+        EUTRA.h nrppa / PRSFrequencyHoppingConfiguration -
+        EUTRA.h nrppa / PRSMuting.h nrppa / PRSMutingOption1.h nrppa /
+            PRSMutingOption2.h nrppa / PRSResource -
+        List.h nrppa / PRSResource - Item.h nrppa / PRSResource -
+        QCLInfo.h nrppa / PRSResource -
+        QCLSourcePRSInfo.h nrppa / PRSResourceSet -
+        List.h nrppa / PRSResourceSet - Item.h nrppa / PRS - Resource -
+        ID.h nrppa / PRS - Resource - Set - ID.h nrppa / PRS -
+        ID.h nrppa / ReferenceSignal.h nrppa / ReferencePoint.h nrppa /
+            CoordinateID.h nrppa / RelativeGeodeticLocation.h nrppa /
+            RelativeCartesianLocation.h nrppa / RelativePathDelay.h nrppa /
+            ReportCharacteristics.h nrppa /
+            RequestedSRSTransmissionCharacteristics.h nrppa / SRSResourceSet -
+        Item.h nrppa / ResourceSetType.h nrppa /
+            ResourceSetTypePeriodic.h nrppa / ResourceSetTypeSemi -
+        persistent.h nrppa / ResourceSetTypeAperiodic.h nrppa /
+            ResourceType.h nrppa / ResourceTypePeriodic.h nrppa /
+            ResourceTypeSemi -
+        persistent.h nrppa / ResourceTypeAperiodic.h nrppa /
+            ResourceTypePos.h nrppa / ResourceTypePeriodicPos.h nrppa /
+            ResourceTypeSemi -
+        persistentPos.h nrppa / ResourceTypeAperiodicPos.h nrppa / ResultCSI -
+        RSRP.h nrppa / ResultCSI - RSRP - Item.h nrppa / ResultCSI - RSRP -
+        PerCSI - RS.h nrppa / ResultCSI - RSRP - PerCSI - RS -
+        Item.h nrppa / ResultCSI - RSRQ.h nrppa / ResultCSI - RSRQ -
+        Item.h nrppa / ResultCSI - RSRQ - PerCSI - RS.h nrppa / ResultCSI -
+        RSRQ - PerCSI - RS - Item.h nrppa / ResultEUTRA.h nrppa / ResultEUTRA -
+        Item.h nrppa / ResultRSRP - EUTRA.h nrppa / ResultRSRP - EUTRA -
+        Item.h nrppa / ResultRSRQ - EUTRA.h nrppa / ResultRSRQ - EUTRA -
+        Item.h nrppa / ResultSS - RSRP.h nrppa / ResultSS - RSRP -
+        Item.h nrppa / ResultSS - RSRP - PerSSB.h nrppa / ResultSS - RSRP -
+        PerSSB - Item.h nrppa / ResultSS - RSRQ.h nrppa / ResultSS - RSRQ -
+        Item.h nrppa / ResultSS - RSRQ - PerSSB.h nrppa / ResultSS - RSRQ -
+        PerSSB - Item.h nrppa / ResultGERAN.h nrppa / ResultGERAN -
+        Item.h nrppa / ResultNR.h nrppa / ResultNR -
+        Item.h nrppa / ResultUTRAN.h nrppa / ResultUTRAN -
+        Item.h nrppa / RSSI.h nrppa / SCS - SpecificCarrier.h nrppa / Search -
+        window -
+        information.h nrppa / SFNInitialisationTime.h nrppa /
+            SFNInitialisationTime -
+        EUTRA.h nrppa / SlotNumber.h nrppa /
+            SpatialDirectionInformation.h nrppa / SpatialRelationInfo.h nrppa /
+            SpatialRelationforResourceID.h nrppa /
+            SpatialRelationforResourceIDItem.h nrppa /
+            SpatialRelationPos.h nrppa / SRSConfig.h nrppa / SRSCarrier -
+        List.h nrppa / SRSCarrier - List -
+        Item.h nrppa / SRSConfiguration.h nrppa / SRSPosResourceID.h nrppa /
+            SRSResource.h nrppa / SRSResourceID.h nrppa / SRSResource -
+        List.h nrppa / SRSResourceSet - List.h nrppa / SRSResourceID -
+        List.h nrppa / SRSResourceSet.h nrppa / SRSResourceSetID.h nrppa /
+            SRSResourceTrigger.h nrppa / SRSSpatialRelation.h nrppa /
+            SSBInfo.h nrppa / SSBInfoList.h nrppa / SSB.h nrppa /
+            SSBPos.h nrppa / SSBBurstPosition.h nrppa / SSB -
+        Index.h nrppa / SSID.h nrppa / SystemFrameNumber.h nrppa /
+            SystemInformation.h nrppa / TAC.h nrppa / TDD -
+        Config - EUTRA - Item.h nrppa / TF -
+        Configuration.h nrppa / TimeStamp.h nrppa / TimeStampSlotIndex.h nrppa /
+            TP -
+        ID - EUTRA.h nrppa / TP - Type -
+        EUTRA.h nrppa / TransmissionComb.h nrppa / TransmissionCombPos.h nrppa /
+            TRPMeasurementQuantities.h nrppa / TRPMeasurementQuantitiesList -
+        Item.h nrppa / TRPMeasurementQuantities -
+        Item.h nrppa / TrpMeasurementResult.h nrppa /
+            TrpMeasurementResultItem.h nrppa / TrpMeasuredResultsValue.h nrppa /
+            TrpMeasurementQuality.h nrppa /
+            TrpMeasurementTimingQuality.h nrppa /
+            TrpMeasurementAngleQuality.h nrppa / TRP -
+        MeasurementRequestList.h nrppa / TRP -
+        MeasurementRequestItem.h nrppa / TRP -
+        MeasurementResponseList.h nrppa / TRP -
+        MeasurementResponseItem.h nrppa / TRPInformationList.h nrppa /
+            TRPInformation.h nrppa / TRPInformationItem.h nrppa /
+            TRPInformationTypeList.h nrppa / TRPInformationTypeItem.h nrppa /
+            TRPList.h nrppa / TRPItem.h nrppa / TRP -
+        ID.h nrppa / TRPPositionDefinitionType.h nrppa /
+            TRPPositionDirect.h nrppa / TRPPositionDirectAccuracy.h nrppa /
+            TRPPositionReferenced.h nrppa / TRPReferencePointType.h nrppa /
+            TypeOfError.h nrppa / UARFCN.h nrppa / UE -
+        Measurement - ID.h nrppa / UTRA - EcN0.h nrppa / UTRA -
+        RSCP.h nrppa / UL - AoA.h nrppa / UL -
+        RTOAMeasurement.h nrppa / ULRTOAMeas.h nrppa / UL - SRS -
+        RSRP.h nrppa / UplinkChannelBW - PerSCS - List.h nrppa / ValueRSRP -
+        EUTRA.h nrppa / ValueRSRQ - EUTRA.h nrppa / ValueRSRP -
+        NR.h nrppa / ValueRSRQ -
+        NR.h nrppa / WLANMeasurementQuantities.h nrppa /
+            WLANMeasurementQuantities -
+        Item.h nrppa / WLANMeasurementQuantitiesValue.h nrppa /
+            WLANMeasurementResult.h nrppa / WLANMeasurementResult -
+        Item.h nrppa / WLAN -
+        RSSI.h nrppa / WLANBand.h nrppa / WLANChannelList.h nrppa /
+            WLANChannel.h nrppa / WLANCountryCode.h nrppa /
+            WLANOperatingClass.h nrppa / Criticality.h nrppa /
+            NRPPATransactionID.h nrppa / Presence.h nrppa / PrivateIE -
+        ID.h nrppa / ProcedureCode.h nrppa / ProtocolIE -
+        ID.h nrppa / TriggeringMessage.h nrppa / ProtocolIE -
+        Container.h nrppa / ProtocolIE - Single -
+        Container.h nrppa / ProtocolIE - Field.h nrppa / ProtocolIE -
+        ContainerList.h nrppa / ProtocolExtensionContainer.h nrppa /
+            ProtocolExtensionField.h nrppa / PrivateIE -
+        Container.h nrppa / PrivateIE -
+        Field.h
+
+            ASN_MODULE_HDRS += nrppa / ANY.h ASN_MODULE_SRCS +=
+    nrppa / ANY.c ASN_MODULE_HDRS += nrppa / OCTET_STRING.h ASN_MODULE_HDRS +=
+    nrppa / OPEN_TYPE.h ASN_MODULE_SRCS +=
+    nrppa / OPEN_TYPE.c ASN_MODULE_HDRS +=
+    nrppa / constr_CHOICE.h ASN_MODULE_HDRS +=
+    nrppa / BOOLEAN.h ASN_MODULE_SRCS += nrppa / BOOLEAN.c ASN_MODULE_HDRS +=
+    nrppa / INTEGER.h ASN_MODULE_SRCS += nrppa / INTEGER.c ASN_MODULE_HDRS +=
+    nrppa / NULL.h ASN_MODULE_SRCS += nrppa / NULL.c ASN_MODULE_HDRS +=
+    nrppa / NativeEnumerated.h ASN_MODULE_SRCS +=
+    nrppa / NativeEnumerated.c ASN_MODULE_HDRS +=
+    nrppa / NativeInteger.h ASN_MODULE_SRCS +=
+    nrppa / NativeInteger.c ASN_MODULE_HDRS +=
+    nrppa / OBJECT_IDENTIFIER.h ASN_MODULE_SRCS +=
+    nrppa / OBJECT_IDENTIFIER.c ASN_MODULE_HDRS +=
+    nrppa / asn_SEQUENCE_OF.h ASN_MODULE_SRCS +=
+    nrppa / asn_SEQUENCE_OF.c ASN_MODULE_HDRS +=
+    nrppa / asn_SET_OF.h ASN_MODULE_SRCS +=
+    nrppa / asn_SET_OF.c ASN_MODULE_SRCS +=
+    nrppa / constr_CHOICE.c ASN_MODULE_HDRS +=
+    nrppa / constr_SEQUENCE.h ASN_MODULE_SRCS +=
+    nrppa / constr_SEQUENCE.c ASN_MODULE_HDRS +=
+    nrppa / constr_SEQUENCE_OF.h ASN_MODULE_SRCS +=
+    nrppa / constr_SEQUENCE_OF.c ASN_MODULE_HDRS +=
+    nrppa / constr_SET_OF.h ASN_MODULE_SRCS +=
+    nrppa / constr_SET_OF.c ASN_MODULE_HDRS +=
+    nrppa / asn_application.h ASN_MODULE_SRCS +=
+    nrppa / asn_application.c ASN_MODULE_HDRS +=
+    nrppa / asn_ioc.h ASN_MODULE_HDRS += nrppa / asn_system.h ASN_MODULE_HDRS +=
+    nrppa / asn_codecs.h ASN_MODULE_HDRS +=
+    nrppa / asn_internal.h ASN_MODULE_SRCS +=
+    nrppa / asn_internal.c ASN_MODULE_HDRS +=
+    nrppa / asn_random_fill.h ASN_MODULE_SRCS +=
+    nrppa / asn_random_fill.c ASN_MODULE_HDRS +=
+    nrppa / asn_bit_data.h ASN_MODULE_SRCS +=
+    nrppa / asn_bit_data.c ASN_MODULE_SRCS +=
+    nrppa / OCTET_STRING.c ASN_MODULE_HDRS +=
+    nrppa / BIT_STRING.h ASN_MODULE_SRCS +=
+    nrppa / BIT_STRING.c ASN_MODULE_SRCS +=
+    nrppa / asn_codecs_prim.c ASN_MODULE_HDRS +=
+    nrppa / asn_codecs_prim.h ASN_MODULE_HDRS +=
+    nrppa / ber_tlv_length.h ASN_MODULE_SRCS +=
+    nrppa / ber_tlv_length.c ASN_MODULE_HDRS +=
+    nrppa / ber_tlv_tag.h ASN_MODULE_SRCS +=
+    nrppa / ber_tlv_tag.c ASN_MODULE_HDRS +=
+    nrppa / ber_decoder.h ASN_MODULE_SRCS +=
+    nrppa / ber_decoder.c ASN_MODULE_HDRS +=
+    nrppa / der_encoder.h ASN_MODULE_SRCS +=
+    nrppa / der_encoder.c ASN_MODULE_HDRS +=
+    nrppa / constr_TYPE.h ASN_MODULE_SRCS +=
+    nrppa / constr_TYPE.c ASN_MODULE_HDRS +=
+    nrppa / constraints.h ASN_MODULE_SRCS +=
+    nrppa / constraints.c ASN_MODULE_HDRS +=
+    nrppa / xer_support.h ASN_MODULE_SRCS +=
+    nrppa / xer_support.c ASN_MODULE_HDRS +=
+    nrppa / xer_decoder.h ASN_MODULE_SRCS +=
+    nrppa / xer_decoder.c ASN_MODULE_HDRS +=
+    nrppa / xer_encoder.h ASN_MODULE_SRCS +=
+    nrppa / xer_encoder.c ASN_MODULE_HDRS +=
+    nrppa / per_support.h ASN_MODULE_SRCS +=
+    nrppa / per_support.c ASN_MODULE_HDRS +=
+    nrppa / per_decoder.h ASN_MODULE_SRCS +=
+    nrppa / per_decoder.c ASN_MODULE_HDRS +=
+    nrppa / per_encoder.h ASN_MODULE_SRCS +=
+    nrppa / per_encoder.c ASN_MODULE_HDRS +=
+    nrppa / per_opentype.h ASN_MODULE_SRCS += nrppa / per_opentype.c
+
+                                                          ASN_MODULE_CFLAGS =
+                                                  -DASN_DISABLE_OER_SUPPORT
+
+                                                      lib_LTLIBRARIES +=
+    libasncodec.la libasncodec_la_SOURCES =
+        $(ASN_MODULE_SRCS) $(ASN_MODULE_HDRS) libasncodec_la_CPPFLAGS =
+            -I$(top_srcdir) / nrppa / libasncodec_la_CFLAGS =
+                $(ASN_MODULE_CFLAGS) libasncodec_la_LDFLAGS = -lm

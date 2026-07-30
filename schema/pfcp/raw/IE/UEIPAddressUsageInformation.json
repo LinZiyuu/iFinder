@@ -1,0 +1,31 @@
+{
+  "ie_name": "UEIPAddressUsageInformation",
+  "ie_type_id": 267,
+  "is_grouped": true,
+  "sub_ies": [
+    {
+      "name": "NetworkInstance",
+      "ie_type_id": 22
+    },
+    {
+      "name": "SequenceNumber",
+      "ie_type_id": 52
+    },
+    {
+      "name": "Metric",
+      "ie_type_id": 53
+    },
+    {
+      "name": "UEIPAddressPoolIdentity",
+      "ie_type_id": 177
+    },
+    {
+      "name": "NumberOfUEIPAddresses",
+      "ie_type_id": 268
+    },
+    {
+      "name": "ValidityTimer",
+      "ie_type_id": 269
+    }
+  ]
+}

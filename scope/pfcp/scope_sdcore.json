@@ -1,0 +1,16 @@
+{
+  "scope_name": "sdcore-pfcp",
+  "targets": [
+    {
+      "name": "sdcore",
+      "version": "smf-v3.0.1, upf-v2.1.2",
+      "target_codebase": "target/sdcore_code",
+      "scan_dirs": [
+        "smf/pfcp/",
+        "smf/context/",
+        "upf/pfcpiface/"
+      ],
+      "protocol": "pfcp"
+    }
+  ]
+}

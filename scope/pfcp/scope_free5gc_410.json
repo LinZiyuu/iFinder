@@ -1,0 +1,16 @@
+{
+  "scope_name": "free5gc-pfcp-410",
+  "targets": [
+    {
+      "name": "free5gc_410",
+      "version": "4.1.0",
+      "target_codebase": "target/free5gc_code/free5gc_410",
+      "scan_dirs": [
+        "NFs/smf/internal/pfcp/",
+        "NFs/upf/internal/pfcp/",
+        "NFs/upf/internal/forwarder/"
+      ],
+      "protocol": "pfcp"
+    }
+  ]
+}

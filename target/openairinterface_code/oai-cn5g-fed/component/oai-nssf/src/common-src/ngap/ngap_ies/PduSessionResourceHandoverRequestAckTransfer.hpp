@@ -1,0 +1,47 @@
+/*
+ * SPDX-License-Identifier: LicenseRef-CSSL-1.0
+ */
+
+#ifndef _PDU_SESSION_RESOURCE_HANDOVER_REQUEST_ACK_TRANSFER_H_
+#define _PDU_SESSION_RESOURCE_HANDOVER_REQUEST_ACK_TRANSFER_H_
+
+#include "NgapIesStruct.hpp"
+#include "QosFlowListWithDataForwarding.hpp"
+#include "QosFlowPerTnlInformation.hpp"
+#include "SecurityResult.hpp"
+#include "UpTransportLayerInformation.hpp"
+
+extern "C" {
+#include "Ngap_HandoverRequestAcknowledgeTransfer.h"
+#include "Ngap_ProtocolIE-Field.h"
+}
+
+namespace oai::ngap {
+class PduSessionResourceHandoverRequestAckTransfer {
+ public:
+  PduSessionResourceHandoverRequestAckTransfer();
+  virtual ~PduSessionResourceHandoverRequestAckTransfer();
+
+  bool getUpTransportLayerInformation2(GtpTunnel_t*& upTnlInfo);
+  bool getQosFlowSetupResponseList(
+      std::vector<QosFlowLItemWithDataForwarding_t>& list) const;
+
+  bool decode(uint8_t* buf, int buf_size);  // TODO: remove naked pointer
+
+ private:
+  Ngap_HandoverRequestAcknowledgeTransfer_t*
+      m_HandoverRequestAcknowledegTransferIe;
+  // TODO: DL NG-U UP TNL Information //Mandatory
+  UpTransportLayerInformation m_DlForwardingUpTnlInformation;  // Mandatory
+  // TODO: Security Result //Optional
+  QosFlowListWithDataForwarding m_QosFlowSetupResponseList;  // Mandatory
+  // TODO: QoS Flow Failed to Setup List //Optional
+  // TODO: Data Forwarding Response DRB List //Optional
+  // TODO: Additional DL UP TNL Information for HO List //Range 0..1
+  // TODO: UL Forwarding UP TNL Information //Optional
+  // TODO: Additional UL Forwarding UP TNL Information
+  // TODO: Data Forwarding Response E-RAB List //Optional
+};
+}  // namespace oai::ngap
+
+#endif

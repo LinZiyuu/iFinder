@@ -1,0 +1,23 @@
+#/*
+# * SPDX-License-Identifier: MIT
+# */
+#---------------------------------------------------------------------
+#
+FROM ubuntu:jammy as nfName-clang-format-check
+ARG MERGE_REQUEST_CHECK
+ARG SOURCE_BRANCH
+ARG TARGET_BRANCH
+
+RUN apt-get update && \
+    apt-get upgrade -y && \
+    apt-get install --yes \
+      git \
+      tree \
+      clang-format-12 && \
+    update-alternatives --install /usr/bin/clang-format clang-format /usr/bin/clang-format-12 20 && \
+    clang-format --version
+
+WORKDIR /home
+COPY . .
+
+RUN /bin/bash -c "if [[ -v MERGE_REQUEST_CHECK ]]; then ./ci-scripts/common/bash/checkCodingFormattingRules.sh --src-branch $SOURCE_BRANCH --target-branch $TARGET_BRANCH; else ./ci-scripts/common/bash/checkCodingFormattingRules.sh; fi"

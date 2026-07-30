@@ -1,0 +1,36 @@
+{
+  "procedure_id": "GTPC_Context_Transfer",
+  "direction": "New MME/SGSN <-> Old MME/SGSN",
+  "dependency_procedures": [
+    "GTPC_Create_Session"
+  ],
+  "message_flow": [
+    {
+      "seq": 1,
+      "from": "New MME/SGSN",
+      "to": "Old MME/SGSN",
+      "message": "ContextRequest",
+      "mandatory_ies": [
+        "FullyQualifiedTEID"
+      ]
+    },
+    {
+      "seq": 2,
+      "from": "Old MME/SGSN",
+      "to": "New MME/SGSN",
+      "message": "ContextResponse",
+      "mandatory_ies": [
+        "Cause"
+      ]
+    },
+    {
+      "seq": 3,
+      "from": "New MME/SGSN",
+      "to": "Old MME/SGSN",
+      "message": "ContextAcknowledge",
+      "mandatory_ies": [
+        "Cause"
+      ]
+    }
+  ]
+}

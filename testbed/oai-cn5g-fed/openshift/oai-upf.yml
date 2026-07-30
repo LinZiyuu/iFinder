@@ -1,0 +1,33 @@
+# SPDX-License-Identifier: MIT
+
+#---------------------------------------------------------------------
+#
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+   name: oai-upf
+spec:
+  lookupPolicy:
+    local: true
+---
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: "oai-upf"
+spec:
+    runPolicy: "Serial"
+    source:
+        git:
+            uri: "https://gitlab.eurecom.fr/oai/cn5g/oai-cn5g-upf.git"
+            ref: "develop"
+        secrets:
+          - secret:
+              name: etc-pki-entitlement
+            destinationDir: etc-pki-entitlement
+    strategy:
+        dockerStrategy:
+            dockerfilePath: "docker/Dockerfile.upf.rhel9"
+    output:
+        to:
+            kind: "ImageStreamTag"
+            name: "oai-upf:develop"

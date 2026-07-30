@@ -1,0 +1,14 @@
+archives
+*.html
+build/ext
+build/log
+.project
+build/lmf/build
+
+lmf.conf.dev
+lmf.entrypoint.sh
+
+# Packet Capture
+*.pcap
+
+.vscode/

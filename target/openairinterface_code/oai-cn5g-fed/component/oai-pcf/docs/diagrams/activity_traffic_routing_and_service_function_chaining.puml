@@ -1,0 +1,67 @@
+@startuml
+title 3GPP TS 29.514 Npcf_PolicyAuthorization_Create Initial provisioning of traffic routing and service function chaining information
+
+start
+
+:0. Receive Request;
+:1. Create request context;
+:2. Perform session binding;
+:3. Init SM Policy Decision;
+:4. Extract Routing Requirements;
+if (4.1. Routing Requirements include afSfcReq) then
+    if (4.1.1. SFC Feature Supported) then
+      :4.1.1.1. Extract N6-LAN Traffic Steering Requirements;
+      note right: Handles sfcIdDl, sfcIdUl, spatial validity, etc.
+      if (sfcIdDl or sfcIdUl is provided) then
+        :4.1.1.2. Include SFC ID(s) in Traffic Control Data;
+      endif
+      if (metadata is provided) then
+        :4.1.1.3 Transparently include SFC Metadata;
+      endif
+      :4.1.1.4. Store N6-LAN traffic steering requirements;
+    endif
+elseif (4.2. Routing Requirements include afRoutReq) then
+    :4.2.1 Check for Required PCC Rules;
+    if (4.2.2. InfluenceOnTrafficRouting Feature Supported) then
+      :4.2.2.3. PCF Processes Routing Requirements;
+      note right: Handles routeToLocs, appReloc, temporal/spatial validity, etc.
+    endif
+    :4.2.3. Store routing requirements;
+endif
+
+partition "3GPP TS 29.512 4.2.6.2.6.1" {
+if (5. AF request includes UE IP/prefix or MAC) then (5.1.)
+    :5.1.1. Store traffic steering control information;
+    :5.1.2. Perform session binding 3GPP TS 29.513 6.2;
+    note right
+    to determine the impacted PDU session
+    matching all if provided
+        - IP address
+        - MAC address
+        - UE identity
+        - DNN
+        - S-NSSAI
+    Check existing sm associations
+    end note
+else (5.2.)
+    :5.2.1. Fetch traffic steering control information from UDR:;
+    note right
+    applicable for a UE, any UE or an Internal Group Id 
+    (as defined in 3GPP TS 29.519)
+    end note
+endif
+:6. Identify PCC rules;
+}
+
+if (7.1. PCC Rules action required) then
+    note left: 3GPP TS 29.513
+    ''' Where should this logic go
+    :7.1.1. Create/Modify PCC Rules with Traffic Control Data decision;
+    :7.1.2. Install PCC Rules;
+    note right: 3GPP TS 29.512 4.2.3.2 SM Policy Association Update request
+endif
+:8. Create Application Session Context;
+:9. Return Response (Authorized);
+
+stop
+@enduml

@@ -1,0 +1,65 @@
+# eUPF single-NF PFCP test stack for iFinder's Exploitation Agent (EA).
+#
+# Why one service: the EA crafts and sends PFCP (N4) packets straight at the UPF, so no SMF /
+# full core is needed — just a reachable, restartable eUPF whose logs we can scrape for a crash.
+#
+# Source/runtime match: analyzed source is target/eupf_code/eupf @ v0.7.1; this pulls the matching
+# published image. NOTE: the ghcr image tag is `0.7.1` (no leading 'v'); the `v0.7.1` git tag is
+# NOT published as an image tag. For an exact-source build, use the commented `build:` block below.
+#
+#   eUPF  10.100.0.10  : PFCP/N4 8805/udp,  REST API 8080/tcp,  metrics 9090/tcp
+#
+# EA wiring (src/ifinder/testbed.py::discover_nf_endpoints):
+#   * service is named `upf` so _nf_labels() maps it to the PFCP NF "UPF" (no code change).
+#   * a pinned ipv4_address (mapping-form network) is REQUIRED — that is the host the EA targets
+#     and the container whose logs it tails / which it restarts between PoC attempts.
+#
+# Requirements (eBPF/XDP): Linux kernel > 5.14, root/privileged. xdp_attach_mode=generic works on
+# any interface (testing/debug; no NIC offload needed). The entrypoint mounts bpffs + debugfs.
+#
+# Usage:
+#   docker compose -f testbed/docker-eupf/docker-compose.yml up -d
+#   ifinder run --scope scope/pfcp/scope_eupf.json --patterns PA1 \
+#       --compose-file testbed/docker-eupf/docker-compose.yml
+#   docker compose -f testbed/docker-eupf/docker-compose.yml down -v
+
+services:
+  upf:                                   # service name → EA maps to NF "UPF"
+    image: ghcr.io/edgecomllc/eupf:0.7.1   # ghcr tag has NO leading 'v' (matches source v0.7.1)
+    # --- exact-source alternative (comment out `image:` above and uncomment) ---
+    # build:
+    #   context: ../../target/eupf_code/eupf
+    #   dockerfile: Dockerfile
+    container_name: eupf
+    privileged: true                     # XDP/eBPF: program load + bpffs/debugfs mount
+    environment:
+      GIN_MODE: release
+      UPF_INTERFACE_NAME: eth0           # attach XDP to the container's veth
+      UPF_XDP_ATTACH_MODE: generic       # generic mode: works on any iface (testing)
+      UPF_API_ADDRESS: ":8080"
+      UPF_PFCP_ADDRESS: ":8805"          # N4 — the EA sends crafted PFCP here
+      UPF_METRICS_ADDRESS: ":9090"
+      UPF_PFCP_NODE_ID: "10.100.0.10"
+      UPF_N3_ADDRESS: "10.100.0.10"
+      UPF_LOGGING_LEVEL: info            # Go control-plane panics print here (docker logs)
+    volumes:
+      - /sys/fs/bpf:/sys/fs/bpf
+    ulimits:
+      memlock: -1                        # required to load eBPF maps/programs
+    sysctls:
+      - net.ipv4.conf.all.forwarding=1
+    networks:
+      n4net:
+        ipv4_address: 10.100.0.10        # REQUIRED: pinned host the EA targets
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8080/api/v1/config >/dev/null 2>&1 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  n4net:
+    name: ifinder-eupf-n4
+    ipam:
+      config:
+        - subnet: 10.100.0.0/24

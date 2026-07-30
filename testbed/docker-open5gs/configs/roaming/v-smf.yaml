@@ -1,0 +1,30 @@
+logger:
+  file:
+    path: /var/log/open5gs/smf.log
+
+global:
+
+smf:
+  sbi:
+    server:
+      - address: smf.5gc.mnc070.mcc999.3gppnetwork.org
+        port: 80
+    client:
+      nrf:
+        - uri: http://nrf.5gc.mnc070.mcc999.3gppnetwork.org:80
+  pfcp:
+    server:
+      - address: smf.5gc.mnc070.mcc999.3gppnetwork.org
+    client:
+      upf:
+        - address: upf.5gc.mnc070.mcc999.3gppnetwork.org
+  gtpu:
+    server:
+      - address: smf.5gc.mnc070.mcc999.3gppnetwork.org
+  session:
+    - subnet: 10.45.0.0/16
+      gateway: 10.45.0.1
+  dns:
+    - 8.8.8.8
+    - 8.8.4.4
+  mtu: 1400

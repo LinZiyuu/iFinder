@@ -1,0 +1,11 @@
+{
+  "ie_name": "RemoveMAR",
+  "ie_type_id": 168,
+  "is_grouped": true,
+  "sub_ies": [
+    {
+      "name": "MARID",
+      "ie_type_id": 170
+    }
+  ]
+}

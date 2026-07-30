@@ -1,0 +1,51 @@
+{
+  "id": "OPEN5GS-PFCP-018",
+  "aliases": [
+    "GH-3747"
+  ],
+  "source": {
+    "paper_ref": null,
+    "issue_url": "https://github.com/open5gs/open5gs/issues/3747",
+    "fix_pr_url": null,
+    "cve": null,
+    "disclosure_date": "2025-02-27",
+    "reporter": "(see issue #3747)"
+  },
+  "target": {
+    "project": "open5gs",
+    "nf": "UPF",
+    "interface": "N4/PFCP",
+    "vuln_version": "v2.7.2",
+    "vuln_commit": "v2.7.2",
+    "build": "default (assertions enabled)",
+    "config": "configs/open5gs/upf.yaml",
+    "docker_image": null
+  },
+  "classification": {
+    "cwe": "CWE-617",
+    "vuln_type": "assert-abort (out-of-range TEID used as array index)",
+    "ifinder_pattern": "PB1",
+    "impact": "DoS (UPF crash)"
+  },
+  "trigger": {
+    "procedure": "Session Establishment (restoration path)",
+    "message": "PFCP Session Establishment Request with PFCPSEReqFlags.RESTI=1 and F-TEID.TEID = 0 OR > pool size (max_ue*4*16)",
+    "ie_path": "Create PDR > PDI > F-TEID > teid + top-level PFCPSEReqFlags",
+    "field": "F-TEID.teid value. Under Restoration Indication, ogs_pfcp_pdr_swap_teid uses the attacker-supplied TEID directly as a pool array index, then asserts that it lies in (0, pool.size]. Sending TEID=0 or TEID>pool.size trips the assertion. PB1 'Invalid Value' (ID outside valid range, used directly as lookup key).",
+    "precondition": "PFCP association established (the PoC sends an Association Setup Request first; the Session Establishment Request that follows trips the assertion)."
+  },
+  "ground_truth": {
+    "crash_site": {
+      "file": "lib/pfcp/context.c",
+      "line": 1365,
+      "function": "ogs_pfcp_pdr_swap_teid"
+    },
+    "sanitizer": null,
+    "crash_type": "reachable assertion: `pdr->f_teid.teid > 0 && pdr->f_teid.teid <= ogs_pfcp_pdr_teid_pool.size' failed -> abort (core dumped)",
+    "call_stack": [
+      "ogs_pfcp_pdr_swap_teid lib/pfcp/context.c:1365",
+      "upf_n4_handle_session_establishment_request src/upf/n4-handler.c",
+      "ogs_fsm_dispatch lib/core/ogs-fsm.c"
+    ]
+  }
+}

@@ -1,0 +1,60 @@
+{
+  "id": "OPEN5GS-PFCP-015",
+  "aliases": [
+    "GH-PR-3040"
+  ],
+  "source": {
+    "paper_ref": null,
+    "issue_url": "https://github.com/open5gs/open5gs/pull/3040",
+    "fix_pr_url": "https://github.com/open5gs/open5gs/pull/3040",
+    "cve": null,
+    "disclosure_date": "2024-03-06",
+    "reporter": "open5gs PR #3040 author"
+  },
+  "target": {
+    "project": "open5gs",
+    "nf": "SMF",
+    "interface": "N4/PFCP",
+    "vuln_version": "v2.4.14",
+    "vuln_commit": "v2.4.14",
+    "build": "default; ASan recommended to confirm UAF cleanly",
+    "config": "configs/open5gs/smf.yaml (+ two UPFs)",
+    "docker_image": null
+  },
+  "classification": {
+    "cwe": "CWE-416",
+    "vuln_type": "use-after-free / double-free (async-callback stale pointer)",
+    "ifinder_pattern": "PB3",
+    "impact": "DoS (SMF crash)"
+  },
+  "trigger": {
+    "procedure": "PFCP node_timeout / Session Deletion (timer callback)",
+    "message": "no single PFCP message \u2014 the bug is a timing race between node_timeout deleting a smf_sess_t while its PFCP xact is still pending",
+    "ie_path": null,
+    "field": "xact->data pointer in PFCP transaction. When node_timeout removes the session, the pending xact still holds a pointer to the freed session. sess_5gc_timeout (via response_timeout / ogs_timer_mgr_expire) later dereferences this stale pointer and calls smf_sess_remove on already-freed memory -> talloc double-free -> SIGABRT. Textbook PB3 'Invalid Reference' (async callback holds stale object pointer).",
+    "precondition": "5G core running; UE registered + PDU session established; one UPF killed; UE deregistered before node_timeout fires; node_timeout then fires while session-deletion xact is in flight."
+  },
+  "ground_truth": {
+    "crash_site": {
+      "file": "src/smf/context.c",
+      "line": 1725,
+      "function": "smf_sess_remove"
+    },
+    "sanitizer": null,
+    "crash_type": "SIGABRT in ogs_talloc_free (talloc detects free of already-freed memory) \u2014 under ASan would surface as heap-use-after-free",
+    "root_cause": {
+      "file": "src/smf/pfcp-path.c",
+      "line": 291,
+      "function": "sess_5gc_timeout",
+      "note": "Timer callback holds stale xact->data pointer to a smf_sess_t deleted earlier by node_timeout. The crash manifests in smf_sess_remove -> ogs_talloc_free, but the originating defect is the dangling pointer captured in the xact."
+    },
+    "call_stack": [
+      "ogs_talloc_free lib/core/ogs-memory.c:107",
+      "smf_sess_remove src/smf/context.c:1725",
+      "sess_5gc_timeout src/smf/pfcp-path.c:291",
+      "response_timeout lib/pfcp/xact.c:615",
+      "ogs_timer_mgr_expire lib/core/ogs-timer.c:206",
+      "smf_main src/smf/init.c:170"
+    ]
+  }
+}

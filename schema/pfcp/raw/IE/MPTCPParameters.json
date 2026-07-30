@@ -1,0 +1,15 @@
+{
+  "ie_name": "MPTCPParameters",
+  "ie_type_id": 225,
+  "is_grouped": true,
+  "sub_ies": [
+    {
+      "name": "MPTCPAddressInformation",
+      "ie_type_id": 228
+    },
+    {
+      "name": "UELinkSpecificIPAddress",
+      "ie_type_id": 229
+    }
+  ]
+}

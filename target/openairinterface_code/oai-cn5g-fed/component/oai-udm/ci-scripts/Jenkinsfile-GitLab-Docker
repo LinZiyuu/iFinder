@@ -1,0 +1,539 @@
+#!/bin/groovy
+/*
+ * SPDX-License-Identifier: MIT
+ */
+
+//-------------------------------------------------------------------------------
+
+// Location of the CN executor node
+// Its main purpose is the Ubuntu Build
+ubuntuNode = params.UbuntuBuildNode
+ubuntuBuildResource = params.UbuntuBuildResource
+
+// Location of the RHEL CN executor
+rhelNode = params.RhelBuildNode
+rhelResource = params.RhelBuildResource
+rhelOcCredentials = params.RhelOcCredentials
+
+// Location of the CPPCHECK executor
+cppcheckNode = params.CppCheckNode
+cppcheckResource = params.CppCheckResource
+
+// Location of the CLANG-FORMAT-CHECK executor
+formatCheckNode = params.FormatCheckNode
+formatCheckResource = params.FormatCheckResource
+
+// Its main purpose is the ARM Neoverse-v2 Build
+armBuildResource = params.armBuildResource
+
+// Boolean param to control trivy scan
+runTrivyScan = params.runTrivyScan
+
+// Boolean param to control the run of "Pushing Image to Official Registry" stage (keep it false by default)
+runDockerHubPushStage = false // Please set it to true when replaying a "PUSH" event Pipeline
+
+// Tags/Branches to use
+def udm_tag = "develop"
+def udm_branch = "develop"
+
+// Merge Request Link
+gitlabMergeRequestLink = ''
+gitCommittorEmailAddr  = ''
+
+// Docker Hub account to push to
+DH_Account = "oaisoftwarealliance"
+
+// Private Local Registry URL
+PrivateRegistryURL = 'selfix.sboai.cs.eurecom.fr'
+
+// Openshift project name
+Namespace = 'oaicicd-core'
+
+// Openshift server URL
+server = 'https://api.oai.cs.eurecom.fr:6443'
+
+// For EPEL Packages - RHEL
+EpelPackage = params.EpelPackageUrl
+
+// Docker build options
+dockerBuildOptions = '--no-cache '
+
+//-------------------------------------------------------------------------------
+// Pipeline start
+pipeline {
+  agent {
+    label ubuntuNode
+  }
+  options {
+    disableConcurrentBuilds()
+    timestamps()
+    ansiColor('xterm')
+    gitLabConnection('OAI GitLab')
+    // Minimal checks
+    gitlabBuilds(builds: [
+      "Build Ubuntu ARM Neoverse V2 (Grace) Image",
+      "Build RHEL UDM Image",
+      "Static Code Analysis",
+      "Code Formatting Checker"
+    ])
+  }
+
+  stages {
+    stage ('Verify Parameters') {
+      steps {
+        script {
+          echo '\u2705 \u001B[32mVerify Parameters\u001B[0m'
+
+          JOB_TIMESTAMP = sh returnStdout: true, script: 'date --utc --rfc-3339=seconds | sed -e "s#+00:00##"'
+          JOB_TIMESTAMP = JOB_TIMESTAMP.trim()
+
+          if (params.RhelOcCredentials == null) {
+            echo '\u26D4 \u001B[31mNo Credentials to connect to Openshift!\u001B[0m'
+            error "Stopping pipeline!"
+          }
+          if (params.DockerHubCredentials == null) {
+            echo '\u26D4 \u001B[31mNo Credentials to push to DockerHub!\u001B[0m'
+            error "Stopping pipeline!"
+          }
+        }
+      }
+    }
+    stage ('Prepare Source Code') {
+      steps {
+        script {
+          if ("MERGE".equals(env.gitlabActionType)) {
+            gitlabMergeRequestLink = sh returnStdout: true, script: "curl --silent 'https://gitlab.eurecom.fr/api/v4/projects/oai%2Fcn5g%2Foai-cn5g-udm/merge_requests/${env.gitlabMergeRequestIid}' | jq .web_url | sed 's#\"##g'"
+            gitlabMergeRequestLink = gitlabMergeRequestLink.trim()
+            gitCommittorEmailAddr  = env.gitlabUserEmail
+
+            shortenShaOne = sh returnStdout: true, script: 'git log -1 --pretty=format:"%h" --abbrev=8 ' + env.gitlabMergeRequestLastCommit
+            shortenShaOne = shortenShaOne.trim()
+            udm_tag       = 'ci-tmp-pr-' + env.gitlabMergeRequestIid + '-' + shortenShaOne
+            udm_branch    = env.gitlabSourceBranch
+
+            echo "========= THIS IS A MERGE REQUEST =========="
+            echo "MR ID       is ${env.gitlabMergeRequestIid}"
+            echo "MR LINK     is ${gitlabMergeRequestLink}"
+            echo "MR TITLE    is ${env.gitlabMergeRequestTitle}"
+            echo "MR Usermail is ${gitCommittorEmailAddr}"
+            echo "MR TAG      is ${udm_tag}"
+          } else {
+            gitCommittorEmailAddr = sh returnStdout: true, script: 'git log -n1 --pretty=format:%ae ${GIT_COMMIT}'
+            gitCommittorEmailAddr = gitCommittorEmailAddr.trim()
+
+            shortenShaOne = sh returnStdout: true, script: 'git log -1 --pretty=format:"%h" --abbrev=8 ' + env.GIT_COMMIT
+            shortenShaOne = shortenShaOne.trim()
+            udm_tag       = 'develop-' + shortenShaOne
+            udm_branch    = env.GIT_COMMIT
+
+            echo "======== THIS IS A PUSH REQUEST ========"
+            echo "Git Branch      is ${GIT_BRANCH}"
+            echo "Git Commit      is ${GIT_COMMIT}"
+            echo "CI  Usermail    is ${gitCommittorEmailAddr}"
+            echo "CI develop TAG  is ${udm_tag}"
+          }
+          prepareWorkspaceMergeCase()
+        }
+      }
+      post {
+        failure {
+          script {
+            def message = "OAI " + JOB_NAME + " build (" + BUILD_ID + "): Merge Conflicts -- Cannot perform CI"
+            addGitLabMRComment comment: message
+            currentBuild.result = 'FAILURE'
+          }
+        }
+      }
+    }
+    stage('Build Core Network Function') {
+      parallel {
+        stage ('Build Ubuntu ARM Neoverse V2 (Grace) Image') {
+          steps {
+            // Now it is only locked during this build stage and not for the whole pipeline
+            lock(ubuntuBuildResource) {
+              lock(armBuildResource) {
+              script {
+                gitlabCommitStatus(name: "Build Ubuntu ARM Neoverse V2 (Grace) Image") {
+                  sh "docker image rm oai-udm:${udm_tag} || true"
+                  sh "docker image prune --force"
+                  if ("PUSH".equals(env.gitlabActionType)) {
+                    dockerBuildOptions = '--no-cache '
+                  }
+                  if ("MERGE".equals(env.gitlabActionType)) {
+                    dockerBuildOptions = ''
+                  }
+                  sh "docker login -u oaicicd -p oaicicd ${PrivateRegistryURL}"
+                  sh "docker buildx build ${dockerBuildOptions} \
+                    --target oai-udm \
+                    --tag ${PrivateRegistryURL}/oai-udm:${udm_tag} \
+                    --platform linux/amd64,linux/arm64 \
+                    --build-arg GIT_COMMIT=\"${shortenShaOne}\" \
+                    --file docker/Dockerfile.udm.ubuntu \
+                    --builder multiarch-localremote-builder \
+                    --progress=plain \
+                    --push . > archives/udm_ubuntu_image_build.log 2>&1"
+                  sh "docker image prune --force"
+                  sh "docker rmi ${PrivateRegistryURL}/oai-udm:${udm_tag} || true"
+                  sh "docker pull ${PrivateRegistryURL}/oai-udm:${udm_tag}"
+                  sh "docker image inspect ${PrivateRegistryURL}/oai-udm:${udm_tag} | jq '.[0] | {RepoTags, Labels: .Config.Labels, DockerVersion}' >> archives/udm_ubuntu_image_build.log 2>&1"
+                  sh "docker images ${PrivateRegistryURL}/oai-udm:${udm_tag} >> archives/udm_ubuntu_image_build.log 2>&1"
+                  // Run the trivy scan only if the boolean variable runTrivyScan is True
+                  if (runTrivyScan) {
+                       sh "docker rmi oai-udm:${shortenShaOne} || true"
+                       sh "docker image tag ${PrivateRegistryURL}/oai-udm:${udm_tag} oai-udm:${shortenShaOne}"
+                       sh "trivy image --exit-code 1 --severity MEDIUM,HIGH,CRITICAL --no-progress --format=template --template @./ci-scripts/common/html-templates/trivy_html.tpl --output archives/udm_multiarch_image_trivy_report.html oai-udm:${shortenShaOne} > /dev/null || true"
+                       sh "docker rmi oai-udm:${shortenShaOne} || true"
+                    }
+                  sh "docker rmi ${PrivateRegistryURL}/oai-udm:${udm_tag} || true"
+                  sh "docker logout ${PrivateRegistryURL}"
+                  sh "bash ./ci-scripts/common/bash/extract_arm_amd_logs.sh archives/udm_ubuntu_image_build.log"
+                }
+              }
+             }
+            }
+          }
+          post {
+            success {
+              sh "echo 'OAI-UDM UBUNTU IMAGE BUILD: OK' >> archives/udm_ubuntu_image_build.log"
+            }
+            unsuccessful {
+              sh "echo 'OAI-UDM UBUNTU IMAGE BUILD: KO' >> archives/udm_ubuntu_image_build.log"
+            }
+          }
+        }
+        stage ('Build RHEL UDM Image') {
+          agent { label rhelNode }
+          steps {
+            lock (rhelResource) {
+              script {
+                gitlabCommitStatus(name: "Build RHEL UDM Image") {
+                  // It's a different agent from main one.
+                  prepareWorkspaceMergeCase()
+                  withCredentials([
+                    [$class: 'UsernamePasswordMultiBinding', credentialsId: "${rhelOcCredentials}", usernameVariable: 'OC_Username', passwordVariable: 'OC_Password']
+                  ]) {
+                    sh "oc login -u ${OC_Username} -p ${OC_Password} --server=${server}"
+                  }
+                  sh "oc project ${Namespace}"
+                  sh "oc delete istag oai-udm:${udm_tag} -n ${Namespace} || true"
+                  // Copy the RHEL Host certificates for building
+                  sh "./ci-scripts/common/python/recreate_entitlement.py"
+                  // Building
+                  sh "oc delete -f openshift/build-config.yaml || true"
+                  sh "sed -i -e 's@oai-udm:latest@oai-udm:${udm_tag}@g' openshift/build-config.yaml"
+                  sh """
+sed -i '/^[[:space:]]*dockerfilePath:/a\\
+            buildArgs:\\
+              - name: EPEL_URL\\
+                value: "${EpelPackage}"' openshift/build-config.yaml
+""" // for epel packages
+                  sh "oc create -f openshift/build-config.yaml"
+                  sh "oc start-build udm-build-cfg  --from-dir=./ --exclude=''"
+                  // need python to wait for pod udm-build-cfg-1-build to be Completed or Error
+                  // it fails if it detects error or timeout at 20 minutes
+                  sh "./ci-scripts/common/python/check_build_pod_status.py --pod-name udm-build-cfg-1-build --log-file archives/udm_rhel_image_build.log"
+                  sh "oc describe istag oai-udm:${udm_tag} -n ${Namespace} | grep 'Image Size:' >> archives/udm_rhel_image_build.log"
+                }
+              }
+            }
+          }
+          post {
+            success {
+              sh "echo 'OAI-UDM RHEL IMAGE BUILD: OK' >> archives/udm_rhel_image_build.log"
+            }
+            unsuccessful {
+              sh "echo 'OAI-UDM RHEL IMAGE BUILD: KO' >> archives/udm_rhel_image_build.log"
+            }
+            cleanup {
+              script {
+                sh "oc delete bc udm-build-cfg -n ${Namespace} || true"
+                sh "oc logout || true"
+                stash allowEmpty: true, includes: 'archives/udm_rhel_image_build.log', name: 'rhelBuildLog'
+              }
+            }
+          }
+        }
+        // Running CPPCHECK in parallel to gain time
+        stage ('Static Code Analysis') {
+          agent { label cppcheckNode }
+          steps {
+            lock (cppcheckResource) {
+              script {
+                gitlabCommitStatus(name: "Static Code Analysis") {
+                  // It's a different agent from main one.
+                  prepareWorkspaceMergeCase()
+                  // Moving to focal and cppcheck 1.90 and a dockerfile approach
+                  sh 'sed -i -e "s@nfName@udm@" ci-scripts/common/docker/Dockerfile.ci.cppcheck'
+                  sh 'docker build --target udm-cppcheck --tag udm-cppcheck:test --file ci-scripts/common/docker/Dockerfile.ci.cppcheck . > archives/cppcheck_install.log 2>&1'
+                  sh 'docker run --name udm-ci-cppcheck --entrypoint /bin/true udm-cppcheck:test'
+                  sh 'docker cp udm-ci-cppcheck:/home/cppcheck.xml archives'
+                  sh 'docker cp udm-ci-cppcheck:/home/cppcheck_build.log archives'
+                  sh 'docker rm -f udm-ci-cppcheck'
+                  sh 'docker rmi udm-cppcheck:test'
+                }
+              }
+            }
+          }
+          post {
+            success {
+              sh "echo 'CPPCHECK: OK' >> archives/cppcheck_install.log"
+            }
+            unsuccessful {
+              sh "echo 'CPPCHECK: KO' >> archives/cppcheck_install.log"
+            }
+            cleanup {
+              script {
+                stash allowEmpty: true, includes: 'archives/cppcheck*.*', name: 'cppcheckLogs'
+                // no need to keep the cppcheck container
+                sh 'docker rm -f udm-ci-cppcheck || true'
+                sh 'docker rmi udm-cppcheck:test || true'
+              }
+            }
+          }
+        }
+        // Running CLANG-FORMATTING check in parallel to gain time
+        stage ('Code Formatting Checker') {
+          agent { label formatCheckNode }
+          steps {
+            lock (formatCheckResource) {
+              script {
+                gitlabCommitStatus(name: "Code Formatting Checker") {
+                  // It's a different agent from main one.
+                  prepareWorkspaceMergeCase()
+                  sh 'sed -i -e "s@nfName@udm@" ci-scripts/common/docker/Dockerfile.ci.clang-format'
+                  if ("MERGE".equals(env.gitlabActionType)) {
+                    sh 'docker build --target udm-clang-format-check --tag udm-clang-format-check:test --file ci-scripts/common/docker/Dockerfile.ci.clang-format --build-arg MERGE_REQUEST_CHECK=True --build-arg SOURCE_BRANCH=' + env.gitlabSourceBranch + ' --build-arg TARGET_BRANCH=' + env.gitlabTargetBranch + ' . > archives/clang_format_install.log 2>&1'
+                  } else {
+                    sh 'docker build --target udm-clang-format-check --tag udm-clang-format-check:test --file ci-scripts/common/docker/Dockerfile.ci.clang-format . > archives/clang_format_install.log 2>&1'
+                  }
+                  sh 'docker run --name udm-ci-clang-format --entrypoint /bin/true udm-clang-format-check:test'
+                  sh 'docker cp udm-ci-clang-format:/home/src/oai_rules_result.txt src'
+                  sh 'docker cp udm-ci-clang-format:/home/src/oai_rules_result_list.txt src || true'
+                  sh 'docker rm -f udm-ci-clang-format'
+                  sh 'docker rmi udm-clang-format-check:test'
+                  // The check is done now here
+                  sh 'grep -L "NB_FILES_FAILING_CHECK=0" src/oai_rules_result.txt'
+                }
+              }
+            }
+          }
+          post {
+            always {
+              script {
+                stash allowEmpty: true, includes: 'src/oai_rules_result*.txt, archives/clang_format_install.log', name: 'formatCheckLogs'
+                sh 'docker rm -f udm-ci-clang-format || true'
+                sh 'docker rmi udm-clang-format-check:test || true'
+              }
+            }
+          }
+        }
+      }
+      post {
+        always {
+          script {
+            unstash 'rhelBuildLog'
+            unstash 'cppcheckLogs'
+            unstash 'formatCheckLogs'
+          }
+        }
+      }
+    }
+    stage('Testing whole 5g Core Network Functions') {
+      parallel {
+        stage ('Testing the tutorials') {
+          steps {
+            script {
+              gitlabCommitStatus(name: "Test tutorials") {
+                localStatus = build job: 'OAI-CN5G-Tutorials-Check',
+                  parameters: [
+                    string(name: 'UDM_TAG', value: String.valueOf(udm_tag)),
+                    string(name: 'UDM_BRANCH', value: String.valueOf(udm_branch))
+                  ], propagate: false
+                localResult = localStatus.getResult()
+
+                if (localStatus.resultIsBetterOrEqualTo('SUCCESS')) {
+                  echo "Tutorials Test Job is OK"
+                } else {
+                  error "Tutorials Test Job is KO"
+                }
+              }
+            }
+          }
+          post {
+            always {
+              script {
+                copyArtifacts(projectName: 'OAI-CN5G-Tutorials-Check',
+                              filter: '*_results_oai_cn5g*.html',
+                              selector: lastCompleted())
+              }
+            }
+          }
+        }
+        stage ('Testing with COTS-UE') {
+          steps {
+            script {
+              gitlabCommitStatus(name: "Test with COTS-UE") {
+                localStatus = build job: 'OAI-CN5G-COTS-UE-Test',
+                  parameters: [
+                    string(name: 'UDM_TAG', value: String.valueOf(udm_tag)),
+                    string(name: 'UDM_BRANCH', value: String.valueOf(udm_branch))
+                  ], propagate: false
+                localResult = localStatus.getResult()
+
+                if (localStatus.resultIsBetterOrEqualTo('SUCCESS')) {
+                  echo "Test Job with COTS-UE is OK"
+                } else {
+                  error "Test Job with COTS-UE is is KO"
+                }
+              }
+            }
+          }
+          post {
+            always {
+              script {
+                copyArtifacts(projectName: 'OAI-CN5G-COTS-UE-Test',
+                              filter: '*_results_oai_cn5g*.html',
+                              selector: lastCompleted())
+              }
+            }
+          }
+        }
+        // Home-made RAN emulator
+        stage ('Robot-Test') {
+          steps {
+            script {
+              gitlabCommitStatus(name: "Robot-Test") {
+                localStatus = build job: 'OAI-CN5G-RobotTest',
+                  parameters: [
+                    string(name: 'UDM_TAG', value: String.valueOf(udm_tag)),
+                    string(name: 'UDM_BRANCH', value: String.valueOf(udm_branch))
+                  ], propagate: false
+                localResult = localStatus.getResult()
+
+                if (localStatus.resultIsBetterOrEqualTo('SUCCESS')) {
+                  echo "Robot-Test is OK"
+                } else {
+                  error "Robot-Test is is KO"
+                }
+              }
+            }
+          }
+          post {
+            always {
+              script {
+                copyArtifacts(projectName: 'OAI-CN5G-RobotTest',
+                              filter: '*.html',
+                              selector: lastCompleted())
+              }
+            }
+          }
+        }
+      }
+    }
+    // We are only publishing the Ubuntu image to Docker-Hub
+    // For Post-Merge events.
+    // Temporary Images from Merge-Request Runs are kept in local private registry
+    stage ('Pushing Image to Official Registry') {
+      steps {
+        lock(ubuntuBuildResource) {
+          script {
+            // Only in case of push to target branch!
+            if ("PUSH".equals(env.gitlabActionType) || runDockerHubPushStage) {
+              withCredentials([
+                [$class: 'UsernamePasswordMultiBinding', credentialsId: "${params.DockerHubCredentials}", usernameVariable: 'DH_Username', passwordVariable: 'DH_Password']
+              ]) {
+                sh "echo ${DH_Password} | docker login --username ${DH_Username} --password-stdin"
+              }
+              sh "docker login -u oaicicd -p oaicicd ${PrivateRegistryURL}"
+              sh "docker rmi ${PrivateRegistryURL}/oai-udm:${udm_tag} || true"
+              sh "docker buildx imagetools create -t ${DH_Account}/oai-udm:develop ${PrivateRegistryURL}/oai-udm:${udm_tag}"
+              sh "docker rmi ${DH_Account}/oai-udm:develop ${PrivateRegistryURL}/oai-udm:${udm_tag} || true"
+              sh "docker logout ${PrivateRegistryURL}"
+              sh "docker logout"
+            }
+          }
+        }
+      }
+    }
+  }
+  post {
+    success {
+      script {
+        if ("MERGE".equals(env.gitlabActionType)) {
+          def message = "OAI " + JOB_NAME + " build (" + BUILD_ID + "): passed (" + BUILD_URL + ")"
+          echo "This is a MERGE event"
+          addGitLabMRComment comment: message
+        }
+      }
+    }
+    unsuccessful {
+      script {
+        if ("MERGE".equals(env.gitlabActionType)) {
+          def message = "OAI " + JOB_NAME + " build (" + BUILD_ID + "): failed (" + BUILD_URL + ")"
+          echo "This is a MERGE event"
+          addGitLabMRComment comment: message
+        }
+      }
+    }
+    cleanup {
+      script {
+        // Zipping all archived log files
+          if (fileExists('archives/udm_multiarch_image_trivy_report.html'))
+          {
+              archiveArtifacts artifacts: 'archives/udm_multiarch_image_trivy_report.html'
+          }
+        sh "zip -r -qq docker_logs.zip archives -x archives/udm_multiarch_image_trivy_report.html"
+        if (fileExists('docker_logs.zip')) {
+          archiveArtifacts artifacts: 'docker_logs.zip'
+        }
+
+        // Generating the HTML report(s)
+        if ("MERGE".equals(env.gitlabActionType)) {
+          sh "./ci-scripts/generateHtmlReport.py --job-name ${JOB_NAME} --build-id ${BUILD_ID} --build-url ${BUILD_URL} --git-url ${GIT_URL} --git-src-branch ${env.gitlabSourceBranch} --git-src-commit ${env.gitlabMergeRequestLastCommit} --git-merge-request --git-dst-branch ${env.gitlabTargetBranch} --git-dst-commit ${GIT_COMMIT}"
+        } else {
+          sh "./ci-scripts/generateHtmlReport.py --job-name ${JOB_NAME} --build-id ${BUILD_ID} --build-url ${BUILD_URL} --git-url ${GIT_URL} --git-src-branch ${GIT_BRANCH} --git-src-commit ${GIT_COMMIT}"
+        }
+        listOfFiles = sh returnStdout: true, script: 'ls test_results*.html'
+        String[] htmlFiles = listOfFiles.split("\\n")
+        for (htmlFile in htmlFiles) {
+          if ("MERGE".equals(env.gitlabActionType)) {
+            sh "sed -i -e 's#TEMPLATE_MERGE_REQUEST_LINK#${gitlabMergeRequestLink}#g' ${htmlFile}"
+            def unsafePattern = /[^a-zA-Z0-9",\.\?\-_ %\+\[\]\(\)~]/
+            def sanitizedTitle = env.gitlabMergeRequestTitle.replaceAll(unsafePattern, '-')
+            sh "sed -i -e 's#TEMPLATE_MERGE_REQUEST_TEMPLATE#${sanitizedTitle}#' ${htmlFile}"
+          }
+          sh "sed -i -e 's#TEMPLATE_TIME#${JOB_TIMESTAMP}#' ${htmlFile}"
+          archiveArtifacts artifacts: htmlFile
+        }
+
+        // Sending email to commiter
+        if (params.sendToCommitterEmail != null) {
+          if (params.sendToCommitterEmail) {
+            emailext attachmentsPattern: '*results*.html',
+              body: '''Hi,
+
+
+Here are attached HTML report files for $PROJECT_NAME - Build # $BUILD_NUMBER - $BUILD_STATUS!
+
+Regards,
+OAI CI Team''',
+              replyTo: 'no-reply@openairinterface.org',
+              subject: '$PROJECT_NAME - Build # $BUILD_NUMBER - $BUILD_STATUS!',
+              to: gitCommittorEmailAddr
+          }
+        }
+      }
+    }
+  }
+}
+
+def prepareWorkspaceMergeCase () {
+  sh "git clean -x -d -f > /dev/null 2>&1"
+  sh "git submodule foreach --recursive 'git clean -x -d -ff' > /dev/null 2>&1"
+  sh "git submodule deinit --force --all > /dev/null 2>&1"
+  if ("MERGE".equals(env.gitlabActionType)) {
+    sh "./ci-scripts/doGitLabMerge.sh --src-branch ${env.gitlabSourceBranch} --src-commit ${env.gitlabMergeRequestLastCommit} --target-branch ${env.gitlabTargetBranch} --target-commit ${GIT_COMMIT}"
+  }
+  sh "git submodule update --init --recursive"
+  sh "mkdir -p archives"
+}

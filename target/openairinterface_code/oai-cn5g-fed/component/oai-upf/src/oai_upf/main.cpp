@@ -1,0 +1,202 @@
+/*
+ * SPDX-License-Identifier: LicenseRef-CSSL-1.0
+ */
+
+#include "async_shell_cmd.hpp"
+#include "common_defs.h"
+#include "http_client.hpp"
+#include "itti.hpp"
+#include "logger.hpp"
+#include "options.hpp"
+#include "pfcp_switch.hpp"
+#include "pid_file.hpp"
+#include "upf_app.hpp"
+#include "upf_config.hpp"
+#include "upf_config_yaml.hpp"
+#include "sbi_helper.hpp"
+#include <pfcp_session_lookup_xdp_user.h>
+
+#include <boost/asio.hpp>
+#include <iostream>
+#include <algorithm>
+#include <thread>
+#include <signal.h>
+#include <stdint.h>
+#include <unistd.h>  // get_pid(), pause()
+#include <chrono>
+
+#include <boost/algorithm/string.hpp>
+#include <boost/algorithm/string/split.hpp>
+
+//#include <RulesUtilitiesImpl.h>
+#include <SessionManager.h>
+#include <SessionProgramManager.h>
+#include <UserPlaneComponent.h>
+
+#include "helpers/ConfigLoader.hpp"
+
+using namespace oai::upf::app;
+using namespace oai::config;
+using namespace oai::utils;
+
+itti_mw* itti_inst                    = nullptr;
+async_shell_cmd* async_shell_cmd_inst = nullptr;
+pfcp_switch* pfcp_switch_inst         = nullptr;
+upf_app* upf_app_inst                 = nullptr;
+upf_config upf_cfg;
+std::unique_ptr<lttng_configuration> lttng_config_yaml;
+boost::asio::io_service io_service;
+bool single_teardown_call;
+
+std::unique_ptr<upf_config_yaml> upf_cfg_yaml            = nullptr;
+std::shared_ptr<oai::http::http_client> http_client_inst = nullptr;
+//------------------------------------------------------------------------------
+void my_app_signal_handler(int s) {
+  auto shutdown_start = std::chrono::system_clock::now();
+  if (single_teardown_call) {
+    return;
+  }
+  single_teardown_call = true;
+  // Setting log level arbitrarly to debug to show the whole
+  // shutdown procedure in the logs even in case of off-logging
+  Logger::set_level(spdlog::level::debug);
+  Logger::system().info("Caught signal %d", s);
+
+  // Stop on-going tasks
+  if (upf_app_inst) {
+    upf_app_inst->stop();
+  }
+  itti_inst->send_terminate_msg(TASK_UPF_APP);
+  itti_inst->wait_tasks_end();
+
+  Logger::system().info("Freeing Allocated memory...");
+
+  if (async_shell_cmd_inst) {
+    delete async_shell_cmd_inst;
+    async_shell_cmd_inst = nullptr;
+    Logger::system().debug("Async Shell CMD memory done.");
+  }
+
+  if (upf_app_inst) {
+    delete upf_app_inst;
+    upf_app_inst = nullptr;
+    Logger::system().debug("UPF APP memory done.");
+  }
+
+  if (itti_inst) {
+    delete itti_inst;
+    itti_inst = nullptr;
+    Logger::system().debug("ITTI memory done.");
+  }
+
+  Logger::system().info("Freeing Allocated memory done.");
+  auto elapsed = std::chrono::system_clock::now() - shutdown_start;
+  auto ms_diff = std::chrono::duration_cast<std::chrono::milliseconds>(elapsed);
+  Logger::system().info("Bye. Shutdown Procedure took %d ms", ms_diff.count());
+  exit(0);
+}
+
+//------------------------------------------------------------------------------
+void setup_bpf() {
+  std::string sGTPInterface = upf_cfg.n3.if_name;
+  std::string sUDPInterface = upf_cfg.n6.if_name;
+  Logger::upf_app().info("GTP interface: %s", sGTPInterface.c_str());
+  Logger::upf_app().info("Non-GTP interface: %s", sUDPInterface.c_str());
+
+  UserPlaneComponent::getInstance().setup(sGTPInterface, sUDPInterface);
+
+  auto pPFCP_Session_LookupProgram =
+      UserPlaneComponent::getInstance().getPFCP_Session_LookupProgram();
+  pPFCP_Session_LookupProgram->setFramedRouting(upf_cfg.enable_fr);
+}
+
+//------------------------------------------------------------------------------
+int main(int argc, char** argv) {
+  if (!Options::parse(argc, argv)) {
+    std::cout << "Options::parse() failed" << std::endl;
+    return 1;
+  }
+
+  std::string conf_file_name = Options::getlibconfigConfig();
+
+  std::cout << "Trying to read .yaml configuration file: " << conf_file_name
+            << "\n";
+  lttng_config_yaml = std::make_unique<lttng_configuration>(conf_file_name);
+  lttng_config_yaml->read_from_file();
+
+#ifdef LOGGER_CAN_USE_LTTNG
+  std::cout << "LTTNG Log Activation: " << lttng_config_yaml->is_lttng_active()
+            << "\n";
+  std::cout << "Log Level of LTTng: "
+            << lttng_config_yaml->get_lttng_log_level() << "\n";
+#else
+  std::cout << "LTTNG Tracing disabled at build-time!\n";
+  if (lttng_config_yaml->is_lttng_active())
+    std::cout << "Cannot use lttng log scheme on this build variant!\n";
+#endif
+
+  Logger::set_lttng(static_cast<bool>(lttng_config_yaml->is_lttng_active()));
+
+  Logger::init("upf", Options::getlogStdout(), Options::getlogRotFilelog());
+
+  Logger::upf_app().startup("Options parsed");
+
+  std::signal(SIGTERM, my_app_signal_handler);
+  std::signal(SIGINT, my_app_signal_handler);
+  single_teardown_call = false;
+
+  upf_cfg_yaml = std::make_unique<upf_config_yaml>(
+      conf_file_name, Options::getlogStdout(), Options::getlogRotFilelog());
+  if (!upf_cfg_yaml->init()) {
+    Logger::upf_app().error("Reading the configuration failed. Exiting.");
+    return 1;
+  }
+  upf_cfg_yaml->pre_process();
+  // Convert from YAML to internal structure
+  upf_cfg_yaml->to_upf_config(upf_cfg);
+  upf_cfg_yaml->display();
+
+  // HTTP Client
+  // HTTP Client
+  http_client_inst = oai::http::http_client::create_instance(
+      Logger::upf_app(), upf_cfg.http_request_timeout, upf_cfg.sbi.if_name,
+      upf_cfg.http_version);
+
+  // Inter task Interface
+  itti_inst = new itti_mw();
+  itti_inst->start(upf_cfg.itti.itti_timer_sched_params);
+
+  // system command
+  async_shell_cmd_inst =
+      new async_shell_cmd(upf_cfg.itti.async_cmd_sched_params);
+
+  // PGW application layer
+  upf_app_inst = new upf_app(Options::getlibconfigConfig());
+
+  // PID file
+  // Currently hard-coded value. TODO: add as config option.
+  std::string pid_file_name =
+      oai::utils::get_exe_absolute_path("/var/run", upf_cfg.instance);
+  if (!oai::utils::is_pid_file_lock_success(pid_file_name.c_str())) {
+    Logger::upf_app().error("Lock PID file %s failed\n", pid_file_name.c_str());
+    exit(-EDEADLK);
+  }
+
+  FILE* fp             = NULL;
+  std::string filename = fmt::format("/tmp/upf_{}.status", getpid());
+  fp                   = fopen(filename.c_str(), "w+");
+  fprintf(fp, "STARTED\n");
+  fflush(fp);
+  fclose(fp);
+
+  const bool isBpfAccelerationEnabled = upf_cfg.enable_bpf_datapath;
+
+  if (isBpfAccelerationEnabled) {
+    setup_bpf();
+  }
+  // once all udp servers initialized
+  io_service.run();
+
+  pause();
+  return 0;
+}

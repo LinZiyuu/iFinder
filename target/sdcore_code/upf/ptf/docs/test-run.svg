@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:ev="http://www.w3.org/2001/xml-events"
+		xmlns:v="http://schemas.microsoft.com/visio/2003/SVGExtensions/" width="4.17323in" height="2.04724in"
+		viewBox="0 0 300.472 147.402" xml:space="preserve" color-interpolation-filters="sRGB" class="st10">
+	<v:documentProperties v:langID="1033" v:metric="true" v:viewMarkup="false">
+		<v:userDefs>
+			<v:ud v:nameU="msvNoAutoConnect" v:val="VT0(0):26"/>
+			<v:ud v:nameU="visTLShowProps" v:prompt="" v:val="VT0(0):26"/>
+		</v:userDefs>
+	</v:documentProperties>
+
+	<style type="text/css">
+	<![CDATA[
+		.st1 {fill:#dbeef3;stroke:#000000;stroke-linecap:round;stroke-linejoin:round;stroke-width:0.75}
+		.st2 {fill:#000000;font-family:Calibri;font-size:1.00001em}
+		.st3 {fill:#d9958f;stroke:#000000;stroke-linecap:round;stroke-linejoin:round;stroke-width:0.75}
+		.st4 {fill:#ffffff;stroke:#000000;stroke-linecap:round;stroke-linejoin:round;stroke-width:0.75}
+		.st5 {marker-end:url(#mrkr5-30);stroke:#000000;stroke-linecap:round;stroke-linejoin:round;stroke-width:0.75}
+		.st6 {fill:#000000;fill-opacity:1;stroke:#000000;stroke-opacity:1;stroke-width:0.22935779816514}
+		.st7 {fill:none;stroke:none;stroke-linecap:round;stroke-linejoin:round;stroke-width:0.75}
+		.st8 {stroke:#000000;stroke-linecap:round;stroke-linejoin:round;stroke-width:0.75}
+		.st9 {marker-end:url(#mrkr5-30);marker-start:url(#mrkr5-55);stroke:#000000;stroke-linecap:round;stroke-linejoin:round;stroke-width:0.75}
+		.st10 {fill:none;fill-rule:evenodd;font-size:12px;overflow:visible;stroke-linecap:square;stroke-miterlimit:3}
+	]]>
+	</style>
+
+	<defs id="Markers">
+		<g id="lend5">
+			<path d="M 2 1 L 0 0 L 1.98117 -0.993387 C 1.67173 -0.364515 1.67301 0.372641 1.98465 1.00043 " style="stroke:none"/>
+		</g>
+		<marker id="mrkr5-30" class="st6" v:arrowType="5" v:arrowSize="2" v:setback="7.15" refX="-7.15" orient="auto"
+				markerUnits="strokeWidth" overflow="visible">
+			<use xlink:href="#lend5" transform="scale(-4.36,-4.36) "/>
+		</marker>
+		<marker id="mrkr5-55" class="st6" v:arrowType="5" v:arrowSize="2" v:setback="7.15" refX="7.15" orient="auto"
+				markerUnits="strokeWidth" overflow="visible">
+			<use xlink:href="#lend5" transform="scale(4.36) "/>
+		</marker>
+	</defs>
+	<g v:mID="106" v:index="38" v:groupContext="foregroundPage">
+		<title>Page-38</title>
+		<v:pageProperties v:drawingScale="39.3701" v:pageScale="39.3701" v:drawingUnits="21" v:shadowOffsetX="9"
+				v:shadowOffsetY="-9"/>
+		<g id="shape1000-1" v:mID="1000" v:groupContext="shape" transform="translate(5.47381,-49.685)">
+			<title>Sheet.1000</title>
+			<desc>Remote Machine</desc>
+			<v:textBlock v:margins="rect(4,4,4,4)" v:tabSpace="42.5197" v:verticalAlign="0"/>
+			<v:textRect cx="51.0725" cy="101.339" width="102.15" height="92.126"/>
+			<rect x="0" y="55.2756" width="102.145" height="92.126" class="st1"/>
+			<text x="9.31" y="70.08" class="st2" v:langID="1033"><v:paragraph v:horizAlign="1"/><v:tabList/>Remote Machine</text>		</g>
+		<g id="shape1001-4" v:mID="1001" v:groupContext="shape" transform="translate(192.658,-49.685)">
+			<title>Sheet.1001</title>
+			<desc>UPF Host</desc>
+			<v:textBlock v:margins="rect(4,4,4,4)" v:tabSpace="42.5197" v:verticalAlign="0"/>
+			<v:textRect cx="51.0725" cy="101.339" width="102.15" height="92.126"/>
+			<rect x="0" y="55.2756" width="102.145" height="92.126" class="st1"/>
+			<text x="28.75" y="70.08" class="st2" v:langID="1033"><v:paragraph v:horizAlign="1"/><v:tabList/>UPF Host</text>		</g>
+		<g id="shape1002-7" v:mID="1002" v:groupContext="shape" transform="translate(12.6093,-49.685)">
+			<title>Sheet.1002</title>
+			<desc>DPDK</desc>
+			<v:textBlock v:margins="rect(4,4,4,4)" v:tabSpace="42.5197"/>
+			<v:textRect cx="43.937" cy="138.782" width="87.88" height="17.2383"/>
+			<rect x="0" y="130.163" width="87.874" height="17.2383" rx="5.66929" ry="5.66929" class="st3"/>
+			<text x="30.34" y="142.38" class="st2" v:langID="1033"><v:paragraph v:horizAlign="1"/><v:tabList/>DPDK</text>		</g>
+		<g id="shape1003-10" v:mID="1003" v:groupContext="shape" transform="translate(199.794,-49.685)">
+			<title>Sheet.1003</title>
+			<desc>DPDK</desc>
+			<v:textBlock v:margins="rect(4,4,4,4)" v:tabSpace="42.5197"/>
+			<v:textRect cx="43.937" cy="138.782" width="87.88" height="17.2383"/>
+			<rect x="0" y="130.163" width="87.874" height="17.2383" rx="5.66929" ry="5.66929" class="st3"/>
+			<text x="30.34" y="142.38" class="st2" v:langID="1033"><v:paragraph v:horizAlign="1"/><v:tabList/>DPDK</text>		</g>
+		<g id="shape1004-13" v:mID="1004" v:groupContext="shape" transform="translate(12.6093,-66.6929)">
+			<title>Sheet.1004</title>
+			<desc>TRex</desc>
+			<v:textBlock v:margins="rect(4,4,4,4)" v:tabSpace="42.5197"/>
+			<v:textRect cx="43.937" cy="131.811" width="87.88" height="31.1811"/>
+			<rect x="0" y="116.22" width="87.874" height="31.1811" rx="5.66929" ry="5.66929" class="st4"/>
+			<text x="32.17" y="135.41" class="st2" v:langID="1033"><v:paragraph v:horizAlign="1"/><v:tabList/>TRex</text>		</g>
+		<g id="shape1005-16" v:mID="1005" v:groupContext="shape" transform="translate(199.794,-66.6929)">
+			<title>Sheet.1005</title>
+			<desc>BESS-UPF</desc>
+			<v:textBlock v:margins="rect(4,4,4,4)" v:tabSpace="42.5197"/>
+			<v:textRect cx="43.937" cy="131.811" width="87.88" height="31.1811"/>
+			<rect x="0" y="116.22" width="87.874" height="31.1811" rx="5.66929" ry="5.66929" class="st4"/>
+			<text x="20.69" y="135.41" class="st2" v:langID="1033"><v:paragraph v:horizAlign="1"/><v:tabList/>BESS-UPF</text>		</g>
+		<g id="shape1006-19" v:mID="1006" v:groupContext="shape" transform="translate(72.1857,-35.5118)">
+			<title>Sheet.1006</title>
+			<desc>DL</desc>
+			<v:textBlock v:margins="rect(4,4,4,4)" v:tabSpace="42.5197"/>
+			<v:textRect cx="12.7559" cy="135.897" width="25.52" height="23.0095"/>
+			<rect x="0" y="124.392" width="25.5118" height="23.0095" class="st1"/>
+			<text x="6.54" y="139.5" class="st2" v:langID="1033"><v:paragraph v:horizAlign="1"/><v:tabList/>DL</text>		</g>
+		<g id="shape1007-22" v:mID="1007" v:groupContext="shape" transform="translate(202.579,-35.5118)">
+			<title>Sheet.1007</title>
+			<desc>N6</desc>
+			<v:textBlock v:margins="rect(4,4,4,4)" v:tabSpace="42.5197"/>
+			<v:textRect cx="12.7559" cy="135.897" width="25.52" height="23.0095"/>
+			<rect x="0" y="124.392" width="25.5118" height="23.0095" class="st1"/>
+			<text x="5.84" y="139.5" class="st2" v:langID="1033"><v:paragraph v:horizAlign="1"/><v:tabList/>N6</text>		</g>
+		<g id="shape1008-25" v:mID="1008" v:groupContext="shape" transform="translate(220.244,-82.952) rotate(30.4402)">
+			<title>Sheet.1008</title>
+			<path d="M0 135.58 C2.06 137.2 3.19 138.99 4.53 140.48 C7.3 143.59 10.95 145.39 14.58 146.41 C25.96 149.58 37.15 144.93
+						 50.84 138.14 L51.16 137.98" class="st5"/>
+		</g>
+		<g id="shape1009-31" v:mID="1009" v:groupContext="shape" transform="translate(140.146,-110.551)">
+			<title>Sheet.1009</title>
+			<desc>1)</desc>
+			<v:textBlock v:margins="rect(4,4,4,4)" v:tabSpace="42.5197"/>
+			<v:textRect cx="12.7559" cy="137.402" width="25.52" height="20"/>
+			<rect x="0" y="127.402" width="25.5118" height="20" class="st7"/>
+			<text x="7.9" y="141" class="st2" v:langID="1033"><v:paragraph v:horizAlign="1"/><v:tabList/>1)</text>		</g>
+		<g id="shape1010-34" v:mID="1010" v:groupContext="shape" transform="translate(83.5243,-19.8626)">
+			<title>Sheet.1010</title>
+			<path d="M0 131.75 C3.61 147.72 24.77 147.64 44.41 147.34 C61.1 147.09 76.7 146.67 93.58 146.49 C110.83 146.32 129.42
+						 146.4 133.23 131.75" class="st8"/>
+		</g>
+		<g id="shape1012-37" v:mID="1012" v:groupContext="shape" transform="translate(28.0912,-4.33071)">
+			<title>Sheet.1012</title>
+			<path d="M0 116.22 C6.65 148.03 45.61 147.89 81.78 147.28 C112.52 146.77 141.24 145.94 172.33 145.59 C204.1 145.24 238.34
+						 145.4 245.35 116.22" class="st8"/>
+		</g>
+		<g id="shape1013-40" v:mID="1013" v:groupContext="shape" transform="translate(144.469,-2.83465)">
+			<title>Sheet.1013</title>
+			<desc>2)</desc>
+			<v:textBlock v:margins="rect(4,4,4,4)" v:tabSpace="42.5197"/>
+			<v:textRect cx="12.7559" cy="137.402" width="25.52" height="20"/>
+			<rect x="0" y="127.402" width="25.5118" height="20" class="st7"/>
+			<text x="7.9" y="141" class="st2" v:langID="1033"><v:paragraph v:horizAlign="1"/><v:tabList/>2)</text>		</g>
+		<g id="shape1014-43" v:mID="1014" v:groupContext="shape" transform="translate(15.4928,-35.5118)">
+			<title>Sheet.1014</title>
+			<desc>UL</desc>
+			<v:textBlock v:margins="rect(4,4,4,4)" v:tabSpace="42.5197"/>
+			<v:textRect cx="12.7559" cy="135.897" width="25.52" height="23.0095"/>
+			<rect x="0" y="124.392" width="25.5118" height="23.0095" class="st1"/>
+			<text x="6.38" y="139.5" class="st2" v:langID="1033"><v:paragraph v:horizAlign="1"/><v:tabList/>UL</text>		</g>
+		<g id="shape1015-46" v:mID="1015" v:groupContext="shape" transform="translate(260.69,-35.5118)">
+			<title>Sheet.1015</title>
+			<desc>N3</desc>
+			<v:textBlock v:margins="rect(4,4,4,4)" v:tabSpace="42.5197"/>
+			<v:textRect cx="12.7559" cy="135.897" width="25.52" height="23.0095"/>
+			<rect x="0" y="124.392" width="25.5118" height="23.0095" class="st1"/>
+			<text x="5.84" y="139.5" class="st2" v:langID="1033"><v:paragraph v:horizAlign="1"/><v:tabList/>N3</text>		</g>
+		<g id="shape1017-49" v:mID="1017" v:groupContext="shape" transform="translate(230.975,-89.3701)">
+			<title>Sheet.1017</title>
+			<path d="M0.74 142.09 L0.79 141.73 A14.1732 17.2383 0 0 1 14.17 130.16 A11.3386 17.2383 0 0 1 24.88 141.71 L24.92 142.07"
+					class="st9"/>
+		</g>
+		<g id="shape1018-57" v:mID="1018" v:groupContext="shape" transform="translate(232.441,-103.465)">
+			<title>Sheet.1018</title>
+			<desc>3)</desc>
+			<v:textBlock v:margins="rect(4,4,4,4)" v:tabSpace="42.5197"/>
+			<v:textRect cx="12.7559" cy="137.402" width="25.52" height="20"/>
+			<rect x="0" y="127.402" width="25.5118" height="20" class="st7"/>
+			<text x="7.9" y="141" class="st2" v:langID="1033"><v:paragraph v:horizAlign="1"/><v:tabList/>3)</text>		</g>
+	</g>
+</svg>

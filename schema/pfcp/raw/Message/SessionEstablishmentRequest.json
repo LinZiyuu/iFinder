@@ -1,0 +1,66 @@
+{
+  "message_name": "SessionEstablishmentRequest",
+  "Direction": "SMF -> UPF",
+  "ies": [
+    {
+      "name": "NodeID",
+      "requirement": "Mandatory",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "CPFSEID",
+      "requirement": "Mandatory",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "CreatePDR",
+      "requirement": "Mandatory",
+      "multiplicity": "List",
+      "is_grouped": true
+    },
+    {
+      "name": "CreateFAR",
+      "requirement": "Mandatory",
+      "multiplicity": "List",
+      "is_grouped": true
+    },
+    {
+      "name": "CreateURR",
+      "requirement": "Optional",
+      "multiplicity": "List",
+      "is_grouped": true
+    },
+    {
+      "name": "CreateQER",
+      "requirement": "Optional",
+      "multiplicity": "List",
+      "is_grouped": true
+    },
+    {
+      "name": "CreateTrafficEndpoint",
+      "requirement": "Optional",
+      "multiplicity": "List",
+      "is_grouped": true
+    },
+    {
+      "name": "UserID",
+      "requirement": "Optional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "TraceInformation",
+      "requirement": "Optional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "RecoveryTimeStamp",
+      "requirement": "Optional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    }
+  ]
+}

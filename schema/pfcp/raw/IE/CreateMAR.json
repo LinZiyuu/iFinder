@@ -1,0 +1,27 @@
+{
+  "ie_name": "CreateMAR",
+  "ie_type_id": 165,
+  "is_grouped": true,
+  "sub_ies": [
+    {
+      "name": "TGPPAccessForwardingActionInformation",
+      "ie_type_id": 166
+    },
+    {
+      "name": "NonTGPPAccessForwardingActionInformation",
+      "ie_type_id": 167
+    },
+    {
+      "name": "MARID",
+      "ie_type_id": 170
+    },
+    {
+      "name": "SteeringFunctionality",
+      "ie_type_id": 171
+    },
+    {
+      "name": "SteeringMode",
+      "ie_type_id": 172
+    }
+  ]
+}

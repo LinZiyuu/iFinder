@@ -1,0 +1,17 @@
+logger:
+  level: info
+parameter: {}
+
+global:
+# max:
+#   ue: 1024 # The number of UE can be increased depending on memory size.
+#    peer: 64
+
+bsf:
+  sbi:
+    server:
+    - dev: eth0
+      port: 7777
+    client:
+      nrf:
+        - uri: http://open5gs-nrf-sbi:7777

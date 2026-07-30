@@ -1,0 +1,12 @@
+{
+  "message_name": "TraceSessionDeactivation",
+  "Direction": "MME/SGSN -> SGW -> PGW (S11/S4, S5/S8)",
+  "ies": [
+    {
+      "name": "TraceReference",
+      "requirement": "Mandatory",
+      "multiplicity": "Single",
+      "is_grouped": false
+    }
+  ]
+}

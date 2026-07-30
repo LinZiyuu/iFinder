@@ -1,0 +1,7 @@
+{
+  "ie_name": "UPFInstanceID",
+  "ie_type_id": 253,
+  "is_grouped": false,
+  "alias_of": "NFInstanceID",
+  "description": "UPF Instance ID, same IE type as NFInstanceID"
+}

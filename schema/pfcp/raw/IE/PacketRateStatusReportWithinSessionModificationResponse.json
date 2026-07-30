@@ -1,0 +1,15 @@
+{
+  "ie_name": "PacketRateStatusReportWithinSessionModificationResponse",
+  "ie_type_id": 264,
+  "is_grouped": true,
+  "sub_ies": [
+    {
+      "name": "QERID",
+      "ie_type_id": 109
+    },
+    {
+      "name": "PacketRateStatus",
+      "ie_type_id": 193
+    }
+  ]
+}

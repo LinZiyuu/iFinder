@@ -1,0 +1,10 @@
+# Open5GS PCRF (4G EPC) — Gx Diameter to SMF/PGW-C; policy store in MongoDB.
+# Pinned to 10.100.2.9. db_uri points at the mongo container (10.100.2.2).
+db_uri: mongodb://10.100.2.2/open5gs
+
+global:
+  max:
+    ue: 1024
+
+pcrf:
+  freeDiameter: /open5gs/conf/pcrf.conf

@@ -1,0 +1,50 @@
+{
+  "id": "OPEN5GS-PFCP-002",
+  "aliases": [
+    "GH-2127"
+  ],
+  "source": {
+    "paper_ref": null,
+    "issue_url": "https://github.com/open5gs/open5gs/issues/2127",
+    "fix_pr_url": null,
+    "cve": null,
+    "disclosure_date": "2023-03-03",
+    "reporter": "pventuzelo (FuzzingLabs)"
+  },
+  "target": {
+    "project": "open5gs",
+    "nf": "UPF",
+    "interface": "N4/PFCP",
+    "vuln_version": "v2.4.14",
+    "vuln_commit": "v2.4.14",
+    "build": "default (assertions enabled); Ubuntu 20.04 focal docker",
+    "config": "configs/open5gs/upf.yaml",
+    "docker_image": null
+  },
+  "classification": {
+    "cwe": "CWE-617",
+    "vuln_type": "assert-abort",
+    "ifinder_pattern": "PA1",
+    "impact": "DoS (crash)"
+  },
+  "trigger": {
+    "procedure": null,
+    "message": "Truncated/malformed PFCP message (single header byte 0x3f)",
+    "ie_path": null,
+    "field": "PFCP message length vs. actual buffer size: ogs_pkbuf_pull(pkbuf, size) is asserted instead of bounds-checked when size exceeds remaining buffer",
+    "precondition": "None \u2014 pre-association, unauthenticated UDP datagram to PFCP/8805"
+  },
+  "ground_truth": {
+    "crash_site": {
+      "file": "lib/pfcp/message.c",
+      "line": 4009,
+      "function": "ogs_pfcp_parse_msg"
+    },
+    "sanitizer": null,
+    "crash_type": "reachable assertion: `ogs_pkbuf_pull(pkbuf, size)' failed -> abort (core dumped)",
+    "call_stack": [
+      "ogs_pfcp_parse_msg lib/pfcp/message.c:4009",
+      "ogs_fsm_dispatch lib/core/ogs-fsm.c"
+    ]
+  }
+}

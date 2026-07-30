@@ -1,0 +1,18 @@
+{
+  "message_name": "CreateForwardingTunnelRequest",
+  "Direction": "SGSN/MME -> SGW (S4/S11)",
+  "ies": [
+    {
+      "name": "S103PDNDataForwardingInfo",
+      "requirement": "Mandatory",
+      "multiplicity": "List",
+      "is_grouped": false
+    },
+    {
+      "name": "PrivateExtension",
+      "requirement": "Optional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    }
+  ]
+}

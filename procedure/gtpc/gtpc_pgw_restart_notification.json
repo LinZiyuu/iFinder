@@ -1,0 +1,27 @@
+{
+  "procedure_id": "GTPC_PGW_Restart_Notification",
+  "direction": "SGW <-> MME/SGSN",
+  "dependency_procedures": [
+    "GTPC_Create_Session"
+  ],
+  "message_flow": [
+    {
+      "seq": 1,
+      "from": "SGW",
+      "to": "MME/SGSN",
+      "message": "PGWRestartNotification",
+      "mandatory_ies": [
+        "IPAddress"
+      ]
+    },
+    {
+      "seq": 2,
+      "from": "MME/SGSN",
+      "to": "SGW",
+      "message": "PGWRestartNotificationAcknowledge",
+      "mandatory_ies": [
+        "Cause"
+      ]
+    }
+  ]
+}

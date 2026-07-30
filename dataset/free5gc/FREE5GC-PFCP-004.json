@@ -1,0 +1,61 @@
+{
+  "id": "FREE5GC-PFCP-004",
+  "aliases": [
+    "GH-free5gc-483",
+    "CVE-2023-47345"
+  ],
+  "source": {
+    "paper_ref": null,
+    "issue_url": "https://github.com/free5gc/free5gc/issues/483",
+    "fix_pr_url": null,
+    "cve": "CVE-2023-47345",
+    "disclosure_date": "2023-09-22",
+    "reporter": "Qiang Li (tjbdlq)"
+  },
+  "target": {
+    "project": "free5gc",
+    "nf": "UPF",
+    "interface": "N4/PFCP",
+    "vuln_version": "v3.3.0",
+    "vuln_commit": "v3.3.0",
+    "build": "default Go build; Go runtime slice-bounds check is the oracle",
+    "config": "config/upfcfg.yaml (free5gc UPF default)",
+    "docker_image": null
+  },
+  "classification": {
+    "cwe": "CWE-120",
+    "vuln_type": "slice-bounds-OOB (Go runtime panic, mandatory value absent)",
+    "ifinder_pattern": "PA2",
+    "impact": "DoS (UPF crash)"
+  },
+  "trigger": {
+    "procedure": "Heartbeat",
+    "message": "PFCP Heartbeat Request with Recovery Time Stamp IE length mutated to 0",
+    "ie_path": "Recovery Time Stamp IE (type 0x0060)",
+    "field": "Recovery Time Stamp IE header (type=0x0060) and length (0x0000) are syntactically valid, but the IE does NOT carry the mandatory 4-byte timestamp value required by spec. go-pfcp's IE-specific UnmarshalBinary hardcodes a 4-byte read on the empty payload slice without first checking that the mandatory value is present -> slice bounds out of range panic. PA2 'Absent Field' \u2014 exact match to PA2 (2): 'An element whose header and length are syntactically valid does not actually carry the mandatory field values required by the protocol specification.' Distinct from PA1: parser does not USE the length=0 for a mem op; it ignores the declared length and reads the mandatory value assuming presence.",
+    "precondition": "None \u2014 Heartbeat Request is processed pre-association; the PoC sends Association Setup first only for symmetry, the crash fires on the Heartbeat alone."
+  },
+  "ground_truth": {
+    "crash_site": {
+      "file": "github.com/wmnsk/go-pfcp/ie/recovery-timestamp.go",
+      "line": null,
+      "function": "(*RecoveryTimeStamp).UnmarshalBinary"
+    },
+    "sanitizer": "Go runtime (slice bounds check)",
+    "crash_type": "panic: runtime error: slice bounds out of range",
+    "root_cause": {
+      "file": "github.com/wmnsk/go-pfcp/ie/ie.go",
+      "line": null,
+      "function": "(*IE).UnmarshalBinary",
+      "note": "Issue body confirms the Recovery Time Stamp IE length=0 is the trigger but does not include the panic stack. Crash frame inferred to be the IE-specific (*RecoveryTimeStamp).UnmarshalBinary which reads the 4-byte timestamp without checking the IE payload length. Generic dispatch (*IE).UnmarshalBinary in ie.go is the caller."
+    },
+    "call_stack": [
+      "(*RecoveryTimeStamp).UnmarshalBinary go-pfcp/ie/recovery-timestamp.go",
+      "(*IE).UnmarshalBinary go-pfcp/ie/ie.go",
+      "ie.ParseMultiIEs go-pfcp/ie/ie.go",
+      "(*HeartbeatRequest).UnmarshalBinary go-pfcp/message/heartbeat-request.go",
+      "message.Parse go-pfcp/message/message.go",
+      "(*PfcpServer).main free5gc/NFs/upf/internal/pfcp/pfcp.go"
+    ]
+  }
+}

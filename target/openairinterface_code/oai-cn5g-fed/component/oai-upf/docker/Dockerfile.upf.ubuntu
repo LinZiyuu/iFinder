@@ -1,0 +1,176 @@
+#/*
+# * SPDX-License-Identifier: LicenseRef-CSSL-1.0
+# */
+
+#---------------------------------------------------------------------
+#
+# Dockerfile for the Open-Air-Interface UPF service
+#   Valid for Ubuntu-20.04 (focal)
+#             Ubuntu-22.04 (jammy)
+#
+#---------------------------------------------------------------------
+
+#---------------------------------------------------------------------
+# BASE IMAGE
+#---------------------------------------------------------------------
+ARG BASE_IMAGE=ubuntu:jammy
+FROM $BASE_IMAGE AS oai-upf-base
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV TZ=Europe/Paris
+ENV IS_DOCKERFILE=1
+ARG ENABLE_LTTNG=false
+ARG BPF_DEBUG=false
+RUN apt-get update && \
+    DEBIAN_FRONTEND=noninteractive apt-get upgrade --yes && \
+    DEBIAN_FRONTEND=noninteractive apt-get install --yes \
+      cmake \
+      psmisc \
+      git \
+  && rm -rf /var/lib/apt/lists/*
+
+# Some GIT configuration commands quite useful
+RUN git config --global https.postBuffer 123289600 && \
+    git config --global http.sslverify false
+
+# Copy installation scripts
+WORKDIR /openair-upf
+COPY ./build/scripts /openair-upf/build/scripts/
+COPY ./build/common-build /openair-upf/build/common-build
+COPY ./build/upf/CMakeLists.txt /openair-upf/build/upf/CMakeLists.txt
+COPY ./build/cmake_modules /openair-upf/cmake_modules/
+
+# Installing all the needed libraries/packages to build and run UPF
+WORKDIR /openair-upf/build/scripts
+RUN ./build_upf --install-deps --force
+
+#---------------------------------------------------------------------
+# BUILDER IMAGE
+#---------------------------------------------------------------------
+FROM oai-upf-base AS oai-upf-builder
+# Copy the rest of source code
+COPY . /openair-upf
+# Building UPF
+WORKDIR /openair-upf/build/scripts
+ARG BUILD_ARGS=""
+RUN  if [ "$ENABLE_LTTNG" = "true" ]; then apt-get update && \
+        DEBIAN_FRONTEND=noninteractive apt-get install --yes \
+        libstdc++-12-dev \
+        lttng-modules-dkms \
+        liblttng-ust-dev \
+        lttng-tools && \
+        ldconfig && \
+        BUILD_ARGS="--lttng"; \
+    else \
+        ldconfig; \
+    fi && \
+    if [ "$BPF_DEBUG" = "true" ]; then BUILD_ARGS="$BUILD_ARGS --bpf-debug"; fi && \
+    ./build_upf --clean --Verbose --build-type Release --jobs ${BUILD_ARGS}; \
+    ldd /openair-upf/build/upf/build/upf && \
+    mv /openair-upf/build/upf/build/upf /openair-upf/build/upf/build/oai_upf && \
+    echo "end of UPF build"
+
+#---------------------------------------------------------------------
+# TARGET IMAGE
+#---------------------------------------------------------------------
+FROM $BASE_IMAGE AS oai-upf
+ENV DEBIAN_FRONTEND=noninteractive
+ENV TZ=Europe/Paris
+ARG ENABLE_LTTNG=false
+# We install some debug tools for the moment in addition of mandatory libraries
+RUN apt-get update && \
+    DEBIAN_FRONTEND=noninteractive apt-get upgrade --yes && \
+    DEBIAN_FRONTEND=noninteractive apt-get install --yes \
+      tzdata \
+      psmisc \
+      net-tools \
+      iproute2 \
+      ethtool \
+      arping \
+      libllvm14 \
+      libnl-3-200 \
+      libnl-route-3-200 \
+      sudo \
+      iptables \
+      netbase \
+# Ubuntu 20 --> libasan5
+# Ubuntu 22 --> libasan6
+#      libasan? \
+      libgssapi-krb5-2 \
+# Ubuntu 20 --> libldap-2.4-2
+# Ubuntu 22 --> libldap-2.5-0
+      libldap-2.?-? \
+      libgoogle-glog0v5 \
+      libdouble-conversion3 \
+      libconfig++9v5 \
+      librtmp1 \
+      libpsl5 \
+      libnghttp2-14 \
+      libcurl?-gnutls \
+# Ubuntu 20 --> boost71
+# Ubuntu 22 --> boost74
+      libboost-thread1.7?.0 \
+# lttng
+  && if [ "$ENABLE_LTTNG" = "true" ]; then DEBIAN_FRONTEND=noninteractive apt-get install --yes liblttng-ust-dev; fi \
+  && rm -rf /var/lib/apt/lists/*
+
+# Copying executable and generated libraries
+WORKDIR /openair-upf/bin
+COPY --from=oai-upf-builder \
+    /usr/local/sbin/bpftool \
+    /openair-upf/build/upf/build/oai_upf \
+    /openair-upf/build/upf/build/upf_app/bpf/CMakeFiles/qer_tc.dir/rules/qer/qer_tc_kernel.c.o \
+    /openair-upf/scripts/healthcheck.sh \
+    /openair-upf/scripts/entrypoint.sh \
+    ./
+
+WORKDIR /usr/local/lib
+COPY --from=oai-upf-builder \
+    /usr/local/lib/libfmt.so \
+    /usr/local/lib/libyaml-cpp.so.0.? \
+    /usr/local/lib/libcpr.so.1 \    
+# Ubuntu 20 --> libbfd-2.34
+# Ubuntu 22 --> libbfd-2.38
+    /usr/lib/?-linux-gnu/libbfd-2.3?-system.so \
+    /usr/lib/?-linux-gnu/libopcodes-2.3?-system.so \
+    /openair-upf/build/ext/libbpf/src/libbpf.so.1 \
+    # /openair-upf/build/upf/build/upf_app/utils/libupfutils.so \
+    ./
+
+RUN ldconfig && \
+    echo "ldd /openair-upf/bin/oai_upf" && \
+    ldd /openair-upf/bin/oai_upf && \
+    echo "ldd /openair-upf/bin/bpftool" && \
+    ldd /openair-upf/bin/bpftool
+
+# Copying template configuration files
+# The configuration folder will be flat
+WORKDIR /openair-upf/etc
+COPY --from=oai-upf-builder /openair-upf/etc/config.yaml .
+
+WORKDIR /openair-upf
+
+# use these labels for CI purpose
+LABEL support-multi-sgwu-instances="true"
+LABEL support-nrf-fdqn="true"
+
+ARG GIT_COMMIT
+
+LABEL org.opencontainers.image.authors="OpenAirInterface <contact@openairinterface.org>" \
+      org.opencontainers.image.vendor="OpenAirInterface Software Alliance" \
+      org.opencontainers.image.licenses="Collaborative Standards Software License v1.0" \
+      org.opencontainers.image.title="OAI UPF" \
+      org.opencontainers.image.description="OpenAirInterface User Plane Function" \
+      org.opencontainers.image.revision="commit:${GIT_COMMIT}"
+
+# expose ports
+EXPOSE 2152/udp 8805/udp 5342 5343 5344
+# healthcheck
+HEALTHCHECK --interval=10s \
+            --timeout=15s \
+            --retries=6 \
+    CMD /openair-upf/bin/healthcheck.sh
+
+CMD ["/openair-upf/bin/oai_upf", "-c", "/openair-upf/etc/config.yaml", "-o"]
+
+ENTRYPOINT [ "sh", "/openair-upf/bin/entrypoint.sh" ]

@@ -1,0 +1,17 @@
+The source code is distributed under the Collaborative Standards Software License v1.0 (CSSL).
+For more details of the license, refer to the LICENSE file in the same directory.
+However, the source code also contains third-party software that is acknowledged here for reference.
+
+Credits for file generated via ASN1C:
+
+Files: ngap/libngap/* (files with Copyright (c) Lev Walkin)
+ASN1C compiler: https://github.com/mouse07410/asn1c
+Author: Lev Walkin <vlm@lionet.info>
+
+Credits for file generated via openapi-generator.tech:
+
+Files: model/*
+Source: https://openapi-generator.tech/
+NOTE: Files were also edited manually to fix auto-generated errors
+
+------------------------------------------------------------------

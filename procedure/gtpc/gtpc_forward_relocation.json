@@ -1,0 +1,43 @@
+{
+  "procedure_id": "GTPC_Forward_Relocation",
+  "direction": "Source MME/SGSN <-> Target MME/SGSN",
+  "dependency_procedures": [
+    "GTPC_Create_Session"
+  ],
+  "message_flow": [
+    {
+      "seq": 1,
+      "from": "Source MME/SGSN",
+      "to": "Target MME/SGSN",
+      "message": "ForwardRelocationRequest",
+      "mandatory_ies": [
+        "FullyQualifiedTEID"
+      ]
+    },
+    {
+      "seq": 2,
+      "from": "Target MME/SGSN",
+      "to": "Source MME/SGSN",
+      "message": "ForwardRelocationResponse",
+      "mandatory_ies": [
+        "Cause"
+      ]
+    },
+    {
+      "seq": 3,
+      "from": "Source MME/SGSN",
+      "to": "Target MME/SGSN",
+      "message": "ForwardRelocationCompleteNotification",
+      "mandatory_ies": []
+    },
+    {
+      "seq": 4,
+      "from": "Target MME/SGSN",
+      "to": "Source MME/SGSN",
+      "message": "ForwardRelocationCompleteAcknowledge",
+      "mandatory_ies": [
+        "Cause"
+      ]
+    }
+  ]
+}

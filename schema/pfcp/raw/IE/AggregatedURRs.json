@@ -1,0 +1,15 @@
+{
+  "ie_name": "AggregatedURRs",
+  "ie_type_id": 118,
+  "is_grouped": true,
+  "sub_ies": [
+    {
+      "name": "Multiplier",
+      "ie_type_id": 119
+    },
+    {
+      "name": "AggregatedURRID",
+      "ie_type_id": 120
+    }
+  ]
+}

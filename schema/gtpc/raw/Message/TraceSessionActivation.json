@@ -1,0 +1,24 @@
+{
+  "message_name": "TraceSessionActivation",
+  "Direction": "MME/SGSN -> SGW -> PGW (S11/S4, S5/S8)",
+  "ies": [
+    {
+      "name": "IMSI",
+      "requirement": "Conditional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "TraceInformation",
+      "requirement": "Mandatory",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "MobileEquipmentIdentity",
+      "requirement": "Conditional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    }
+  ]
+}

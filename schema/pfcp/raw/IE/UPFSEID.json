@@ -1,0 +1,7 @@
+{
+  "ie_name": "UPFSEID",
+  "ie_type_id": 57,
+  "is_grouped": false,
+  "alias_of": "FSEID",
+  "description": "User Plane F-SEID, same IE type as FSEID"
+}

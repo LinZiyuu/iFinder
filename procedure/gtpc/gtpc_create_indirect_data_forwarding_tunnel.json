@@ -1,0 +1,27 @@
+{
+  "procedure_id": "GTPC_Create_Indirect_Data_Forwarding_Tunnel",
+  "direction": "MME/SGSN <-> SGW",
+  "dependency_procedures": [
+    "GTPC_Create_Session"
+  ],
+  "message_flow": [
+    {
+      "seq": 1,
+      "from": "MME/SGSN",
+      "to": "SGW",
+      "message": "CreateIndirectDataForwardingTunnelRequest",
+      "mandatory_ies": [
+        "BearerContext"
+      ]
+    },
+    {
+      "seq": 2,
+      "from": "SGW",
+      "to": "MME/SGSN",
+      "message": "CreateIndirectDataForwardingTunnelResponse",
+      "mandatory_ies": [
+        "Cause"
+      ]
+    }
+  ]
+}

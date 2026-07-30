@@ -1,0 +1,52 @@
+{
+  "id": "OPEN5GS-PFCP-017",
+  "aliases": [
+    "GH-3727",
+    "CVE-2025-29339"
+  ],
+  "source": {
+    "paper_ref": null,
+    "issue_url": "https://github.com/open5gs/open5gs/issues/3727",
+    "fix_pr_url": null,
+    "cve": "CVE-2025-29339",
+    "disclosure_date": "2025-02-15",
+    "reporter": "(see issue #3727)"
+  },
+  "target": {
+    "project": "open5gs",
+    "nf": "UPF",
+    "interface": "N4/PFCP",
+    "vuln_version": "v2.7.2",
+    "vuln_commit": "v2.7.2",
+    "build": "default (assertions enabled)",
+    "config": "configs/open5gs/upf.yaml",
+    "docker_image": null
+  },
+  "classification": {
+    "cwe": "CWE-617",
+    "vuln_type": "assert-abort (invalid enum value mapped into internal session_type)",
+    "ifinder_pattern": "PB1",
+    "impact": "DoS (UPF crash)"
+  },
+  "trigger": {
+    "procedure": "Session Establishment",
+    "message": "PFCP Session Establishment Request with PDN Type IE value = 0",
+    "ie_path": "PDN Type IE",
+    "field": "PDN Type value = 0. Spec defines: 1=IPv4, 2=IPv6, 3=IPv4v6, 4=Non-IP, 5=Ethernet. Value 0 is spare/reserved. open5gs maps the wire byte directly into an internal `session_type` enum without semantic range check, then `upf_sess_set_ue_ip` asserts on the (zero) session_type. Classic PB1 'Invalid Value' (unsupported enum value).",
+    "precondition": "PFCP association established with the UPF before sending the Session Establishment Request."
+  },
+  "ground_truth": {
+    "crash_site": {
+      "file": "src/upf/context.c",
+      "line": 401,
+      "function": "upf_sess_set_ue_ip"
+    },
+    "sanitizer": null,
+    "crash_type": "reachable assertion: `session_type' failed -> abort (core dumped)",
+    "call_stack": [
+      "upf_sess_set_ue_ip src/upf/context.c:401",
+      "upf_n4_handle_session_establishment_request src/upf/n4-handler.c",
+      "ogs_fsm_dispatch lib/core/ogs-fsm.c"
+    ]
+  }
+}

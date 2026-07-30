@@ -1,0 +1,25 @@
+{
+  "procedure_id": "GTPC_Delete_PDN_Connection_Set",
+  "direction": "GTP-C Node <-> GTP-C Node",
+  "dependency_procedures": [
+    "GTPC_Create_Session"
+  ],
+  "message_flow": [
+    {
+      "seq": 1,
+      "from": "GTP-C Node A",
+      "to": "GTP-C Node B",
+      "message": "DeletePDNConnectionSetRequest",
+      "mandatory_ies": []
+    },
+    {
+      "seq": 2,
+      "from": "GTP-C Node B",
+      "to": "GTP-C Node A",
+      "message": "DeletePDNConnectionSetResponse",
+      "mandatory_ies": [
+        "Cause"
+      ]
+    }
+  ]
+}

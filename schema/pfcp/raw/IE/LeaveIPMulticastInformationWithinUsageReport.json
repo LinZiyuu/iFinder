@@ -1,0 +1,15 @@
+{
+  "ie_name": "LeaveIPMulticastInformationWithinUsageReport",
+  "ie_type_id": 190,
+  "is_grouped": true,
+  "sub_ies": [
+    {
+      "name": "IPMulticastAddress",
+      "ie_type_id": 191
+    },
+    {
+      "name": "SourceIPAddress",
+      "ie_type_id": 192
+    }
+  ]
+}

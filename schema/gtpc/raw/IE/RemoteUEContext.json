@@ -1,0 +1,15 @@
+{
+  "ie_name": "RemoteUEContext",
+  "ie_type_id": 191,
+  "is_grouped": true,
+  "sub_ies": [
+    {
+      "name": "RemoteUserID",
+      "ie_type_id": 192
+    },
+    {
+      "name": "RemoteUEIPinformation",
+      "ie_type_id": 193
+    }
+  ]
+}

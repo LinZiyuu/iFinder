@@ -1,0 +1,12 @@
+{
+  "message_name": "UEActivityNotification",
+  "Direction": "SGW -> MME/SGSN (S11/S4)",
+  "ies": [
+    {
+      "name": "PrivateExtension",
+      "requirement": "Optional",
+      "multiplicity": "List",
+      "is_grouped": false
+    }
+  ]
+}

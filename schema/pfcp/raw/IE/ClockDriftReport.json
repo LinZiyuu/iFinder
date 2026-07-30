@@ -1,0 +1,23 @@
+{
+  "ie_name": "ClockDriftReport",
+  "ie_type_id": 205,
+  "is_grouped": true,
+  "sub_ies": [
+    {
+      "name": "EventTimeStamp",
+      "ie_type_id": 156
+    },
+    {
+      "name": "TSNTimeDomainNumber",
+      "ie_type_id": 206
+    },
+    {
+      "name": "TimeOffsetThreshold",
+      "ie_type_id": 207
+    },
+    {
+      "name": "CumulativeRateRatioThreshold",
+      "ie_type_id": 208
+    }
+  ]
+}

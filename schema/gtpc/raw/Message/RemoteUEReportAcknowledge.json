@@ -1,0 +1,18 @@
+{
+  "message_name": "RemoteUEReportAcknowledge",
+  "Direction": "PGW -> SGW -> MME/SGSN (S11/S4/S5/S8)",
+  "ies": [
+    {
+      "name": "Cause",
+      "requirement": "Mandatory",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "PrivateExtension",
+      "requirement": "Optional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    }
+  ]
+}

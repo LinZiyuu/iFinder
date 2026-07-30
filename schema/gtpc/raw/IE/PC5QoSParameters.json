@@ -1,0 +1,15 @@
+{
+  "ie_name": "PC5QoSParameters",
+  "ie_type_id": 209,
+  "is_grouped": true,
+  "sub_ies": [
+    {
+      "name": "PC5QoSFlow",
+      "ie_type_id": 212
+    },
+    {
+      "name": "BitRate",
+      "ie_type_id": 211
+    }
+  ]
+}

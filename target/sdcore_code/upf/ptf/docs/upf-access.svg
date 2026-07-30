@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:ev="http://www.w3.org/2001/xml-events"
+		xmlns:v="http://schemas.microsoft.com/visio/2003/SVGExtensions/" width="2.28346in" height="2.67717in"
+		viewBox="0 0 164.409 192.756" xml:space="preserve" color-interpolation-filters="sRGB" class="st12">
+	<v:documentProperties v:langID="1033" v:metric="true" v:viewMarkup="false">
+		<v:userDefs>
+			<v:ud v:nameU="msvNoAutoConnect" v:val="VT0(0):26"/>
+			<v:ud v:nameU="visTLShowProps" v:prompt="" v:val="VT0(0):26"/>
+		</v:userDefs>
+	</v:documentProperties>
+
+	<style type="text/css">
+	<![CDATA[
+		.st1 {fill:#ffffff;stroke:#000000;stroke-linecap:round;stroke-linejoin:round;stroke-width:0.75}
+		.st2 {fill:#000000;font-family:Calibri;font-size:1.00001em}
+		.st3 {fill:#d9958f;stroke:#000000;stroke-linecap:round;stroke-linejoin:round;stroke-width:0.75}
+		.st4 {fill:#dbeef3;stroke:#000000;stroke-linecap:round;stroke-linejoin:round;stroke-width:0.75}
+		.st5 {font-size:1em}
+		.st6 {marker-end:url(#mrkr5-28);marker-start:url(#mrkr5-26);stroke:#000000;stroke-linecap:round;stroke-linejoin:round;stroke-width:0.75}
+		.st7 {fill:#000000;fill-opacity:1;stroke:#000000;stroke-opacity:1;stroke-width:0.22935779816514}
+		.st8 {stroke:#000000;stroke-dasharray:0,3.75;stroke-linecap:round;stroke-linejoin:round;stroke-width:0.75}
+		.st9 {fill:none;stroke:none;stroke-linecap:round;stroke-linejoin:round;stroke-width:0.75}
+		.st10 {fill:#000000;font-family:Calibri;font-size:0.833336em}
+		.st11 {stroke:#000000;stroke-dasharray:5.25,3.75;stroke-linecap:round;stroke-linejoin:round;stroke-width:0.75}
+		.st12 {fill:none;fill-rule:evenodd;font-size:12px;overflow:visible;stroke-linecap:square;stroke-miterlimit:3}
+	]]>
+	</style>
+
+	<defs id="Markers">
+		<g id="lend5">
+			<path d="M 2 1 L 0 0 L 1.98117 -0.993387 C 1.67173 -0.364515 1.67301 0.372641 1.98465 1.00043 " style="stroke:none"/>
+		</g>
+		<marker id="mrkr5-26" class="st7" v:arrowType="5" v:arrowSize="2" v:setback="7.15" refX="7.15" orient="auto"
+				markerUnits="strokeWidth" overflow="visible">
+			<use xlink:href="#lend5" transform="scale(4.36) "/>
+		</marker>
+		<marker id="mrkr5-28" class="st7" v:arrowType="5" v:arrowSize="2" v:setback="7.63" refX="-7.63" orient="auto"
+				markerUnits="strokeWidth" overflow="visible">
+			<use xlink:href="#lend5" transform="scale(-4.36,-4.36) "/>
+		</marker>
+	</defs>
+	<g v:mID="105" v:index="37" v:groupContext="foregroundPage">
+		<title>Page-37</title>
+		<v:pageProperties v:drawingScale="0.0393701" v:pageScale="0.0393701" v:drawingUnits="24" v:shadowOffsetX="9"
+				v:shadowOffsetY="-9"/>
+		<g id="shape1018-1" v:mID="1018" v:groupContext="shape" transform="translate(45.9653,-13.4646)">
+			<title>Sheet.1018</title>
+			<desc>UPF</desc>
+			<v:textBlock v:margins="rect(4,4,4,4)" v:tabSpace="42.5197" v:verticalAlign="0"/>
+			<v:textRect cx="51.0725" cy="130.748" width="102.15" height="124.016"/>
+			<rect x="0" y="68.7401" width="102.145" height="124.016" class="st1"/>
+			<text x="4" y="83.54" class="st2" v:langID="1033"><v:paragraph/><v:tabList/>UPF</text>		</g>
+		<g id="shape1003-4" v:mID="1003" v:groupContext="shape" transform="translate(52.441,-17.0079)">
+			<title>Sheet.1003</title>
+			<desc>DPDK</desc>
+			<v:textBlock v:margins="rect(4,4,4,4)" v:tabSpace="42.5197"/>
+			<v:textRect cx="43.937" cy="184.137" width="87.88" height="17.2383"/>
+			<rect x="0" y="175.518" width="87.874" height="17.2383" rx="5.66929" ry="5.66929" class="st3"/>
+			<text x="30.34" y="187.74" class="st2" v:langID="1033"><v:paragraph v:horizAlign="1"/><v:tabList/>DPDK</text>		</g>
+		<g id="shape1005-7" v:mID="1005" v:groupContext="shape" transform="translate(52.441,-34.0157)">
+			<title>Sheet.1005</title>
+			<desc>BESS-UPF</desc>
+			<v:textBlock v:margins="rect(4,4,4,4)" v:tabSpace="42.5197"/>
+			<v:textRect cx="43.937" cy="177.165" width="87.88" height="31.1811"/>
+			<rect x="0" y="161.575" width="87.874" height="31.1811" rx="5.66929" ry="5.66929" class="st4"/>
+			<text x="20.69" y="180.77" class="st2" v:langID="1033"><v:paragraph v:horizAlign="1"/><v:tabList/>BESS-UPF</text>		</g>
+		<g id="shape1007-10" v:mID="1007" v:groupContext="shape" transform="translate(55.2268,-2.83465)">
+			<title>Sheet.1007</title>
+			<desc>N6</desc>
+			<v:textBlock v:margins="rect(4,4,4,4)" v:tabSpace="42.5197"/>
+			<v:textRect cx="12.7559" cy="181.251" width="25.52" height="23.0095"/>
+			<rect x="0" y="169.746" width="25.5118" height="23.0095" class="st4"/>
+			<text x="5.84" y="184.85" class="st2" v:langID="1033"><v:paragraph v:horizAlign="1"/><v:tabList/>N6</text>		</g>
+		<g id="shape1014-13" v:mID="1014" v:groupContext="shape" transform="translate(113.337,-2.83465)">
+			<title>Sheet.1014</title>
+			<desc>N3</desc>
+			<v:textBlock v:margins="rect(4,4,4,4)" v:tabSpace="42.5197"/>
+			<v:textRect cx="12.7559" cy="181.251" width="25.52" height="23.0095"/>
+			<rect x="0" y="169.746" width="25.5118" height="23.0095" class="st4"/>
+			<text x="5.84" y="184.85" class="st2" v:langID="1033"><v:paragraph v:horizAlign="1"/><v:tabList/>N3</text>		</g>
+		<g id="shape1015-16" v:mID="1015" v:groupContext="shape" transform="translate(52.441,-89.252)">
+			<title>Sheet.1015</title>
+			<desc>PFCP Agent (pfcpiface)</desc>
+			<v:textBlock v:margins="rect(4,4,4,4)" v:tabSpace="42.5197"/>
+			<v:textRect cx="43.937" cy="177.165" width="87.88" height="31.1811"/>
+			<rect x="0" y="161.575" width="87.874" height="31.1811" rx="5.66929" ry="5.66929" class="st4"/>
+			<text x="15.98" y="173.57" class="st2" v:langID="1033"><v:paragraph v:horizAlign="1"/><v:tabList/>PFCP Agent<v:newlineChar/><tspan
+						x="18.02" dy="1.2em" class="st5">(pfcpiface)</tspan></text>		</g>
+		<g id="shape1016-20" v:mID="1016" v:groupContext="shape" transform="translate(-94.9117,127.559) rotate(-90)">
+			<title>Sheet.1016</title>
+			<path d="M5.36 192.76 L5.72 192.76 L18.33 192.76" class="st6"/>
+		</g>
+		<g id="shape1017-29" v:mID="1017" v:groupContext="shape" transform="translate(-94.9115,72.5687) rotate(-90.0731)">
+			<title>Sheet.1017</title>
+			<path d="M5.36 192.76 L5.72 192.76 L32.58 192.76" class="st6"/>
+		</g>
+		<g id="shape1019-36" v:mID="1019" v:groupContext="shape" transform="translate(53.1008,-158.74)">
+			<title>Sheet.1019</title>
+			<desc>SMF</desc>
+			<v:textBlock v:margins="rect(4,4,4,4)" v:tabSpace="42.5197"/>
+			<v:textRect cx="43.937" cy="177.165" width="87.88" height="31.1811"/>
+			<rect x="0" y="161.575" width="87.874" height="31.1811" rx="5.66929" ry="5.66929" class="st4"/>
+			<text x="33.29" y="180.77" class="st2" v:langID="1033"><v:paragraph v:horizAlign="1"/><v:tabList/>SMF</text>		</g>
+		<g id="shape1020-39" v:mID="1020" v:groupContext="shape" transform="translate(161.821,306.142) rotate(179.927)">
+			<title>Sheet.1020</title>
+			<path d="M0 192.76 L148.82 192.76" class="st8"/>
+		</g>
+		<g id="shape1021-42" v:mID="1021" v:groupContext="shape" transform="translate(97.7954,-66.5354)">
+			<title>Sheet.1021</title>
+			<desc>BESS gRPC</desc>
+			<v:textBlock v:margins="rect(4,4,4,4)" v:tabSpace="42.5197"/>
+			<v:textRect cx="27.3701" cy="187.756" width="54.75" height="10"/>
+			<rect x="0" y="182.756" width="54.7402" height="10" class="st9"/>
+			<text x="6.17" y="190.76" class="st10" v:langID="1033"><v:paragraph v:horizAlign="1"/><v:tabList/>BESS gRPC</text>		</g>
+		<g id="shape1022-45" v:mID="1022" v:groupContext="shape" transform="translate(93.3702,-141.732)">
+			<title>Sheet.1022</title>
+			<desc>N4 (PFCP)</desc>
+			<v:textBlock v:margins="rect(4,4,4,4)" v:tabSpace="42.5197"/>
+			<v:textRect cx="27.3701" cy="187.756" width="54.75" height="10"/>
+			<rect x="0" y="182.756" width="54.7402" height="10" class="st9"/>
+			<text x="7.32" y="190.76" class="st10" v:langID="1033"><v:paragraph v:horizAlign="1"/><v:tabList/>N4 (PFCP)</text>		</g>
+		<g id="shape1024-48" v:mID="1024" v:groupContext="shape" transform="translate(113.473,-136.907) rotate(26.8546)">
+			<title>Sheet.1024</title>
+			<path d="M0 191.58 C24.81 199.55 59.32 163.43 79.48 191.58" class="st11"/>
+		</g>
+		<g id="shape1026-51" v:mID="1026" v:groupContext="shape" transform="translate(1.4174,-160.827)">
+			<title>Sheet.1026</title>
+			<desc>PFCP calls</desc>
+			<v:textBlock v:margins="rect(4,4,4,4)" v:tabSpace="42.5197"/>
+			<v:textRect cx="24.5354" cy="187.756" width="49.08" height="10"/>
+			<rect x="0" y="182.756" width="49.0709" height="10" class="st9"/>
+			<text x="4.52" y="190.76" class="st10" v:langID="1033"><v:paragraph v:horizAlign="1"/><v:tabList/>PFCP calls</text>		</g>
+		<g id="shape1027-54" v:mID="1027" v:groupContext="shape" transform="translate(46.0961,-72.7455) rotate(5.70668)">
+			<title>Sheet.1027</title>
+			<path d="M0 192.76 C24.36 193.62 54.64 184.53 71.27 192.76" class="st11"/>
+		</g>
+		<g id="shape1028-57" v:mID="1028" v:groupContext="shape" transform="translate(-0.440871,-61.6142)">
+			<title>Sheet.1028</title>
+			<desc>gRPC calls</desc>
+			<v:textBlock v:margins="rect(4,4,4,4)" v:tabSpace="42.5197"/>
+			<v:textRect cx="24.5354" cy="187.756" width="49.08" height="10"/>
+			<rect x="0" y="182.756" width="49.0709" height="10" class="st9"/>
+			<text x="4.33" y="190.76" class="st10" v:langID="1033"><v:paragraph v:horizAlign="1"/><v:tabList/>gRPC calls</text>		</g>
+	</g>
+</svg>

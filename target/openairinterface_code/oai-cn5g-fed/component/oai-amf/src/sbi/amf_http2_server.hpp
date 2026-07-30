@@ -1,0 +1,127 @@
+/*
+ * SPDX-License-Identifier: LicenseRef-CSSL-1.0
+ */
+
+#ifndef FILE_AMF_HTTP2_SERVER_SEEN
+#define FILE_AMF_HTTP2_SERVER_SEEN
+
+#include <nghttp2/asio_http2_server.h>
+
+#include "AmfCreateEventSubscription.h"
+#include "N1N2MessageTransferError.h"
+#include "N1N2MessageTransferReqData.h"
+#include "N1N2MessageTransferRspData.h"
+#include "N2InformationTransferReqData.h"
+#include "NonUeN2InfoSubscriptionCreateData.h"
+#include "amf.hpp"
+#include "amf_app.hpp"
+#include "mime_parser.hpp"
+#include "pistache/endpoint.h"
+#include "pistache/http.h"
+#include "pistache/router.h"
+#include "uint_generator.hpp"
+#include "PolicyUpdate.h"
+#include "TerminationNotification.h"
+#include "SubscriptionData.h"
+#include "UeContextInfoClass.h"
+#include "RequestLocInfo.h"
+
+using namespace nghttp2::asio_http2;
+using namespace nghttp2::asio_http2::server;
+using namespace oai::_3gpp::model;
+
+class amf_http2_server {
+ public:
+  amf_http2_server(
+      std::string addr, uint32_t port, amf_application::amf_app* amf_app_inst)
+      : m_address(addr), m_port(port), server(), m_amf_app(amf_app_inst) {}
+  virtual ~amf_http2_server(){};
+  void start();
+  void init(size_t thr) {}
+
+  void create_event_subscription_handler(
+      const AmfCreateEventSubscription& amfCreateEventSubscription,
+      const response& response);
+
+  void n1_n2_message_transfer_handler(
+      const std::string& ueContextId,
+      std::unordered_map<std::string, oai::utils::mime_part>& parts,
+      const response& res);
+
+  void n1_message_notify_handler(
+      const std::string& ueContextId,
+      std::unordered_map<std::string, oai::utils::mime_part>& parts,
+      const response& res);
+
+  void n1_n2_message_subscribe_handler(
+      const std::string& ueContextId,
+      const UeN1N2InfoSubscriptionCreateData& ueN1N2InfoSubscriptionCreateData,
+      const response& response);
+
+  void n1_n2_message_unsubscribe_handler(
+      const std::string& ueContextId, const std::string& subscriptionId,
+      const response& response);
+
+  void non_ue_n2_info_subscribe_handler(
+      const NonUeN2InfoSubscriptionCreateData& subscriptionCreateData,
+      const response& response);
+
+  void non_ue_n2_info_unsubscribe_handler(
+      const std::string& subscriptionId, const response& response);
+
+  void amf_status_change_subscribe_handler(
+      const SubscriptionData& subscription_data, const response& res);
+
+  void amf_status_change_unsubscribe_handler(
+      const std::string& subscription_id, const response& res);
+  void amf_status_change_subscribe_modify_handler(
+      const std::string& subscription_id,
+      const SubscriptionData& subscription_data, const response& res);
+
+  void status_notify_handler(
+      const std::string& ueContextId, uint8_t pduSessionId,
+      const SmContextStatusNotification& statusNotification,
+      const response& response);
+
+  void get_configuration_handler(const response& response);
+
+  void update_configuration_handler(
+      nlohmann::json& configuration_info, const response& response);
+
+  void update_policy_notification_handler(
+      const std::string& ue_context_id, const PolicyUpdate& policy_update,
+      const response& res);
+
+  void terminate_policy_notification_handler(
+      const std::string& ue_context_id,
+      const TerminationNotification& termination_notification,
+      const response& res);
+
+  void provide_domain_selection_info_handler(
+      const std::string& ue_context_id,
+      const oai::_3gpp::model::UeContextInfoClass& ue_context_info_class,
+      const response& res);
+
+  void provide_location_info_handler(
+      const std::string& ue_context_id,
+      const oai::_3gpp::model::RequestLocInfo& request_loc_info,
+      const response& res);
+
+  void stop();
+  void send_response(const response& res, uint32_t response_code);
+
+ private:
+  oai::utils::uint_generator<uint32_t> m_promise_id_generator;
+  std::string m_address;
+  uint32_t m_port;
+  http2 server;
+  amf_application::amf_app* m_amf_app;
+  bool running_server;
+
+ protected:
+  static uint64_t generate_promise_id() {
+    return oai::utils::uint_uid_generator<uint64_t>::get_instance().get_uid();
+  }
+};
+
+#endif

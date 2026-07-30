@@ -1,0 +1,12 @@
+{
+	"name": "OAI LMF",
+	"dockerComposeFile": ["../docker-compose.yml"],
+	"service": "oai-lmf",
+	"shutdownAction": "none",
+	"workspaceFolder": "/oai-core/oai-lmf",
+	"customizations": {
+		"vscode": {
+		  	"extensions": ["twxs.cmake", "ms-vscode.cmake-tools", "ms-vscode.cpptools", "ms-vscode.cpptools-extension-pack"]
+		}
+	},
+}

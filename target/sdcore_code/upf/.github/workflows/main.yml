@@ -1,0 +1,68 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2023 Canonical Ltd.
+# Copyright 2024 Intel Corporation
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    if: github.event_name == 'pull_request'
+    uses: omec-project/.github/.github/workflows/upf-build-upf.yml@main
+    with:
+      branch_name: ${{ github.ref }}
+
+  build-ptf:
+    if: github.event_name == 'pull_request'
+    uses: omec-project/.github/.github/workflows/upf-build-ptf.yml@main
+    with:
+      branch_name: ${{ github.ref }}
+
+  lint:
+    uses: omec-project/.github/.github/workflows/lint.yml@main
+    with:
+      branch_name: ${{ github.ref }}
+
+  hadolint:
+    uses: omec-project/.github/.github/workflows/hadolint.yml@main
+    with:
+      branch_name: ${{ github.ref }}
+
+  check-spelling:
+    uses: omec-project/.github/.github/workflows/check-spelling.yml@main
+    with:
+      branch_name: ${{ github.ref }}
+
+  route-control-tests:
+    uses: omec-project/.github/.github/workflows/upf-route-control-tests.yml@main
+    with:
+      branch_name: ${{ github.ref }}
+
+  unit-tests-pfcp:
+    uses: omec-project/.github/.github/workflows/unit-test.yml@main
+    with:
+      branch_name: ${{ github.ref }}
+      test_flags: "-race -failfast -v"
+      test_directory: "./pfcpiface ./cmd/..."
+
+  integration-tests-bess:
+    uses: omec-project/.github/.github/workflows/unit-test.yml@main
+    with:
+      branch_name: ${{ github.ref }}
+      test_flags: "-race -failfast -v -count=1"
+      test_directory: "./test/integration/..."
+      env_vars: "MODE=native DATAPATH=bess"
+
+  license-check:
+    uses: omec-project/.github/.github/workflows/license-check.yml@main
+    with:
+      branch_name: ${{ github.ref }}
+
+  fossa-scan:
+    uses: omec-project/.github/.github/workflows/fossa-scan.yml@main
+    with:
+      branch_name: ${{ github.ref }}

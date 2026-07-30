@@ -1,0 +1,802 @@
+/*
+ * SPDX-License-Identifier: LicenseRef-CSSL-1.0
+ */
+
+#ifndef FILE_SMF_MSG_HPP_SEEN
+#define FILE_SMF_MSG_HPP_SEEN
+
+#include "3gpp_23.003.h"
+#include "3gpp_24.007.hpp"
+#include "3gpp_24.501.hpp"
+#include "3gpp_29.244.h"
+#include "3gpp_29.508.h"
+#include "3gpp_29.518.h"
+#include "3gpp_29.571.h"
+#include "DddStatus.h"
+#include "NgRanTargetId.h"
+#include "PlmnId.h"
+#include "QosData.h"
+#include "QosFlowDescription.hpp"
+#include "QosRule.hpp"
+#include "SmPolicyDecision.h"
+#include "pistache/http.h"
+#include "smf.h"
+#include "smf_profile.hpp"
+
+typedef enum {
+  PDU_SESSION_MSG_TYPE_NONE             = -1,
+  PDU_SESSION_MSG_TYPE_FIRST            = 0,
+  PDU_SESSION_CREATE_SM_CONTEXT_REQUEST = PDU_SESSION_MSG_TYPE_FIRST,
+  PDU_SESSION_CREATE_SM_CONTEXT_RESPONSE,
+  PDU_SESSION_UPDATE_SM_CONTEXT_REQUEST,
+  PDU_SESSION_UPDATE_SM_CONTEXT_RESPONSE,
+  PDU_SESSION_RELEASE_SM_CONTEXT_REQUEST,
+  PDU_SESSION_RELEASE_SM_CONTEXT_RESPONSE,
+  PDU_SESSION_MODIFY_SM_CONTEXT_REQUEST,
+  PDU_SESSION_MODIFY_SM_CONTEXT_RESPONSE,
+  PDU_SESSION_MODIFICATION_SMF_REQUESTED,
+  PDU_SESSION_REPORT_RESPONSE,
+  PDU_SESSION_MSG_TYPE_MAX
+} pdu_session_msg_type_t;
+
+namespace oai::app::smf {
+
+//-----------------------------------------------------------------------------
+// QoS flow to be created/modified/removed
+class qos_flow_context_updated {
+ public:
+  qos_flow_context_updated()
+      : cause_value(),
+        qfi(),
+        ul_fteid(),
+        dl_fteid(),
+        qos_profile(),
+        to_be_removed(false) {}
+
+  void set_cause(const uint8_t cause);
+  void set_qfi(const pfcp::qfi_t& q);
+  void set_ul_fteid(const pfcp::fteid_t& teid);
+  void set_dl_fteid(const pfcp::fteid_t& teid);
+  void add_qos_rule(const oai::nas::QosRule& rule);
+  void set_qos_profile(const oai::model::pcf::QosData& profile);
+  void set_qos_flow_descriptions(
+      const oai::nas::QosFlowDescription& flow_description);
+  void get_qos_flow_descriptions(
+      oai::nas::QosFlowDescription& flow_description) const;
+  oai::nas::QosFlowDescription get_qos_flow_descriptions() const;
+
+  uint8_t cause_value;
+  pfcp::qfi_t qfi;
+  pfcp::fteid_t ul_fteid;
+  pfcp::fteid_t dl_fteid;
+  std::map<uint8_t, oai::nas::QosRule> qos_rules;
+  oai::nas::QosFlowDescription qos_flow_description;
+  oai::model::pcf::QosData qos_profile;
+  bool to_be_removed;
+};
+
+//---------------------------------------------------------------------------------------
+class pdu_session_msg {
+ public:
+  pdu_session_msg()
+      : m_msg_type(),
+        m_supi(),
+        m_pdu_session_id(),
+        m_dnn(),
+        m_snssai(),
+        m_pdu_session_type(0) {
+    m_n1_sm_msg_is_set       = false;
+    m_n2_sm_info_is_set      = false;
+    m_n2_sm_info_type_is_set = false;
+  };
+  pdu_session_msg(pdu_session_msg_type_t msg_type)
+      : m_msg_type(msg_type),
+        m_supi(),
+        m_pdu_session_id(),
+        m_dnn(),
+        m_snssai(),
+        m_pdu_session_type(0) {
+    m_n1_sm_msg_is_set       = false;
+    m_n2_sm_info_is_set      = false;
+    m_n2_sm_info_type_is_set = false;
+  };
+  pdu_session_msg(
+      pdu_session_msg_type_t msg_type, std::string supi, pdu_session_id_t pdi,
+      std::string dnn, snssai_t snssai)
+      : m_msg_type(msg_type),
+        m_supi(supi),
+        m_pdu_session_id(pdi),
+        m_dnn(dnn),
+        m_snssai(snssai),
+        m_pdu_session_type(0) {
+    m_n1_sm_msg_is_set       = false;
+    m_n2_sm_info_is_set      = false;
+    m_n2_sm_info_type_is_set = false;
+  }
+
+  virtual ~pdu_session_msg() = default;
+
+  pdu_session_msg_type_t get_msg_type() const;
+  void set_msg_type(const pdu_session_msg_type_t& value);
+  std::string get_supi() const;
+  void set_supi(const std::string& value);
+  pdu_session_id_t get_pdu_session_id() const;
+  void set_pdu_session_id(const pdu_session_id_t value);
+  std::string get_dnn() const;
+  void set_dnn(const std::string& value);
+  snssai_t get_snssai() const;
+  void set_snssai(const snssai_t& value);
+  void set_api_root(const std::string& value);
+  std::string get_api_root() const;
+  uint8_t get_pdu_session_type() const;
+  void set_pdu_session_type(const uint8_t& pdu_session_type);
+  procedure_transaction_id_t get_pti() const;
+  void set_pti(const procedure_transaction_id_t& pti);
+  std::string get_n2_sm_information() const;
+  void set_n2_sm_information(const std::string& value);
+  std::string get_n1_sm_message() const;
+  void set_n1_sm_message(const std::string& value);
+  bool n1_sm_msg_is_set() const;
+  bool n2_sm_info_is_set() const;
+  std::string get_n2_sm_info_type() const;
+  void set_n2_sm_info_type(const std::string& value);
+  bool n2_sm_info_type_is_set() const;
+
+  void to_json(nlohmann::json& data) const;
+  void from_json(const nlohmann::json& data);
+
+ private:
+  pdu_session_msg_type_t m_msg_type;
+  std::string m_api_root;
+  std::string m_supi;
+  pdu_session_id_t m_pdu_session_id;
+  std::string m_dnn;
+  snssai_t m_snssai;
+  uint8_t m_pdu_session_type;
+  procedure_transaction_id_t m_pti;
+  std::string m_n1_sm_message;
+  bool m_n1_sm_msg_is_set;
+  std::string m_n2_sm_information;
+  bool m_n2_sm_info_is_set;
+  std::string m_n2_sm_info_type;
+  bool m_n2_sm_info_type_is_set;
+
+ protected:
+  static void add_qos_flow_to_list(
+      std::map<uint8_t, qos_flow_context_updated>& flow_list,
+      const qos_flow_context_updated& flow);
+};
+
+//---------------------------------------------------------------------------------------
+class pdu_session_sm_context_request : public pdu_session_msg {
+ public:
+  pdu_session_sm_context_request() : pdu_session_msg() {
+    m_epd          = EPD_5GS_SESSION_MANAGEMENT_MESSAGES;
+    m_message_type = k5gsSessionManagementMessageTypeUnknown;
+  };
+  pdu_session_sm_context_request(pdu_session_msg_type_t msg_type)
+      : pdu_session_msg(msg_type) {
+    m_epd          = EPD_5GS_SESSION_MANAGEMENT_MESSAGES;
+    m_message_type = k5gsSessionManagementMessageTypeUnknown;
+  };
+  pdu_session_sm_context_request(
+      pdu_session_msg_type_t msg_type, std::string supi, pdu_session_id_t pdi,
+      std::string dnn, snssai_t snssai)
+      : pdu_session_msg(msg_type, supi, pdi, dnn, snssai) {
+    m_epd          = EPD_5GS_SESSION_MANAGEMENT_MESSAGES;
+    m_message_type = k5gsSessionManagementMessageTypeUnknown;
+  }
+
+  uint8_t get_epd() const;
+  void set_epd(const uint8_t& epd);
+  uint8_t get_message_type() const;
+  void set_message_type(const uint8_t& message_type);
+
+ private:
+  uint8_t m_epd;
+  uint8_t m_message_type;
+};
+
+//---------------------------------------------------------------------------------------
+class pdu_session_sm_context_response : public pdu_session_msg {
+ public:
+  pdu_session_sm_context_response(pdu_session_msg_type_t msg_type)
+      : pdu_session_msg(msg_type) {
+    m_cause       = 0;
+    m_http_code   = 0;
+    m_json_format = "application/json";
+  }
+  pdu_session_sm_context_response(
+      pdu_session_msg_type_t msg_type, std::string supi, pdu_session_id_t pdi,
+      std::string dnn, snssai_t snssai)
+      : pdu_session_msg(msg_type, supi, pdi, dnn, snssai) {
+    m_cause       = 0;
+    m_http_code   = 0;
+    m_json_format = "application/json";
+  }
+
+  void set_cause(const uint8_t cause);
+  uint8_t get_cause() const;
+  void set_http_code(const uint32_t code);
+  uint32_t get_http_code() const;
+  void set_json_data(const nlohmann::json& data);
+  void get_json_data(nlohmann::json& data) const;
+  void set_json_format(const std::string& format);
+  void get_json_format(std::string& format) const;
+
+  void to_json(nlohmann::json& data) const;
+  void from_json(const nlohmann::json& data);
+
+ private:
+  uint8_t m_cause;
+  nlohmann::json m_json_data;
+  std::string m_json_format;
+  uint32_t m_http_code;
+};
+
+//---------------------------------------------------------------------------------------
+class pdu_session_create_sm_context_request
+    : public pdu_session_sm_context_request {
+ public:
+  pdu_session_create_sm_context_request()
+      : pdu_session_sm_context_request(PDU_SESSION_CREATE_SM_CONTEXT_REQUEST),
+        m_unauthenticated_supi(true) {
+    m_epco = {};
+  }
+  pdu_session_create_sm_context_request(
+      std::string supi, pdu_session_id_t pdi, std::string dnn, snssai_t snssai)
+      : pdu_session_sm_context_request(
+            PDU_SESSION_CREATE_SM_CONTEXT_REQUEST, supi, pdi, dnn, snssai),
+        m_unauthenticated_supi(true) {
+    m_epco = {};
+  }
+
+  std::string get_serving_nf_id() const;
+  void set_serving_nf_id(const std::string& value);
+  std::string get_request_type() const;
+  void set_request_type(const std::string& value);
+  void set_dnn_selection_mode(const std::string& value);
+  std::string get_dnn_selection_mode() const;
+  void set_sm_context_status_uri(const std::string& value);
+  std::string get_sm_context_status_uri() const;
+  void set_epco(const protocol_configuration_options_t& p);
+  void get_epco(protocol_configuration_options_t& p) const;
+  void set_plmn(const plmn_t p);
+  void get_plmn(plmn_t& p) const;
+  plmn_t get_plmn() const;
+  void set_an_type(const std::string& an_type);
+  void get_an_type(std::string& an_type) const;
+  void set_guami(const guami_5g_t& guami);
+  void get_guami(guami_5g_t& guami) const;
+
+ private:
+  bool m_unauthenticated_supi;
+  std::string m_serving_nf_id;  // AMF Id
+  std::string m_request_type;
+  std::string m_rat_type;
+  std::string m_presence_in_ladn;
+  std::string m_an_type;
+  std::string m_dnn_selection_mode;  // SelMode
+  std::string m_sm_context_status_uri;
+  protocol_configuration_options_t m_epco;
+  plmn_t m_serving_network;
+  guami_5g_t m_guami;
+};
+
+//---------------------------------------------------------------------------------------
+class pdu_session_create_sm_context_response
+    : public pdu_session_sm_context_response {
+ public:
+  pdu_session_create_sm_context_response()
+      : pdu_session_sm_context_response(
+            PDU_SESSION_CREATE_SM_CONTEXT_RESPONSE) {
+    m_paa              = {};
+    m_qos_flow_context = {};
+    m_epco             = {};
+  }
+  pdu_session_create_sm_context_response(
+      std::string supi, pdu_session_id_t pdi, std::string dnn, snssai_t snssai)
+      : pdu_session_sm_context_response(
+            PDU_SESSION_CREATE_SM_CONTEXT_RESPONSE, supi, pdi, dnn, snssai) {
+    m_paa              = {};
+    m_qos_flow_context = {};
+    m_epco             = {};
+  }
+
+  void set_paa(const paa_t& paa);
+  paa_t get_paa() const;
+  void add_qos_flow_context(const qos_flow_context_updated& qos_flow);
+  void get_all_qos_flow_context_created(
+      std::map<uint8_t, qos_flow_context_updated>& all_flows);
+  void set_amf_url(const std::string& value);
+  std::string get_amf_url() const;
+  void set_smf_context_uri(const std::string& value);
+  std::string get_smf_context_uri() const;
+  void set_epco(const protocol_configuration_options_t& p);
+  void get_epco(protocol_configuration_options_t& p) const;
+
+  void to_json(nlohmann::json& data) const;
+  void from_json(const nlohmann::json& data);
+
+ private:
+  paa_t m_paa;
+  std::map<uint8_t, qos_flow_context_updated> m_qos_flow_context;
+  std::string m_amf_url;
+  std::string m_smf_context_uri;
+  protocol_configuration_options_t m_epco;
+};
+
+//---------------------------------------------------------------------------------------
+// see SmContextUpdateData (TS29502_Nsmf_PDUSession.yaml)
+class pdu_session_update_sm_context_request
+    : public pdu_session_sm_context_request {
+ public:
+  pdu_session_update_sm_context_request()
+      : pdu_session_sm_context_request(PDU_SESSION_UPDATE_SM_CONTEXT_REQUEST) {
+    m_5gMm_cause_value             = 0;
+    m_data_forwarding              = false;
+    m_upCnx_state_is_set           = false;
+    qfis                           = {};
+    dl_fteid                       = {};
+    m_release                      = false;
+    m_release_is_set               = false;
+    m_to_be_switched               = false;
+    m_to_be_switched_is_set        = false;
+    m_failed_to_be_switched        = false;
+    m_is_failed_to_be_switched     = false;
+    m_failed_to_be_switched_is_set = false;
+    m_an_type_is_set               = false;
+    m_rat_type_is_set              = false;
+    m_ho_state_is_set              = false;
+    m_target_id_is_set             = false;
+    m_target_serving_nf_id_is_set  = false;
+  };
+
+  void add_qfi(const pfcp::qfi_t& qfi);
+  void add_qfi(const uint8_t& qfi);
+  void get_qfis(std::vector<pfcp::qfi_t>& q);
+  void set_dl_fteid(const pfcp::fteid_t& t);
+  void get_dl_fteid(pfcp::fteid_t& t);
+  void set_upCnx_state(const std::string& value);
+  void get_upCnx_state(std::string& value) const;
+  bool upCnx_state_is_set() const;
+  void set_rat_type(const std::string& value);
+  bool rat_type_is_set() const;
+  void set_an_type(const std::string& value);
+  bool an_type_is_set() const;
+  bool release_is_set() const;
+  void set_release(bool value);
+  void set_to_be_switched(bool value);
+  bool get_to_be_switched() const;
+  void get_to_be_switched(bool& value) const;
+  void set_failed_to_be_switched(bool value);
+  bool get_failed_to_be_switched() const;
+  void get_failed_to_be_switched(bool& value) const;
+
+  std::string get_ho_state() const;
+  void get_ho_state(std::string& state) const;
+  void set_ho_state(const std::string& state);
+  bool ho_state_is_set() const;
+
+  ng_ran_target_id_t get_target_id() const;
+  void get_target_id(ng_ran_target_id_t& value) const;
+  void set_target_id(const ng_ran_target_id_t& value);
+
+  void set_target_serving_nf_id(const std::string& nf_id);
+  void get_target_serving_nf_id(std::string& nf_id) const;
+  std::string get_target_serving_nf_id() const;
+  bool target_serving_nf_id_is_set() const;
+
+  void set_json_data(const nlohmann::json& data);
+  void get_json_data(nlohmann::json& data) const;
+
+ private:
+  std::vector<pfcp::qfi_t> qfis;
+  pfcp::fteid_t dl_fteid;  // AN Tunnel Info
+  std::string m_nf_instanceId;
+  std::string m_an_type;
+  bool m_an_type_is_set;
+  std::string m_rat_type;
+  bool m_rat_type_is_set;
+  std::string m_upCnx_state;
+  bool m_upCnx_state_is_set;
+  std::string m_sm_context_status_uri;
+  bool m_data_forwarding;
+  uint8_t m_5gMm_cause_value;
+  bool m_release_is_set;
+  bool m_release;
+  bool m_to_be_switched;
+  bool m_to_be_switched_is_set;
+  bool m_failed_to_be_switched;
+  bool m_is_failed_to_be_switched;
+  bool m_failed_to_be_switched_is_set;
+  std::string m_ho_state;
+  bool m_ho_state_is_set;
+  ng_ran_target_id_t m_ng_ran_target_id;
+  bool m_target_id_is_set;
+  std::string m_target_serving_nf_id;
+  bool m_target_serving_nf_id_is_set;
+
+  nlohmann::json json_data;
+};
+
+//---------------------------------------------------------------------------------------
+// for PDU session update response
+class pdu_session_update_sm_context_response
+    : public pdu_session_sm_context_response {
+ public:
+  pdu_session_update_sm_context_response()
+      : pdu_session_sm_context_response(
+            PDU_SESSION_UPDATE_SM_CONTEXT_RESPONSE){};
+
+  pdu_session_update_sm_context_response(pdu_session_msg_type_t type)
+      : pdu_session_sm_context_response(type){};
+
+  void add_qos_flow_context_updated(const qos_flow_context_updated& qos_flow);
+  bool get_qos_flow_context_updated(
+      const pfcp::qfi_t& qfi, qos_flow_context_updated& qos_flow);
+  void get_all_qos_flow_context_updateds(
+      std::map<uint8_t, qos_flow_context_updated>& all_flows);
+  void remove_all_qos_flow_context_updateds();
+  void set_smf_context_uri(const std::string& value);
+  std::string get_smf_context_uri() const;
+
+  void to_json(nlohmann::json& data) const;
+  void from_json(const nlohmann::json& data);
+
+ private:
+  std::map<uint8_t, qos_flow_context_updated> qos_flow_context_updateds;
+  std::string m_smf_context_uri;
+};
+
+//---------------------------------------------------------------------------------------
+class pdu_session_release_sm_context_request : public pdu_session_msg {
+ public:
+  pdu_session_release_sm_context_request()
+      : pdu_session_msg(PDU_SESSION_RELEASE_SM_CONTEXT_REQUEST){};
+
+  void set_json_data(const nlohmann::json& data);
+  void get_json_data(nlohmann::json& data) const;
+
+ private:
+  nlohmann::json json_data;
+  // From smContextReleaseData
+  // cause:
+  // ngApCause:
+  // 5gMmCauseValue:
+  // ueLocation:
+  // ueTimeZone:
+  // addUeLocation:
+  // vsmfReleaseOnly:
+  // ismfReleaseOnly:
+};
+
+//---------------------------------------------------------------------------------------
+class pdu_session_release_sm_context_response
+    : public pdu_session_sm_context_response {
+ public:
+  pdu_session_release_sm_context_response()
+      : pdu_session_sm_context_response(
+            PDU_SESSION_RELEASE_SM_CONTEXT_RESPONSE){};
+
+  void to_json(nlohmann::json& data) const;
+  void from_json(const nlohmann::json& data);
+
+ private:
+  // TODO:
+};
+
+//---------------------------------------------------------------------------------------
+class pdu_session_modify_sm_context_request : public pdu_session_msg {
+ public:
+  pdu_session_modify_sm_context_request()
+      : pdu_session_msg(PDU_SESSION_MODIFY_SM_CONTEXT_REQUEST) {}
+  pdu_session_modify_sm_context_request(
+      std::string supi, pdu_session_id_t pdi, std::string dnn, snssai_t snssai)
+      : pdu_session_msg(
+            PDU_SESSION_MODIFY_SM_CONTEXT_REQUEST, supi, pdi, dnn, snssai) {}
+
+  void set_json_data(const nlohmann::json& data);
+  void get_json_data(nlohmann::json& data) const;
+
+  // void set_procedure_type(session_management_procedures_type_e type);
+  // void get_procedure_type (session_management_procedures_type_e& type) const;
+ private:
+  nlohmann::json json_data;
+  // session_management_procedures_type_e procedure_type;
+};
+
+//---------------------------------------------------------------------------------------
+class pdu_session_modify_sm_context_response
+    : public pdu_session_sm_context_response {
+ public:
+  pdu_session_modify_sm_context_response()
+      : pdu_session_sm_context_response(
+            PDU_SESSION_MODIFY_SM_CONTEXT_RESPONSE) {}
+  pdu_session_modify_sm_context_response(
+      std::string supi, pdu_session_id_t pdi, std::string dnn, snssai_t snssai)
+      : pdu_session_sm_context_response(
+            PDU_SESSION_MODIFY_SM_CONTEXT_RESPONSE, supi, pdi, dnn, snssai) {}
+
+ private:
+  // TODO:
+};
+
+//---------------------------------------------------------------------------------------
+class pdu_session_modification_network_requested
+    : public pdu_session_sm_context_request {
+ public:
+  pdu_session_modification_network_requested()
+      : pdu_session_sm_context_request(PDU_SESSION_MODIFICATION_SMF_REQUESTED) {
+    m_json_data   = {};
+    m_json_format = "application/json";
+  }
+
+  void set_amf_url(const std::string& value);
+  std::string get_amf_url() const;
+  void add_qfi(const pfcp::qfi_t& qfi);
+  void add_qfi(const uint8_t& qfi);
+  void get_qfis(std::vector<pfcp::qfi_t>& q);
+  void set_json_data(const nlohmann::json& data);
+  void get_json_data(nlohmann::json& data) const;
+  void set_json_format(const std::string& format);
+  void get_json_format(std::string& format) const;
+  void add_qos_flow_context_updated(const qos_flow_context_updated& qos_flow);
+  bool get_qos_flow_context_updated(
+      const pfcp::qfi_t& qfi, qos_flow_context_updated& qos_flow);
+
+ private:
+  std::string amf_url;
+  std::vector<pfcp::qfi_t> qfis;
+  std::map<uint8_t, qos_flow_context_updated> qos_flow_context_updateds;
+  nlohmann::json m_json_data;
+  std::string m_json_format;
+};
+
+//---------------------------------------------------------------------------------------
+class pdu_session_report_response : public pdu_session_sm_context_response {
+ public:
+  pdu_session_report_response()
+      : pdu_session_sm_context_response(PDU_SESSION_REPORT_RESPONSE) {
+    seid    = 0;
+    trxn_id = 0;
+  };
+
+  void set_amf_url(std::string const& value);
+  std::string get_amf_url() const;
+  void add_qos_flow_context_updated(const qos_flow_context_updated& qos_flow);
+  bool get_qos_flow_context_updated(
+      const pfcp::qfi_t& qfi, qos_flow_context_updated& qos_flow);
+  void get_all_qos_flow_context_updateds(
+      std::map<uint8_t, qos_flow_context_updated>& all_flows);
+  void set_seid(const seid_t& s);
+  void set_trxn_id(const uint64_t& t);
+  seid_t get_seid() const;
+  uint64_t get_trxn_id() const;
+
+ private:
+  std::string amf_url;
+  std::map<uint8_t, qos_flow_context_updated> qos_flow_context_updateds;
+  seid_t seid;
+  uint64_t trxn_id;
+};
+
+//---------------------------------------------------------------------------------------
+// see smPolicyNotification (TS29512_Npcf_SMPolicyControl.yaml)
+class pdu_session_sm_policy_notificatiion : public pdu_session_msg {
+ public:
+  pdu_session_sm_policy_notificatiion()
+      : pdu_session_msg(PDU_SESSION_UPDATE_SM_CONTEXT_REQUEST) {
+    m_sm_policy_decision = {};
+  }
+  pdu_session_sm_policy_notificatiion(
+      pdu_session_msg_type_t msg_type, std::string supi, pdu_session_id_t pdi,
+      std::string dnn, snssai_t snssai)
+      : pdu_session_msg(msg_type, supi, pdi, dnn, snssai) {
+    m_sm_policy_decision = {};
+  }
+  pdu_session_sm_policy_notificatiion(
+      pdu_session_msg_type_t msg_type, std::string supi, pdu_session_id_t pdi,
+      std::string dnn, snssai_t snssai,
+      oai::model::pcf::SmPolicyDecision sm_policy_decision)
+      : pdu_session_msg(msg_type, supi, pdi, dnn, snssai),
+        m_sm_policy_decision(sm_policy_decision) {}
+  void set_sm_policy_decision(
+      const oai::model::pcf::SmPolicyDecision& sm_policy_decision);
+  oai::model::pcf::SmPolicyDecision get_sm_policy_decision() const;
+
+ private:
+  oai::model::pcf::SmPolicyDecision m_sm_policy_decision;
+};
+
+class event_exposure_msg {
+ public:
+  std::string get_supi() const;
+  void set_supi(const std::string& value);
+  bool is_supi_is_set() const;
+  void set_pdu_session_id(const pdu_session_id_t value);
+  pdu_session_id_t get_pdu_session_id() const;
+  bool is_psi_is_set() const;
+  void set_sub_id(std::string const& value);
+  std::string get_sub_id() const;
+  bool is_sub_id_is_set() const;
+  void set_notif_uri(std::string const& value);
+  std::string get_notif_uri() const;
+  void set_notif_id(std::string const& value);
+  std::string get_notif_id() const;
+  std::vector<event_subscription_t> get_event_subs() const;
+  void set_event_subs(std::vector<event_subscription_t> const& value);
+
+ private:
+  std::string m_supi;
+  bool m_supi_is_set;
+  pdu_session_id_t m_pdu_session_id;  // m_PduSeId;
+  bool m_psi_is_set;
+
+  std::string m_sub_id;  // m_SubId;
+  bool m_sub_id_is_set;
+  std::string m_notif_uri;                         // m_NotifUri;
+  std::string m_notif_id;                          // m_NotifId;
+  std::vector<event_subscription_t> m_event_subs;  // m_EventSubs;
+
+  // NotificationMethod m_NotifMethod;
+  // bool m_NotifMethodIsSet;
+  // int32_t m_MaxReportNbr;
+  // bool m_MaxReportNbrIsSet;
+  // std::string m_Expiry;
+  // bool m_ExpiryIsSet;
+  // int32_t m_RepPeriod;
+  // bool m_RepPeriodIsSet;
+  // Guami m_Guami;
+  // bool m_GuamiIsSet;
+  // std::string m_ServiveName;
+  // bool m_ServiveNameIsSet;
+  // std::vector<std::string> m_AltNotifIpv4Addrs;
+  // bool m_AltNotifIpv4AddrsIsSet;
+  // std::vector<Ipv6Addr> m_AltNotifIpv6Addrs;
+  // bool m_AltNotifIpv6AddrsIsSet;
+  // bool m_AnyUeInd;
+  // bool m_AnyUeIndIsSet;
+  // std::string m_Gpsi;
+  // bool m_GpsiIsSet;
+  // std::string m_GroupId;
+  // bool m_GroupIdIsSet;
+  // bool m_ImmeRep;
+  // bool m_ImmeRepIsSet;
+  // std::string m_SupportedFeatures;
+  // bool m_SupportedFeaturesIsSet;
+};
+
+class event_notification {
+ public:
+  void set_smf_event(const smf_event_t& ev);
+  smf_event_t get_smf_event() const;
+
+  void set_timestamp(const std::string& ss);
+  void get_timestamp(std::string& ss) const;
+  std::string get_timestamp() const;
+
+  void set_supi(const std::string& supi);
+  std::string get_supi() const;
+  bool is_supi_is_set() const;
+  // m_AdIpv4Addr
+  void set_ad_ipv4_addr(std::string const& value);
+  std::string get_ad_ipv4_addr() const;
+  bool is_ad_ipv4_addr_is_set() const;
+  // m_ReIpv4Addr
+  void set_re_ipv4_addr(std::string const& value);
+  std::string get_re_ipv4_addr() const;
+  bool is_re_ipv4_addr_is_set() const;
+
+  // m_PlmnId
+  void set_PlmnId(oai::model::common::PlmnId const& value);
+  oai::model::common::PlmnId get_plmnid() const;
+  bool is_plmnid_is_set() const;
+
+  // ddds change
+  void set_Ddds(oai::model::smf::DddStatus const& value);
+  oai::model::smf::DddStatus get_ddds() const;
+  bool is_ddds_is_set() const;
+
+  void set_dnn(std::string const& value);
+  std::string get_dnn() const;
+  bool is_dnn_set() const;
+
+  void set_sst(uint8_t const& value);
+  uint8_t get_sst() const;
+  bool is_sst_set() const;
+
+  void set_sd(std::string const& value);
+  std::string get_sd() const;
+  bool is_sd_set() const;
+
+  void set_pdu_session_type(std::string const& value);
+  std::string get_pdu_session_type() const;
+  bool is_pdu_session_type_set() const;
+
+  void set_pdu_session_id(const pdu_session_id_t value);
+  pdu_session_id_t get_pdu_session_id() const;
+  bool is_psi_is_set() const;
+
+  void set_notif_uri(std::string const& value);
+  std::string get_notif_uri() const;
+  void set_notif_id(std::string const& value);
+  std::string get_notif_id() const;
+  void set_custom_info(const nlohmann::json& c);
+  void get_custom_info(nlohmann::json& c) const;
+
+ private:
+  nlohmann::json custom_info;  // store extra json data
+  std::string m_notif_uri;     // m_NotifUri;
+  std::string m_notif_id;      // m_NotifId;
+
+  smf_event_t m_event;  // SmfEvent
+  std::string m_timestamp;
+
+  std::string m_supi;
+  bool m_supi_is_set;
+
+  // for a UE IP address change
+  std::string m_ad_ipv4_addr;  // m_AdIpv4Addr
+  bool m_ad_ipv4_addr_is_set;  // m_AdIpv4AddrIsSet;
+  std::string m_re_ipv4_addr;  // m_ReIpv4Addr;
+  bool m_re_ipv4_addr_is_set;  // m_ReIpv4AddrIsSet;
+
+  // for a PLMN Change
+  oai::model::common::PlmnId m_PlmnId;
+  bool m_PlmnIdIsSet;
+
+  // for ddds change
+  oai::model::smf::DddStatus m_DddStatus;
+  bool m_DddStatusIsSet;
+
+  bool m_dnn_is_set;
+  std::string m_dnn;
+  bool m_sst_is_set;
+  uint8_t m_sst;
+  bool m_sd_is_set;
+  std::string m_sd;
+  bool m_pdu_session_type_is_set;
+  std::string m_pdu_session_type;
+
+  // for an access type change
+  // AccessType m_AccType;
+  // bool m_AccTypeIsSet;
+
+  // for a PDU Session Release
+  pdu_session_id_t m_pdu_session_id;  // m_PduSeId;
+  bool m_psi_is_set;
+
+  // std::string m_Gpsi;
+  // bool m_GpsiIsSet;
+  // std::string m_SourceDnai;
+  // bool m_SourceDnaiIsSet;
+  // std::string m_TargetDnai;
+  // bool m_TargetDnaiIsSet;
+  // DnaiChangeType m_DnaiChgType;
+  // bool m_DnaiChgTypeIsSet;
+  // std::string m_TargetUeIpv4Addr;
+  // bool m_TargetUeIpv4AddrIsSet;
+  // std::string m_SourceUeIpv4Addr;
+  // bool m_SourceUeIpv4AddrIsSet;
+  // Ipv6Prefix m_SourceUeIpv6Prefix;
+  // bool m_SourceUeIpv6PrefixIsSet;
+  // Ipv6Prefix m_TargetUeIpv6Prefix;
+  // bool m_TargetUeIpv6PrefixIsSet;
+  // RouteToLocation m_SourceTraRouting;
+  // bool m_SourceTraRoutingIsSet;
+  // RouteToLocation m_TargetTraRouting;
+  // bool m_TargetTraRoutingIsSet;
+  // std::string m_UeMac;
+  // bool m_UeMacIsSet;
+  // Ipv6Prefix m_AdIpv6Prefix;
+  // bool m_AdIpv6PrefixIsSet;
+  // Ipv6Prefix m_ReIpv6Prefix;
+  // bool m_ReIpv6PrefixIsSet;
+  // std::string m_MaxWaitTime;
+  // bool m_MaxWaitTimeIsSet;
+};
+
+}  // namespace oai::app::smf
+
+#endif

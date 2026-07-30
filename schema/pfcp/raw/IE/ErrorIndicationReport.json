@@ -1,0 +1,11 @@
+{
+  "ie_name": "ErrorIndicationReport",
+  "ie_type_id": 99,
+  "is_grouped": true,
+  "sub_ies": [
+    {
+      "name": "FTEID",
+      "ie_type_id": 21
+    }
+  ]
+}

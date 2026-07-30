@@ -1,0 +1,24 @@
+{
+  "message_name": "PGWRestartNotification",
+  "Direction": "SGW -> MME/SGSN (S11/S4)",
+  "ies": [
+    {
+      "name": "IPAddress",
+      "requirement": "Mandatory",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "Cause",
+      "requirement": "Optional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "PrivateExtension",
+      "requirement": "Optional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    }
+  ]
+}

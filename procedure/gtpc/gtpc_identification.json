@@ -1,0 +1,23 @@
+{
+  "procedure_id": "GTPC_Identification",
+  "direction": "New MME/SGSN <-> Old MME/SGSN",
+  "dependency_procedures": [],
+  "message_flow": [
+    {
+      "seq": 1,
+      "from": "New MME/SGSN",
+      "to": "Old MME/SGSN",
+      "message": "IdentificationRequest",
+      "mandatory_ies": []
+    },
+    {
+      "seq": 2,
+      "from": "Old MME/SGSN",
+      "to": "New MME/SGSN",
+      "message": "IdentificationResponse",
+      "mandatory_ies": [
+        "Cause"
+      ]
+    }
+  ]
+}

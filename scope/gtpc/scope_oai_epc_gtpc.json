@@ -1,0 +1,15 @@
+{
+  "scope_name": "oai-epc-gtpc-2021w40",
+  "targets": [
+    {
+      "name": "oai_epc_gtpc",
+      "version": "spgwc@2021.w29 / spgwu@2021.w40 (testbed images v1.2.0)",
+      "protocol": "gtpc",
+      "target_codebase": "target/openairinterface_code/openair-epc-fed",
+      "scan_dirs": [
+        "component/oai-spgwc/src/gtpv2c/",
+        "component/oai-spgwu-tiny/src/gtpv2c/"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+ARPING 192.168.72.135
+42 bytes from 12:0c:51:d4:48:6d (192.168.72.135): index=0 time=17.500 msec
+42 bytes from 12:0c:51:d4:48:6d (192.168.72.135): index=1 time=7.854 msec
+
+--- 192.168.72.135 statistics ---
+2 packets transmitted, 2 packets received,   0% unanswered (0 extra)
+rtt min/avg/max/std-dev = 7.854/12.677/17.500/4.823 ms

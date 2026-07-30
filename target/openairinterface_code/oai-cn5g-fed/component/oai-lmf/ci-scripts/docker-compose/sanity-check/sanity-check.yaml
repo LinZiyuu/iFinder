@@ -1,0 +1,50 @@
+# SPDX-License-Identifier: MIT
+
+# OAI CN Configuration File
+### This file can be used by all OAI NFs
+### Some fields are specific to an NF and will be ignored by other NFs
+
+## NOTE ON YAML ANCHORS ##
+# We use YAML anchors to ease the configuration and to avoid duplicating parts of the configuration.
+# This is especially true for the SNSSAIs, as we have to define them for multiple NFs.
+# Please note that the use of anchors is not mandatory, and you can define the SNSSAI in each NF yourself.
+# You can read more about anchors here: https://yaml.org/spec/1.2.2/#anchors-and-aliases
+
+############# Common configuration
+
+# Log level for all the NFs
+log_level:
+  general: debug
+
+# If you enable registration, the other NFs will use the NRF discovery mechanism
+register_nf:
+  general: yes
+
+http_version: 2
+
+############## SBI Interfaces
+### Each NF takes its local SBI interfaces and remote interfaces from here, unless it gets them using NRF discovery mechanisms
+nfs:
+  nrf:
+    host: cicd-oai-nrf
+    sbi:
+      port: 8080
+      api_version: v1
+      interface_name: eth0
+  lmf:
+    host: cicd-oai-lmf
+    sbi:
+      port: 8080
+      api_version: v1
+      interface_name: eth0
+
+lmf:
+  http_threads_count: 8
+  gnb_id_bits_count: 28
+  num_gnb: 1
+  trp_info_wait_ms: 10000
+  positioning_wait_ms: 10000
+  measurement_wait_ms: 10000
+  support_features:
+    request_trp_info: no
+    determine_num_gnb: yes

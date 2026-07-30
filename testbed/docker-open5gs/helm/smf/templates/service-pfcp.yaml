@@ -1,0 +1,19 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "common.names.fullname" . }}-service-pfcp
+  namespace: {{ include "common.names.namespace" . }}
+  annotations:
+    {{- if eq .Values.services.pfcp.provider "MetalLB" }}
+    metallb.universe.tf/loadBalancerIPs: {{ .Values.services.pfcp.loadBalancerIP }}
+    {{- end }}
+spec:
+  selector:
+    nf: smf
+  ports:
+    - name: pfcp
+      port: 8805
+      targetPort: 8805
+      protocol: UDP
+  type: {{ .Values.services.pfcp.type }}

@@ -1,0 +1,23 @@
+{
+  "ie_name": "DownlinkDataReport",
+  "ie_type_id": 83,
+  "is_grouped": true,
+  "sub_ies": [
+    {
+      "name": "DownlinkDataServiceInformation",
+      "ie_type_id": 45
+    },
+    {
+      "name": "PDRID",
+      "ie_type_id": 56
+    },
+    {
+      "name": "DLDataPacketsSize",
+      "ie_type_id": 250
+    },
+    {
+      "name": "DataStatus",
+      "ie_type_id": 260
+    }
+  ]
+}

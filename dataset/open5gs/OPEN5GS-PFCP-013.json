@@ -1,0 +1,49 @@
+{
+  "id": "OPEN5GS-PFCP-013",
+  "aliases": [
+    "GH-3207/upf_poc/poc0"
+  ],
+  "source": {
+    "paper_ref": null,
+    "issue_url": "https://github.com/open5gs/open5gs/issues/3207",
+    "fix_pr_url": null,
+    "cve": null,
+    "disclosure_date": "2024-05-18",
+    "reporter": "shellwayxw"
+  },
+  "target": {
+    "project": "open5gs",
+    "nf": "UPF",
+    "interface": "N4/PFCP",
+    "vuln_version": "v2.4.14",
+    "vuln_commit": "v2.4.14",
+    "build": "default (assertions enabled)",
+    "config": "configs/open5gs/upf.yaml",
+    "docker_image": null
+  },
+  "classification": {
+    "cwe": "CWE-617",
+    "vuln_type": "assert-abort (invalid flag combination)",
+    "ifinder_pattern": "PB1",
+    "impact": "DoS (crash)"
+  },
+  "trigger": {
+    "procedure": "Session Establishment / Modification (session lookup by F-SEID)",
+    "message": "PFCP message carrying a structurally-valid F-SEID IE whose flag byte is V4=0 AND V6=0 (an illegal flag combination per spec: 'at least one of V4, V6 shall be set')",
+    "ie_path": "F-SEID IE -> flag byte",
+    "field": "F-SEID flag byte = 0x00 \u2014 semantically invalid value (spec requires V4|V6). open5gs uses the flags directly as a control-flow selector inside ogs_pfcp_f_seid_to_ip (which then returns OGS_ERROR), and the caller asserts on the OK return instead of range-checking the flag combination. PB1 'Invalid Value' (conflicting flag combination \u2014 exact term from the pattern definition).",
+    "precondition": "PFCP association established (association_setup is sent first in the PoC)"
+  },
+  "ground_truth": {
+    "crash_site": {
+      "file": "src/upf/context.c",
+      "line": 280,
+      "function": "upf_sess_find_by_smf_n4_f_seid"
+    },
+    "sanitizer": null,
+    "crash_type": "reachable assertion: `OGS_OK == ogs_pfcp_f_seid_to_ip(f_seid, &key.ip)' failed -> abort",
+    "call_stack": [
+      "upf_sess_find_by_smf_n4_f_seid src/upf/context.c:280"
+    ]
+  }
+}

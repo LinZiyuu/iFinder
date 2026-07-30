@@ -1,0 +1,17 @@
+@startuml
+title Npcf_PolicyAuthorization_Create Service Operation
+
+participant NF_Service_Consumer
+participant Npcf_PolicyAuthorization
+participant Npcf_SMPolicyControl
+participant SMF
+
+NF_Service_Consumer -> Npcf_PolicyAuthorization: Send Request (e.g., Initial provisioning of traffic routing information)
+Npcf_PolicyAuthorization <-> Npcf_SMPolicyControl: Session binding request (Identify PDU session)
+Npcf_PolicyAuthorization -> Npcf_SMPolicyControl: Create/Modify PCC Rules
+Npcf_SMPolicyControl -> SMF: Npcf_SMPolicyControl_Update Request
+Npcf_SMPolicyControl <- SMF: Npcf_SMPolicyControl_Update Response
+Npcf_SMPolicyControl -> Npcf_PolicyAuthorization: PCC Rules Created/Modified
+Npcf_PolicyAuthorization -> NF_Service_Consumer: Return Response (Authorized)
+
+@enduml

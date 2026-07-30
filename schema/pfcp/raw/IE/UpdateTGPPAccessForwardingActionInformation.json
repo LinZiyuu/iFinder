@@ -1,0 +1,23 @@
+{
+  "ie_name": "UpdateTGPPAccessForwardingActionInformation",
+  "ie_type_id": 175,
+  "is_grouped": true,
+  "sub_ies": [
+    {
+      "name": "URRID",
+      "ie_type_id": 81
+    },
+    {
+      "name": "FARID",
+      "ie_type_id": 108
+    },
+    {
+      "name": "Weight",
+      "ie_type_id": 173
+    },
+    {
+      "name": "Priority",
+      "ie_type_id": 174
+    }
+  ]
+}

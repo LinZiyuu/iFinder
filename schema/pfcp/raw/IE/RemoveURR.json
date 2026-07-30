@@ -1,0 +1,11 @@
+{
+  "ie_name": "RemoveURR",
+  "ie_type_id": 17,
+  "is_grouped": true,
+  "sub_ies": [
+    {
+      "name": "URRID",
+      "ie_type_id": 81
+    }
+  ]
+}

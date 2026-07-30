@@ -1,0 +1,12 @@
+{
+  "message_name": "DeleteIndirectDataForwardingTunnelRequest",
+  "Direction": "MME -> SGW (S11)",
+  "ies": [
+    {
+      "name": "PrivateExtension",
+      "requirement": "Optional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    }
+  ]
+}

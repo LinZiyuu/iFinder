@@ -1,0 +1,42 @@
+{
+  "message_name": "NodeReportRequest",
+  "Direction": "UPF -> SMF",
+  "ies": [
+    {
+      "name": "NodeID",
+      "requirement": "Mandatory",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "NodeReportType",
+      "requirement": "Mandatory",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "UserPlanePathFailureReport",
+      "requirement": "Optional",
+      "multiplicity": "Single",
+      "is_grouped": true
+    },
+    {
+      "name": "UserPlanePathRecoveryReport",
+      "requirement": "Optional",
+      "multiplicity": "Single",
+      "is_grouped": true
+    },
+    {
+      "name": "ClockDriftReport",
+      "requirement": "Optional",
+      "multiplicity": "List",
+      "is_grouped": true
+    },
+    {
+      "name": "GTPUPathQoSReport",
+      "requirement": "Optional",
+      "multiplicity": "List",
+      "is_grouped": true
+    }
+  ]
+}

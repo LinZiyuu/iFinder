@@ -1,0 +1,78 @@
+{
+  "message_name": "SessionReportRequest",
+  "Direction": "UPF -> SMF",
+  "ies": [
+    {
+      "name": "ReportType",
+      "requirement": "Mandatory",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "DownlinkDataReport",
+      "requirement": "Optional",
+      "multiplicity": "Single",
+      "is_grouped": true
+    },
+    {
+      "name": "UsageReport",
+      "requirement": "Optional",
+      "multiplicity": "List",
+      "is_grouped": true
+    },
+    {
+      "name": "ErrorIndicationReport",
+      "requirement": "Optional",
+      "multiplicity": "Single",
+      "is_grouped": true
+    },
+    {
+      "name": "LoadControlInformation",
+      "requirement": "Optional",
+      "multiplicity": "Single",
+      "is_grouped": true
+    },
+    {
+      "name": "OverloadControlInformation",
+      "requirement": "Optional",
+      "multiplicity": "Single",
+      "is_grouped": true
+    },
+    {
+      "name": "AdditionalUsageReportsInformation",
+      "requirement": "Optional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "PFCPSRReqFlags",
+      "requirement": "Optional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "OldCPFSEID",
+      "requirement": "Optional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "PacketRateStatusReport",
+      "requirement": "Optional",
+      "multiplicity": "Single",
+      "is_grouped": true
+    },
+    {
+      "name": "PortManagementInformationForTSC",
+      "requirement": "Optional",
+      "multiplicity": "Single",
+      "is_grouped": true
+    },
+    {
+      "name": "SessionReport",
+      "requirement": "Optional",
+      "multiplicity": "List",
+      "is_grouped": true
+    }
+  ]
+}

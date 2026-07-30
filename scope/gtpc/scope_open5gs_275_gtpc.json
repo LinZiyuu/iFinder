@@ -1,0 +1,18 @@
+{
+  "scope_name": "open5gs-gtpc-275",
+  "targets": [
+    {
+      "name": "open5gs_275_gtpc",
+      "version": "2.7.5",
+      "protocol": "gtpc",
+      "target_codebase": "target/open5gs_code/open5gs_275",
+      "scan_dirs": [
+        "lib/gtp/",
+        "src/sgwc/",
+        "src/smf/",
+        "src/mme/",
+        "lib/core/"
+      ]
+    }
+  ]
+}

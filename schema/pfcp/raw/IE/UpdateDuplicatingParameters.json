@@ -1,0 +1,23 @@
+{
+  "ie_name": "UpdateDuplicatingParameters",
+  "ie_type_id": 105,
+  "is_grouped": true,
+  "sub_ies": [
+    {
+      "name": "TransportLevelMarking",
+      "ie_type_id": 30
+    },
+    {
+      "name": "ForwardingPolicy",
+      "ie_type_id": 41
+    },
+    {
+      "name": "DestinationInterface",
+      "ie_type_id": 42
+    },
+    {
+      "name": "OuterHeaderCreation",
+      "ie_type_id": 84
+    }
+  ]
+}

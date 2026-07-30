@@ -1,0 +1,82 @@
+# PFCP (Sx) + GTP-C test stack — SPGW-C + SPGW-U only, extracted from
+# ../inria-oai-mme-legacy/docker-compose.yml (MME/HSS/Cassandra/trf-gen removed; not
+# needed because iFinder/you send crafted PFCP & GTP-C packets straight at the SPGW).
+#
+#   SPGW-C  192.168.61.196  : PFCP/Sx 8805/udp,  GTP-C/S11 2123/udp
+#   SPGW-U  192.168.61.197  : PFCP/Sx 8805/udp,  GTP-U      2152/udp
+#
+# Images point at the pullable DockerHub tags (v1.2.0) so `docker compose up -d` works with no
+# retag. NOTE: the source pulled for analysis is spgwc@2021.w29 / spgwu@2021.w40 — minor version
+# skew vs the v1.2.0 runtime image (fine for live testing; rebuild w29/w40 images for exact match).
+
+services:
+    oai_spgwc:
+        image: oaisoftwarealliance/oai-spgwc:v1.2.0
+        privileged: true
+        container_name: prod-oai-spgwc
+        networks:
+            public_net:
+                ipv4_address: 192.168.61.196
+        environment:
+            TZ: Europe/Paris
+            SGW_INTERFACE_NAME_FOR_S11: eth0
+            PGW_INTERFACE_NAME_FOR_SX: eth0
+            DEFAULT_DNS_IPV4_ADDRESS: 193.51.196.138
+            DEFAULT_DNS_SEC_IPV4_ADDRESS: 138.96.0.210
+            PUSH_PROTOCOL_OPTION: 'true'
+            APN_NI_1: oai.ipv4
+            APN_NI_2: oai2.ipv4
+            DEFAULT_APN_NI_1: oai.ipv4
+            UE_IP_ADDRESS_POOL_1: '12.1.1.2 - 12.1.1.254'
+            UE_IP_ADDRESS_POOL_2: '12.0.0.2 - 12.0.0.254'
+            UE_MTU_IPV4: 1500
+            MCC: '208'
+            MNC: '95'
+            MNC03: '095'
+            TAC: 1
+            GW_ID: 1
+            REALM: openairinterface.org
+        healthcheck:
+            test: /bin/bash -c "pgrep oai_spgwc"
+            interval: 10s
+            timeout: 5s
+            retries: 5
+
+    oai_spgwu:
+        image: oaisoftwarealliance/oai-spgwu-tiny:v1.2.0
+        privileged: true
+        container_name: prod-oai-spgwu-tiny
+        depends_on: [oai_spgwc]
+        networks:
+            public_net:
+                ipv4_address: 192.168.61.197
+        environment:
+            TZ: Europe/Paris
+            PID_DIRECTORY: /var/run
+            INSTANCE: 1
+            SGW_INTERFACE_NAME_FOR_S1U_S12_S4_UP: eth0
+            PGW_INTERFACE_NAME_FOR_SGI: eth0
+            SGW_INTERFACE_NAME_FOR_SX: eth0
+            SPGWC0_IP_ADDRESS: 192.168.61.196
+            NETWORK_UE_IP: '12.1.1.0/24'
+            NETWORK_UE_NAT_OPTION: 'yes'
+            MCC: '208'
+            MNC: '95'
+            MNC03: '095'
+            TAC: 1
+            GW_ID: 1
+            REALM: openairinterface.org
+        healthcheck:
+            test: /bin/bash -c "pgrep oai_spgwu"
+            interval: 10s
+            timeout: 5s
+            retries: 5
+
+networks:
+    public_net:
+        name: prod-oai-public-net
+        ipam:
+            config:
+                - subnet: 192.168.61.192/26
+        driver_opts:
+            com.docker.network.bridge.name: "cn4g-public"

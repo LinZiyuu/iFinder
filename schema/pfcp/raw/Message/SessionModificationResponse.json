@@ -1,0 +1,84 @@
+{
+  "message_name": "SessionModificationResponse",
+  "Direction": "UPF -> SMF",
+  "ies": [
+    {
+      "name": "Cause",
+      "requirement": "Mandatory",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "OffendingIE",
+      "requirement": "Optional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "CreatedPDR",
+      "requirement": "Optional",
+      "multiplicity": "List",
+      "is_grouped": true
+    },
+    {
+      "name": "LoadControlInformation",
+      "requirement": "Optional",
+      "multiplicity": "Single",
+      "is_grouped": true
+    },
+    {
+      "name": "OverloadControlInformation",
+      "requirement": "Optional",
+      "multiplicity": "Single",
+      "is_grouped": true
+    },
+    {
+      "name": "UsageReport",
+      "requirement": "Optional",
+      "multiplicity": "List",
+      "is_grouped": true
+    },
+    {
+      "name": "FailedRuleID",
+      "requirement": "Optional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "AdditionalUsageReportsInformation",
+      "requirement": "Optional",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "CreatedUpdatedTrafficEndpoint",
+      "requirement": "Optional",
+      "multiplicity": "List",
+      "is_grouped": true
+    },
+    {
+      "name": "CreatedBridgeInfoForTSC",
+      "requirement": "Optional",
+      "multiplicity": "Single",
+      "is_grouped": true
+    },
+    {
+      "name": "ATSSSControlParameters",
+      "requirement": "Optional",
+      "multiplicity": "Single",
+      "is_grouped": true
+    },
+    {
+      "name": "UpdatedPDR",
+      "requirement": "Optional",
+      "multiplicity": "List",
+      "is_grouped": true
+    },
+    {
+      "name": "PacketRateStatusReport",
+      "requirement": "Optional",
+      "multiplicity": "List",
+      "is_grouped": true
+    }
+  ]
+}

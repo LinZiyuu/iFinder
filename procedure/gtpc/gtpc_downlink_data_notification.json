@@ -1,0 +1,34 @@
+{
+  "procedure_id": "GTPC_Downlink_Data_Notification",
+  "direction": "SGW <-> MME/SGSN",
+  "dependency_procedures": [
+    "GTPC_Create_Session"
+  ],
+  "message_flow": [
+    {
+      "seq": 1,
+      "from": "SGW",
+      "to": "MME/SGSN",
+      "message": "DownlinkDataNotification",
+      "mandatory_ies": []
+    },
+    {
+      "seq": 2,
+      "from": "MME/SGSN",
+      "to": "SGW",
+      "message": "DownlinkDataNotificationAcknowledge",
+      "mandatory_ies": [
+        "Cause"
+      ]
+    },
+    {
+      "seq": 3,
+      "from": "MME/SGSN",
+      "to": "SGW",
+      "message": "DownlinkDataNotificationFailureIndication",
+      "mandatory_ies": [
+        "Cause"
+      ]
+    }
+  ]
+}

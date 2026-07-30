@@ -1,0 +1,30 @@
+{
+  "procedure_id": "GTPC_MBMS_Session_Start",
+  "direction": "MBMS GW <-> MME/SGSN",
+  "dependency_procedures": [],
+  "message_flow": [
+    {
+      "seq": 1,
+      "from": "MBMS GW",
+      "to": "MME/SGSN",
+      "message": "MBMSSessionStartRequest",
+      "mandatory_ies": [
+        "FullyQualifiedTEID",
+        "TMGI",
+        "MBMSSessionDuration",
+        "BearerQoS",
+        "MBMSServiceArea",
+        "MBMSIPMulticastDistribution"
+      ]
+    },
+    {
+      "seq": 2,
+      "from": "MME/SGSN",
+      "to": "MBMS GW",
+      "message": "MBMSSessionStartResponse",
+      "mandatory_ies": [
+        "Cause"
+      ]
+    }
+  ]
+}

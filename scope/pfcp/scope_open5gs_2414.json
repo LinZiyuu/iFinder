@@ -1,0 +1,18 @@
+{
+  "scope_name": "open5gs-pfcp-2414",
+  "targets": [
+    {
+      "name": "open5gs_2414",
+      "version": "2.4.14",
+      "target_codebase": "target/open5gs_code/open5gs_2414",
+      "scan_dirs": [
+        "lib/pfcp/",
+        "lib/core/",
+        "lib/ipfw/",
+        "src/smf/",
+        "src/upf/"
+      ],
+      "protocol": "pfcp"
+    }
+  ]
+}

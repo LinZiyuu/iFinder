@@ -1,0 +1,17 @@
+# Open5GS UPF acting as PGW-U (4G EPC) — Sxb PFCP from SMF/PGW-C, GTP-U.
+# Pinned to 10.100.2.14. Creates the `ogstun` device at startup, so the container needs
+# NET_ADMIN + privileged (see docker-compose.yml), mirroring the 5G UPF in docker-open5gs.
+global:
+  max:
+    ue: 1024
+
+upf:
+  pfcp:
+    server:
+      - address: 10.100.2.14
+  gtpu:
+    server:
+      - address: 10.100.2.14
+  session:
+    - subnet: 10.45.0.0/16
+      gateway: 10.45.0.1

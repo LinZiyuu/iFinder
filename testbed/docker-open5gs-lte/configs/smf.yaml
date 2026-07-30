@@ -1,0 +1,36 @@
+# Open5GS SMF acting as PGW-C (4G EPC) — S5/S8 GTP-C from SGW-C, Sxb PFCP to UPF/PGW-U,
+# Gx Diameter to PCRF. Pinned to 10.100.2.13 -> iFinder's EA maps service `smf` to NF "PGW-C".
+# The converged open5gs SMF registers over SBI at startup and aborts if it has no NRF, so a
+# minimal NRF (10.100.2.7) is included and pointed to here — even though this is a 4G EPC.
+global:
+  max:
+    ue: 1024
+
+smf:
+  sbi:
+    server:
+      - address: 10.100.2.13
+        port: 7777
+    client:
+      nrf:
+        - uri: http://10.100.2.7:7777
+  pfcp:
+    server:
+      - address: 10.100.2.13
+    client:
+      upf:
+        - address: 10.100.2.14
+  gtpc:
+    server:
+      - address: 10.100.2.13
+  gtpu:
+    server:
+      - address: 10.100.2.13
+  session:
+    - subnet: 10.45.0.0/16
+      gateway: 10.45.0.1
+  dns:
+    - 8.8.8.8
+    - 8.8.4.4
+  mtu: 1400
+  freeDiameter: /open5gs/conf/smf.conf

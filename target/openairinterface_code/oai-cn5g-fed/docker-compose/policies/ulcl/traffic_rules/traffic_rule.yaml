@@ -1,0 +1,15 @@
+# SPDX-License-Identifier: LicenseRef-CSSL-1.0
+
+edge-scenario:
+  routeToLocs:
+  - dnai: access 
+  - dnai: ulcl
+  - dnai: aupf2
+  - dnai: edge
+
+internet-scenario:
+  routeToLocs:
+    - dnai: access
+    - dnai: ulcl
+    - dnai: aupf1
+    - dnai: internet

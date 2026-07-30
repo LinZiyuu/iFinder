@@ -1,0 +1,11 @@
+{
+  "ie_name": "ATSSSLLParameters",
+  "ie_type_id": 226,
+  "is_grouped": true,
+  "sub_ies": [
+    {
+      "name": "ATSSSLLInformation",
+      "ie_type_id": 231
+    }
+  ]
+}

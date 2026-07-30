@@ -1,0 +1,51 @@
+{
+  "id": "OPEN5GS-PFCP-014",
+  "aliases": [
+    "GH-2128"
+  ],
+  "source": {
+    "paper_ref": null,
+    "issue_url": "https://github.com/open5gs/open5gs/issues/2128",
+    "fix_pr_url": null,
+    "cve": null,
+    "disclosure_date": "2023-03-03",
+    "reporter": "pventuzelo (FuzzingLabs)"
+  },
+  "target": {
+    "project": "open5gs",
+    "nf": "UPF",
+    "interface": "N4/PFCP",
+    "vuln_version": "v2.4.14",
+    "vuln_commit": "v2.4.14",
+    "build": "default (assertions enabled); Ubuntu 20.04 focal docker",
+    "config": "configs/open5gs/upf.yaml",
+    "docker_image": null
+  },
+  "classification": {
+    "cwe": "CWE-617",
+    "vuln_type": "assert-abort (state-machine 'should not be reached' on out-of-sequence message)",
+    "ifinder_pattern": "PB2",
+    "impact": "DoS (crash)"
+  },
+  "trigger": {
+    "procedure": null,
+    "message": "PFCP message with Message Type = 4 (PFD Management Response). Spec-defined type but UPF normally never receives it \u2014 it would only be valid as a response to a PFD Management Request the UPF sent, so without a matching outstanding xact it arrives 'out of sequence'.",
+    "ie_path": "PFCP header Message Type field (dispatched through the transaction state machine)",
+    "field": "Message Type=4 has no outstanding transaction in the UPF's xact table. After 'Not implemented PFCPv2 Message Type(4)' is logged at xact.c:747 the dispatcher continues into ogs_pfcp_xact_find_by_xid, which queries the xact stage; with no matching xact the stage defaults to 0 -> 'Unexpected stage 0' (xact.c:778) -> 'should not be reached' assertion at xact.c:779. PB2 'Invalid State' \u2014 the crash is in a state-dependent transaction lookup whose precondition ('transaction must be initialized for this type') is violated. The intermediate WARNING explicitly mentions 'stage', which is PB2's element name.",
+    "precondition": "None \u2014 pre-association, unauthenticated UDP datagram to PFCP/8805. The 'invalid state' is the implicit precondition that no outstanding xact for this type exists."
+  },
+  "ground_truth": {
+    "crash_site": {
+      "file": "lib/pfcp/xact.c",
+      "line": 779,
+      "function": "ogs_pfcp_xact_find_by_xid"
+    },
+    "sanitizer": null,
+    "crash_type": "reachable assertion: 'should not be reached' (after 'Not implemented PFCPv2 Message Type(4)' + 'Unexpected stage 0')",
+    "call_stack": [
+      "ogs_pfcp_xact_find_by_xid lib/pfcp/xact.c:779",
+      "ogs_pfcp_xact_receive lib/pfcp/xact.c",
+      "ogs_fsm_dispatch lib/core/ogs-fsm.c"
+    ]
+  }
+}

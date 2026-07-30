@@ -1,0 +1,23 @@
+{
+  "ie_name": "ApplicationDetectionInformation",
+  "ie_type_id": 68,
+  "is_grouped": true,
+  "sub_ies": [
+    {
+      "name": "ApplicationID",
+      "ie_type_id": 24
+    },
+    {
+      "name": "PDRID",
+      "ie_type_id": 56
+    },
+    {
+      "name": "ApplicationInstanceID",
+      "ie_type_id": 91
+    },
+    {
+      "name": "FlowInformation",
+      "ie_type_id": 92
+    }
+  ]
+}

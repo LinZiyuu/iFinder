@@ -1,0 +1,71 @@
+# SPDX-License-Identifier: Apache-2.0
+# SMF config for the SD-Core SMF(v3.0.1) + UPF(v2.1.2) docker-compose testbed.
+#
+# omec SMF v3.0.1 does NOT take a static UPF list. It polls the webconsole at
+#   GET {webuiUri}/nfconfig/session-management   (every 5s)
+# to learn the SNSSAI + UPF (hostname/port) from the provisioned network slice,
+# then it initiates the N4/PFCP association to that UPF on its own.
+info:
+  version: 1.0.0
+  description: SMF local configuration (sd-core testbed)
+
+configuration:
+  smfName: SMF
+
+  # --- behaviour switches that matter for this minimal testbed ---
+  enableDBStore: false        # no subscriber store in Mongo
+  enableUPFAdapter: false     # IMPORTANT: send PFCP straight over UDP to the UPF.
+                              # If true, SMF would POST PFCP to http://upf-adapter:8090
+                              # (a separate NF we are deliberately not running).
+  enableNrfCaching: false
+
+  # SMF pulls slice + UPF info from here. Service name "webconsole" resolves via
+  # docker DNS; the NFConfig server listens on :5001 inside the container.
+  webuiUri: http://webconsole:5001
+
+  # MUST be present: SMF dereferences *KafkaInfo.EnableKafka on the PFCP path,
+  # so a nil pointer (omitted block) would panic. Kept disabled.
+  kafkaInfo:
+    enableKafka: false
+
+  # Harmless even with enableDBStore:false.
+  mongodb:
+    name: sdcore_smf
+    url: mongodb://mongo:27017
+
+  sbi:
+    scheme: http
+    registerIPv4: smf         # docker service name -> SMF container IP
+    bindingIPv4: smf
+    port: 29502
+  serviceNameList:
+    - nsmf-pdusession
+    - nsmf-event-exposure
+    - nsmf-oam
+
+  # N4/PFCP source endpoint of the SMF (CP NodeID). "smf" resolves to this
+  # container's IP; SMF binds the PFCP UDP server here on port 8805.
+  pfcp:
+    addr: smf
+
+  # NRF is not deployed in this 2-NF testbed. SMF registration runs in a
+  # background goroutine with retry/backoff, so an unreachable NRF only produces
+  # warning logs and does NOT block the N4 association from coming up.
+  nrfUri: http://nrf:29510
+
+logger:
+  SMF:
+    debugLevel: info
+    ReportCaller: false
+  PFCP:
+    debugLevel: debug
+    ReportCaller: false
+  NAS:
+    debugLevel: info
+    ReportCaller: false
+  NGAP:
+    debugLevel: info
+    ReportCaller: false
+  OpenApi:
+    debugLevel: info
+    ReportCaller: false

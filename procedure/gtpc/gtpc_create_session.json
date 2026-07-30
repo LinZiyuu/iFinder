@@ -1,0 +1,51 @@
+{
+  "procedure_id": "GTPC_Create_Session",
+  "direction": "MME/SGSN <-> SGW <-> PGW",
+  "dependency_procedures": [],
+  "message_flow": [
+    {
+      "seq": 1,
+      "from": "MME/SGSN",
+      "to": "SGW",
+      "message": "CreateSessionRequest",
+      "mandatory_ies": [
+        "RATType",
+        "FullyQualifiedTEID",
+        "AccessPointName",
+        "BearerContext"
+      ]
+    },
+    {
+      "seq": 2,
+      "from": "SGW",
+      "to": "PGW",
+      "message": "CreateSessionRequest",
+      "mandatory_ies": [
+        "RATType",
+        "FullyQualifiedTEID",
+        "AccessPointName",
+        "BearerContext"
+      ]
+    },
+    {
+      "seq": 3,
+      "from": "PGW",
+      "to": "SGW",
+      "message": "CreateSessionResponse",
+      "mandatory_ies": [
+        "Cause",
+        "BearerContext"
+      ]
+    },
+    {
+      "seq": 4,
+      "from": "SGW",
+      "to": "MME/SGSN",
+      "message": "CreateSessionResponse",
+      "mandatory_ies": [
+        "Cause",
+        "BearerContext"
+      ]
+    }
+  ]
+}

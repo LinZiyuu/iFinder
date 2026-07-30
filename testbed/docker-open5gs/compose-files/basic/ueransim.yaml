@@ -1,0 +1,43 @@
+# UERANSIM gNB + UE fixture for the open5gs basic stack.
+# Attaches to the bridge created by docker-compose.yaml (network "open5gs", 10.33.33.0/24).
+# Image is reused from free5gc-compose (UERANSIM is core-network-agnostic).
+#
+# Run (after the core is up AND register-subscriber.sh has added the subscriber):
+#   docker compose -f compose-files/basic/ueransim.yaml --env-file .env up -d
+# Verify:
+#   docker logs open5gs-ue | grep -i "PDU Session establishment is successful"
+#   docker logs open5gs-smf | grep -i "session"     # SMF now holds a session
+services:
+  gnb:
+    image: free5gc/ueransim:latest
+    container_name: open5gs-gnb
+    command: ./nr-gnb -c ./config/gnb.yaml
+    volumes:
+      - ../../configs/basic/gnb.yaml:/ueransim/config/gnb.yaml
+    cap_add:
+      - NET_ADMIN
+    networks:
+      open5gs:
+        ipv4_address: 10.33.33.20
+
+  ue:
+    image: free5gc/ueransim:latest
+    container_name: open5gs-ue
+    # small delay so the gNB has finished NGSetup before the UE registers
+    command: sh -c "sleep 8 && ./nr-ue -c ./config/ue.yaml"
+    volumes:
+      - ../../configs/basic/ue.yaml:/ueransim/config/ue.yaml
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun
+    depends_on:
+      - gnb
+    networks:
+      open5gs:
+        ipv4_address: 10.33.33.21
+
+networks:
+  open5gs:
+    external: true
+    name: open5gs

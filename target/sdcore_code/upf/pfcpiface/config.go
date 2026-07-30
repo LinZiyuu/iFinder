@@ -1,0 +1,199 @@
+// SPDX-License-Identifier: Apache-2.0
+// Copyright 2022-present Open Networking Foundation
+
+package pfcpiface
+
+import (
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
+
+	"net"
+	"time"
+
+	"encoding/json"
+	"os"
+	"regexp"
+)
+
+const (
+	// Default values
+	maxReqRetriesDefault = 5
+	respTimeoutDefault   = 2 * time.Second
+	hbIntervalDefault    = 5 * time.Second
+	readTimeoutDefault   = 15 * time.Second
+)
+
+// Conf : Json conf struct.
+type Conf struct {
+	Mode                     string           `json:"mode"`
+	AccessIface              IfaceType        `json:"access"`
+	CoreIface                IfaceType        `json:"core"`
+	CPIface                  CPIfaceInfo      `json:"cpiface"`
+	EnableGtpuPathMonitoring bool             `json:"enable_gtpu_path_monitoring"`
+	EnableFlowMeasure        bool             `json:"measure_flow"`
+	SimInfo                  SimModeInfo      `json:"sim"`
+	ConnTimeout              uint32           `json:"conn_timeout"` // TODO(max): unused, remove
+	ReadTimeout              uint32           `json:"read_timeout"` // TODO(max): convert to duration string
+	EnableNotifyBess         bool             `json:"enable_notify_bess"`
+	EnableEndMarker          bool             `json:"enable_end_marker"`
+	NotifySockAddr           string           `json:"notify_sockaddr"`
+	EndMarkerSockAddr        string           `json:"endmarker_sockaddr"`
+	LogLevel                 zapcore.Level    `json:"log_level"`
+	QciQosConfig             []QciQosConfig   `json:"qci_qos_config"`
+	SliceMeterConfig         SliceMeterConfig `json:"slice_rate_limit_config"`
+	MaxReqRetries            uint8            `json:"max_req_retries"`
+	RespTimeout              string           `json:"resp_timeout"`
+	EnableHBTimer            bool             `json:"enable_hbTimer"`
+	HeartBeatInterval        string           `json:"heart_beat_interval"`
+	N4Addr                   string           `json:"n4_addr"`
+}
+
+// QciQosConfig : Qos configured attributes.
+type QciQosConfig struct {
+	QCI                uint8  `json:"qci"`
+	CBS                uint32 `json:"cbs"`
+	PBS                uint32 `json:"pbs"`
+	EBS                uint32 `json:"ebs"`
+	BurstDurationMs    uint32 `json:"burst_duration_ms"`
+	SchedulingPriority uint32 `json:"priority"`
+}
+
+type SliceMeterConfig struct {
+	N6RateBps    uint64 `json:"n6_bps"`
+	N6BurstBytes uint64 `json:"n6_burst_bytes"`
+	N3RateBps    uint64 `json:"n3_bps"`
+	N3BurstBytes uint64 `json:"n3_burst_bytes"`
+}
+
+// SimModeInfo : Sim mode attributes.
+type SimModeInfo struct {
+	MaxSessions uint32 `json:"max_sessions"`
+	StartUEIP   net.IP `json:"start_ue_ip"`
+	StartENBIP  net.IP `json:"start_enb_ip"`
+	StartAUPFIP net.IP `json:"start_aupf_ip"`
+	N6AppIP     net.IP `json:"n6_app_ip"`
+	N9AppIP     net.IP `json:"n9_app_ip"`
+	StartN3TEID string `json:"start_n3_teid"`
+	StartN9TEID string `json:"start_n9_teid"`
+	UplinkMBR   uint64 `json:"uplink_mbr"`
+	DownlinkMBR uint64 `json:"downlink_mbr"`
+	UplinkGBR   uint64 `json:"uplink_gbr"`
+	DownlinkGBR uint64 `json:"downlink_gbr"`
+}
+
+// CPIfaceInfo : CPIface interface settings.
+type CPIfaceInfo struct {
+	Peers           []string `json:"peers"`
+	UseFQDN         bool     `json:"use_fqdn"`
+	NodeID          string   `json:"hostname"`
+	HTTPPort        string   `json:"http_port"`
+	Dnn             string   `json:"dnn"`
+	EnableUeIPAlloc bool     `json:"enable_ue_ip_alloc"`
+	UEIPPool        string   `json:"ue_ip_pool"`
+}
+
+// IfaceType : Gateway interface struct.
+type IfaceType struct {
+	IfName string `json:"ifname"`
+}
+
+// validateConf checks that the given config reaches a baseline of correctness.
+func validateConf(conf Conf) error {
+	// Mode is only relevant in a BESS deployment.
+	validModes := map[string]struct{}{
+		"af_xdp":    {},
+		"af_packet": {},
+		"cndp":      {},
+		"dpdk":      {},
+		"sim":       {},
+	}
+	if _, ok := validModes[conf.Mode]; !ok {
+		return ErrInvalidArgumentWithReason("conf.Mode", conf.Mode, "invalid mode")
+	}
+
+	if conf.CPIface.EnableUeIPAlloc {
+		_, _, err := net.ParseCIDR(conf.CPIface.UEIPPool)
+		if err != nil {
+			return ErrInvalidArgumentWithReason("conf.UEIPPool", conf.CPIface.UEIPPool, err.Error())
+		}
+	}
+
+	for _, peer := range conf.CPIface.Peers {
+		ip := net.ParseIP(peer)
+		if ip == nil {
+			return ErrInvalidArgumentWithReason("conf.CPIface.Peers", peer, "invalid IP")
+		}
+	}
+
+	if _, err := time.ParseDuration(conf.RespTimeout); err != nil {
+		return ErrInvalidArgumentWithReason("conf.RespTimeout", conf.RespTimeout, "invalid duration")
+	}
+
+	if conf.ReadTimeout == 0 {
+		return ErrInvalidArgumentWithReason("conf.ReadTimeout", conf.ReadTimeout, "invalid duration")
+	}
+
+	if conf.MaxReqRetries == 0 {
+		return ErrInvalidArgumentWithReason("conf.MaxReqRetries", conf.MaxReqRetries, "invalid number of retries")
+	}
+
+	if conf.EnableHBTimer {
+		if _, err := time.ParseDuration(conf.HeartBeatInterval); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// Remove comments from JSONC file
+func removeComments(jsonc string) string {
+	commentRegex := regexp.MustCompile(`(?m)//.*$|/\*.*?\*/`)
+	return commentRegex.ReplaceAllString(jsonc, "")
+}
+
+// LoadConfigFile : parse jsonc file and populate corresponding struct
+func LoadConfigFile(filepath string) (Conf, error) {
+	// Open up file.
+	jsoncFile, err := os.ReadFile(filepath)
+	if err != nil {
+		return Conf{}, err
+	}
+
+	jsonData := removeComments(string(jsoncFile))
+
+	var conf Conf
+	conf.LogLevel = zap.InfoLevel
+
+	err = json.Unmarshal([]byte(jsonData), &conf)
+	if err != nil {
+		return Conf{}, err
+	}
+
+	// Set defaults, when missing.
+	if conf.RespTimeout == "" {
+		conf.RespTimeout = respTimeoutDefault.String()
+	}
+
+	if conf.ReadTimeout == 0 {
+		conf.ReadTimeout = uint32(readTimeoutDefault.Seconds())
+	}
+
+	if conf.MaxReqRetries == 0 {
+		conf.MaxReqRetries = maxReqRetriesDefault
+	}
+
+	if conf.EnableHBTimer {
+		if conf.HeartBeatInterval == "" {
+			conf.HeartBeatInterval = hbIntervalDefault.String()
+		}
+	}
+
+	// Perform basic validation.
+	err = validateConf(conf)
+	if err != nil {
+		return Conf{}, err
+	}
+
+	return conf, nil
+}

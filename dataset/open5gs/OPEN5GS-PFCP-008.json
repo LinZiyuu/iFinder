@@ -1,0 +1,59 @@
+{
+  "id": "OPEN5GS-PFCP-008",
+  "aliases": [
+    "GH-3841"
+  ],
+  "source": {
+    "paper_ref": null,
+    "issue_url": "https://github.com/open5gs/open5gs/issues/3841",
+    "fix_pr_url": null,
+    "cve": null,
+    "disclosure_date": "2025-04-09",
+    "reporter": "shellwayxw"
+  },
+  "target": {
+    "project": "open5gs",
+    "nf": "UPF",
+    "interface": "N4/PFCP",
+    "vuln_version": "v2.7.5",
+    "vuln_commit": "v2.7.5",
+    "build": "ASan (meson -Db_sanitize=address)",
+    "config": "configs/open5gs/upf.yaml",
+    "docker_image": null
+  },
+  "classification": {
+    "cwe": "CWE-476",
+    "vuln_type": "null-deref (from integer overflow)",
+    "ifinder_pattern": "PA1",
+    "impact": "DoS (crash)"
+  },
+  "trigger": {
+    "procedure": "Session Establishment",
+    "message": "PFCP Session Establishment Request",
+    "ie_path": "Create PDR > PDI > SDF Filter > Flow Description",
+    "field": "Integer overflow in ogs_pfcp_parse_sdf_filter() yields a malformed/empty rule; ogs_ipfw_compile_rule() then strcmp()s a NULL token -> SEGV",
+    "precondition": "PFCP association established; session establishment"
+  },
+  "ground_truth": {
+    "crash_site": {
+      "file": "lib/ipfw/ogs-ipfw.c",
+      "line": 64,
+      "function": "ogs_ipfw_compile_rule"
+    },
+    "sanitizer": "AddressSanitizer",
+    "crash_type": "SEGV / NULL-pointer READ in strcmp (DEADLYSIGNAL, address 0x0)",
+    "root_cause": {
+      "file": null,
+      "line": null,
+      "function": "ogs_pfcp_parse_sdf_filter",
+      "note": "Integer overflow in SDF filter parsing (per issue title) produces the malformed rule consumed downstream. IMPORTANT: shares crash function with OPEN5GS-PFCP-001 (#3840) but is a DISTINCT bug \u2014 001 is a WRITE buffer overflow at ogs-ipfw.c:83; this is a NULL-deref READ at ogs-ipfw.c:64. Disambiguate matches on line + crash_type, not function alone."
+    },
+    "call_stack": [
+      "ogs_ipfw_compile_rule lib/ipfw/ogs-ipfw.c:64",
+      "ogs_pfcp_handle_create_pdr lib/pfcp/handler.c:471",
+      "upf_n4_handle_session_establishment_request src/upf/n4-handler.c:85",
+      "upf_pfcp_state_associated src/upf/pfcp-sm.c:271",
+      "ogs_fsm_dispatch lib/core/ogs-fsm.c:127"
+    ]
+  }
+}

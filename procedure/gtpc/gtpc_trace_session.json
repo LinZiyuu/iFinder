@@ -1,0 +1,27 @@
+{
+  "procedure_id": "GTPC_Trace_Session",
+  "direction": "MME/SGSN <-> SGW <-> PGW",
+  "dependency_procedures": [
+    "GTPC_Create_Session"
+  ],
+  "message_flow": [
+    {
+      "seq": 1,
+      "from": "MME/SGSN",
+      "to": "SGW",
+      "message": "TraceSessionActivation",
+      "mandatory_ies": [
+        "TraceInformation"
+      ]
+    },
+    {
+      "seq": 2,
+      "from": "MME/SGSN",
+      "to": "SGW",
+      "message": "TraceSessionDeactivation",
+      "mandatory_ies": [
+        "TraceReference"
+      ]
+    }
+  ]
+}

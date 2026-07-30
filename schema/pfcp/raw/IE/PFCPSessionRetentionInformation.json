@@ -1,0 +1,11 @@
+{
+  "ie_name": "PFCPSessionRetentionInformation",
+  "ie_type_id": 183,
+  "is_grouped": true,
+  "sub_ies": [
+    {
+      "name": "CPPFCPEntityIPAddress",
+      "ie_type_id": 185
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "ie_name": "UserPlanePathFailureReport",
+  "ie_type_id": 102,
+  "is_grouped": true,
+  "sub_ies": [
+    {
+      "name": "RemoteGTPUPeer",
+      "ie_type_id": 103
+    }
+  ]
+}

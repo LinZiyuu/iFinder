@@ -1,0 +1,50 @@
+{
+  "id": "FREE5GC-PFCP-012",
+  "aliases": [
+    "GH-free5gc-746"
+  ],
+  "source": {
+    "paper_ref": null,
+    "issue_url": "https://github.com/free5gc/free5gc/issues/746",
+    "fix_pr_url": null,
+    "cve": null,
+    "disclosure_date": "2025-11-28",
+    "reporter": "(see issue #746)"
+  },
+  "target": {
+    "project": "free5gc",
+    "nf": "UPF",
+    "interface": "N4/PFCP",
+    "vuln_version": "v3.3.0",
+    "vuln_commit": "v3.3.0",
+    "build": "default Go build; Go runtime slice-bounds check is the oracle",
+    "config": "config/upfcfg.yaml (free5gc UPF default)",
+    "docker_image": null
+  },
+  "classification": {
+    "cwe": "CWE-120",
+    "vuln_type": "slice-bounds-OOB (Go runtime panic, oversized IE length)",
+    "ifinder_pattern": "PA1",
+    "impact": "DoS (UPF crash)"
+  },
+  "trigger": {
+    "procedure": "Session Modification",
+    "message": "PFCP Session Modification Request carrying a malformed SDF Filter IE whose declared length (0x5130 = 20784) is much larger than the actual remaining buffer (~275 bytes)",
+    "ie_path": "Update PDR > PDI > SDF Filter (SDFFilterFields)",
+    "field": "SDF Filter IE length field. The parser blindly uses the attacker-declared length to slice the payload buffer (`b[:20784]` on a 275-byte buffer) without validating the length against actual buffer capacity. PA1 'Malformed Field' textbook: length/size field trusted for memory op, missing capacity check, heap-buffer-overflow on slice.",
+    "precondition": "PFCP association established + a PFCP session previously created (PoC sends Association Setup + Session Establishment first; the malicious Session Modification then triggers)"
+  },
+  "ground_truth": {
+    "crash_site": {
+      "file": "github.com/wmnsk/go-pfcp/ie/sdf-filter.go",
+      "line": 190,
+      "function": "(*SDFFilterFields).UnmarshalBinary"
+    },
+    "sanitizer": "Go runtime (slice bounds check)",
+    "crash_type": "panic: runtime error: slice bounds out of range [:20784] with capacity 275",
+    "call_stack": [
+      "(*SDFFilterFields).UnmarshalBinary go-pfcp/ie/sdf-filter.go:190",
+      "(handle Session Modification Request path) free5gc/NFs/upf/internal/pfcp/"
+    ]
+  }
+}

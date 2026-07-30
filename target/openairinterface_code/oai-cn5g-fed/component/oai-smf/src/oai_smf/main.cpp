@@ -1,0 +1,235 @@
+/*
+ * Copyright (c) 2017 Sprint
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#include "common_defs.h"
+#include "itti.hpp"
+#include "logger.hpp"
+#include "options.hpp"
+#include "pid_file.hpp"
+#include "smf_app.hpp"
+#include "smf_config.hpp"
+#include "smf-api-server.h"
+#include "pistache/endpoint.h"
+#include "pistache/http.h"
+#include "pistache/router.h"
+#include "smf-http2-server.h"
+#include "sbi_helper.hpp"
+#include "http_client.hpp"
+
+#include <iostream>
+#include <thread>
+#include <signal.h>
+#include <stdint.h>
+#include <stdlib.h>  // srand
+#include <unistd.h>  // get_pid(), pause()
+#include <chrono>
+
+using namespace oai::app::smf;
+using namespace oai::utils;
+using namespace oai::smf_server::api;
+using namespace oai::config::smf;
+using namespace std::chrono_literals;
+
+itti_mw* itti_inst    = nullptr;
+smf_app* smf_app_inst = nullptr;
+std::unique_ptr<smf_config> smf_cfg;
+SMFApiServer* smf_api_server_1                           = nullptr;
+smf_http2_server* smf_api_server_2                       = nullptr;
+std::shared_ptr<oai::http::http_client> http_client_inst = nullptr;
+std::unique_ptr<oai::config::lttng_configuration> lttng_config_yaml;
+
+void send_heartbeat_to_tasks(const uint32_t sequence);
+
+//------------------------------------------------------------------------------
+void send_heartbeat_to_tasks(const uint32_t sequence) {
+  itti_msg_ping* itti_msg = new itti_msg_ping(TASK_SMF_APP, TASK_ALL, sequence);
+  std::shared_ptr<itti_msg_ping> i = std::shared_ptr<itti_msg_ping>(itti_msg);
+  int ret                          = itti_inst->send_broadcast_msg(i);
+  if (RETURNok != ret) {
+    Logger::smf_app().error(
+        "Could not send ITTI message %s to task TASK_ALL", i->get_msg_name());
+  }
+}
+
+//------------------------------------------------------------------------------
+void my_app_signal_handler(int s) {
+  auto shutdown_start = std::chrono::system_clock::now();
+  // Setting log level arbitrary to debug to show the whole
+  // shutdown procedure in the logs even in case of off-logging
+  Logger::set_level(spdlog::level::debug);
+  Logger::system().info("Caught signal %d", s);
+
+  // Stop on-going tasks
+  if (smf_api_server_1) {
+    Logger::system().debug("Stopping HTTP/1 server.");
+    smf_api_server_1->shutdown();
+  }
+  if (smf_api_server_2) {
+    Logger::system().debug("Stopping HTTP/2 server.");
+    smf_api_server_2->stop();
+  }
+  if (smf_app_inst) {
+    smf_app_inst->stop();
+  }
+  if (itti_inst) {
+    // we have to trigger ITTI message before terminate
+    itti_inst->send_terminate_msg(TASK_SMF_APP);
+    itti_inst->wait_tasks_end();
+  }
+
+  Logger::system().debug("Freeing allocated memory...");
+  if (smf_api_server_1) {
+    delete smf_api_server_1;
+    smf_api_server_1 = nullptr;
+    Logger::system().debug("SMF API Server (HTTP/1) memory done.");
+  }
+  if (smf_api_server_2) {
+    delete smf_api_server_2;
+    smf_api_server_2 = nullptr;
+    Logger::system().debug("SMF API Server (HTTP/2) memory done.");
+  }
+
+  if (smf_app_inst) {
+    delete smf_app_inst;
+    smf_app_inst = nullptr;
+    Logger::system().debug("SMF APP memory done.");
+  }
+
+  // itti_inst is used in a lot of code without any nullPtr check
+  // it has to be deallocated last
+  if (itti_inst) {
+    delete itti_inst;
+    itti_inst = nullptr;
+    Logger::system().debug("ITTI memory done.");
+  }
+  Logger::system().info("Freeing Allocated memory done.");
+  auto elapsed = std::chrono::system_clock::now() - shutdown_start;
+  auto ms_diff = std::chrono::duration_cast<std::chrono::milliseconds>(elapsed);
+  Logger::system().info("Bye. Shutdown Procedure took %d ms", ms_diff.count());
+  exit(0);
+}
+//------------------------------------------------------------------------------
+int main(int argc, char** argv) {
+  srand(time(NULL));
+
+  // Command line options
+  if (!Options::parse(argc, argv)) {
+    std::cout << "Options::parse() failed" << std::endl;
+    return 1;
+  }
+
+  // Logger
+  const std::string conf_file_name =
+      static_cast<std::string>(Options::getlibconfigConfig());
+
+  std::cout << "Trying to read .yaml configuration file: " << conf_file_name
+            << "\n";
+  lttng_config_yaml =
+      std::make_unique<oai::config::lttng_configuration>(conf_file_name);
+  lttng_config_yaml->read_from_file();
+
+#ifdef LOGGER_CAN_USE_LTTNG
+  std::cout << "LTTNG Log Activation: " << lttng_config_yaml->is_lttng_active()
+            << "\n";
+  std::cout << "Log Level of LTTng: "
+            << lttng_config_yaml->get_lttng_log_level() << "\n";
+#else
+  std::cout << "LTTNG Tracing disabled at build-time!\n";
+  if (lttng_config_yaml->is_lttng_active())
+    std::cout << "Cannot use lttng log scheme on this build variant!\n";
+#endif
+
+  Logger::set_lttng(static_cast<bool>(lttng_config_yaml->is_lttng_active()));
+
+  Logger::init("smf", Options::getlogStdout(), Options::getlogRotFilelog());
+  Logger::smf_app().startup("Options parsed");
+
+  std::signal(SIGTERM, my_app_signal_handler);
+  std::signal(SIGINT, my_app_signal_handler);
+
+  // Config
+  smf_cfg = std::make_unique<smf_config>(
+      Options::getlibconfigConfig(), Options::getlogStdout(),
+      Options::getlogRotFilelog());
+
+  if (!smf_cfg->init()) {
+    smf_cfg->display();
+    Logger::system().error("Reading the configuration failed. Exiting.");
+    return 1;
+  }
+  smf_cfg->display();
+  Logger::set_level(smf_cfg->log_level);
+
+  // Inter-task Interface
+  itti_inst = new itti_mw();
+  itti_inst->start(smf_cfg->itti.itti_timer_sched_params);
+
+  // HTTP Client
+  http_client_inst = oai::http::http_client::create_instance(
+      Logger::smf_sbi(), smf_cfg->get_http_request_timeout(),
+      smf_cfg->sbi.if_name, smf_cfg->http_version, smf_cfg->enable_tls());
+
+  // SMF application layer
+  smf_app_inst = new smf_app(Options::getlibconfigConfig());
+  smf_app_inst->start();
+
+  // PID file
+  // Currently hard-coded value. TODO: add as config option.
+  std::string pid_file_name =
+      oai::utils::get_exe_absolute_path("/var/run", smf_cfg->instance);
+  if (!oai::utils::is_pid_file_lock_success(pid_file_name.c_str())) {
+    Logger::smf_app().error("Lock PID file %s failed\n", pid_file_name.c_str());
+    exit(-EDEADLK);
+  }
+
+  if (smf_cfg->get_http_version() == 1) {
+    // SMF Pistache API server (HTTP1)
+    Pistache::Address addr(
+        std::string(inet_ntoa(*((struct in_addr*) &smf_cfg->sbi.addr4))),
+        Pistache::Port(smf_cfg->sbi.port));
+    smf_api_server_1 = new SMFApiServer(addr, smf_app_inst);
+    smf_api_server_1->init(2);
+    std::thread smf_http1_manager(&SMFApiServer::start, smf_api_server_1);
+    // Quick fix: without sleep, http server is not ready for NF Subscribe
+    // Notify
+    std::this_thread::sleep_for(1000ms);
+    // Subscribe to be notified when UPFs become available
+    smf_app_inst->start_nf_discovery();
+    smf_http1_manager.join();
+  } else if (smf_cfg->get_http_version() == 2) {
+    // SMF NGHTTP API server (HTTP2)
+    smf_api_server_2 = new smf_http2_server(
+        oai::utils::conv::toString(smf_cfg->sbi.addr4), smf_cfg->sbi_http2_port,
+        smf_app_inst);
+    std::thread smf_http2_manager(&smf_http2_server::start, smf_api_server_2);
+    // Quick fix: without sleep, http server is not ready for NF Subscribe
+    // Notify
+    std::this_thread::sleep_for(1000ms);
+    // Subscribe to be notified when UPFs become available
+    smf_app_inst->start_nf_discovery();
+    smf_http2_manager.join();
+  }
+
+  FILE* fp             = NULL;
+  std::string filename = fmt::format("/tmp/smf_{}.status", getpid());
+  fp                   = fopen(filename.c_str(), "w+");
+  fprintf(fp, "STARTED\n");
+  fflush(fp);
+  fclose(fp);
+
+  pause();
+  return 0;
+}

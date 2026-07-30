@@ -1,0 +1,176 @@
+# Open5GS 4G/LTE EPC testbed (v2.7.5) for iFinder's Exploitation Agent (EA).
+#
+# GTP-C (S11/S5/S8, 2123/udp) + PFCP (Sxa/Sxb, 8805/udp) attack surface — this is the EA
+# testbed for the GTP-C scope `scope/gtpc/scope_open5gs_275_gtpc.json` (target `open5gs_275_gtpc`,
+# scans lib/gtp + src/{sgwc,smf,mme}). Companion to the 5G `docker-open5gs/` (same source build):
+# every 4G daemon already lives in the `base-open5gs:v2.7.5` image, so this stack just runs them
+# with mounted configs — no extra image build beyond `make base-open5gs`.
+#
+# Full EPC so the inter-NF links actually come up at idle (no eNB/UE needed):
+#   MME --S6a(Diameter)--> HSS        MME --S11(GTP-C)--> SGW-C --Sxa(PFCP)--> SGW-U
+#   SGW-C --S5(GTP-C)--> SMF/PGW-C    SMF --Sxb(PFCP)--> UPF/PGW-U   SMF --Gx(Diameter)--> PCRF
+# A minimal NRF is included because open5gs' converged SMF/PGW-C registers over SBI at startup
+# and aborts without one (even in 4G); it is not a GTP-C/PFCP target.
+#
+# EA wiring (src/ifinder/testbed.py::_nf_labels for protocol "gtpc"):
+#   * `mme`  -> NF "MME",  `sgwc` -> NF "SGW-C" (the EA's default GTP-C target), `smf` -> NF "PGW-C".
+#   * each is pinned to a host-routable ipv4_address -> the EA sends crafted GTP-C at :2123 and a
+#     crash (ogs_assert / SIGABRT) surfaces in `docker logs`. EA fuzzing needs no UE/association —
+#     the GTP-C listeners parse incoming GTPv2-C regardless.
+#
+# Usage:
+#   (cd ../docker-open5gs && make base-open5gs)     # one-time: build base-open5gs:v2.7.5
+#   docker compose -f testbed/docker-open5gs-lte/docker-compose.yml up -d
+#   ifinder run --scope scope/gtpc/scope_open5gs_275_gtpc.json --target open5gs_275_gtpc \
+#       --patterns PA1 --compose-file testbed/docker-open5gs-lte/docker-compose.yml
+#   docker compose -f testbed/docker-open5gs-lte/docker-compose.yml down -v
+name: open5gs-lte
+
+# Shared bits for every open5gs NF: run the daemon out of the base image's install prefix
+# (LD_LIBRARY_PATH so it finds libogs*.so.2; binaries under /open5gs/install/bin).
+x-open5gs: &open5gs
+  image: base-open5gs:v2.7.5
+  environment:
+    LD_LIBRARY_PATH: /open5gs/install/lib/x86_64-linux-gnu
+  restart: unless-stopped
+
+networks:
+  epc:
+    name: ifinder-open5gs-lte-epc
+    ipam:
+      config:
+        - subnet: 10.100.2.0/24
+
+services:
+  # ----- subscriber/policy store for HSS + PCRF --------------------------------
+  mongo:
+    image: mongo:8.0
+    container_name: open5gs-lte-mongo
+    command: ["mongod", "--bind_ip_all"]
+    networks:
+      epc:
+        ipv4_address: 10.100.2.2
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok || quit(1)"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 5s
+    restart: unless-stopped
+
+  # ----- NRF: SBI registry the converged SMF/PGW-C must register with ---------
+  nrf:
+    <<: *open5gs
+    container_name: open5gs-lte-nrf
+    hostname: nrf.localdomain
+    command: ["/open5gs/install/bin/open5gs-nrfd", "-c", "/open5gs/conf/nrf.yaml"]
+    networks:
+      epc:
+        ipv4_address: 10.100.2.7
+        aliases: [nrf.localdomain]
+    volumes:
+      - ./configs/nrf.yaml:/open5gs/conf/nrf.yaml:ro
+
+  # ----- HSS: S6a Diameter to MME ---------------------------------------------
+  hss:
+    <<: *open5gs
+    container_name: open5gs-lte-hss
+    hostname: hss.localdomain
+    command: ["/open5gs/install/bin/open5gs-hssd", "-c", "/open5gs/conf/hss.yaml"]
+    networks:
+      epc:
+        ipv4_address: 10.100.2.8
+        aliases: [hss.localdomain]
+    volumes:
+      - ./configs/hss.yaml:/open5gs/conf/hss.yaml:ro
+      - ./freeDiameter/hss.conf:/open5gs/conf/hss.conf:ro
+    depends_on:
+      mongo:
+        condition: service_healthy
+
+  # ----- PCRF: Gx Diameter to SMF/PGW-C ---------------------------------------
+  pcrf:
+    <<: *open5gs
+    container_name: open5gs-lte-pcrf
+    hostname: pcrf.localdomain
+    command: ["/open5gs/install/bin/open5gs-pcrfd", "-c", "/open5gs/conf/pcrf.yaml"]
+    networks:
+      epc:
+        ipv4_address: 10.100.2.9
+        aliases: [pcrf.localdomain]
+    volumes:
+      - ./configs/pcrf.yaml:/open5gs/conf/pcrf.yaml:ro
+      - ./freeDiameter/pcrf.conf:/open5gs/conf/pcrf.conf:ro
+    depends_on:
+      mongo:
+        condition: service_healthy
+
+  # ----- MME: S1AP, S11 GTP-C -> SGW-C, S6a -> HSS  (EA NF "MME") --------------
+  mme:
+    <<: *open5gs
+    container_name: open5gs-lte-mme
+    hostname: mme.localdomain
+    command: ["/open5gs/install/bin/open5gs-mmed", "-c", "/open5gs/conf/mme.yaml"]
+    networks:
+      epc:
+        ipv4_address: 10.100.2.10
+        aliases: [mme.localdomain]
+    volumes:
+      - ./configs/mme.yaml:/open5gs/conf/mme.yaml:ro
+      - ./freeDiameter/mme.conf:/open5gs/conf/mme.conf:ro
+    depends_on: [hss, sgwc]
+
+  # ----- SGW-C: S11 GTP-C from MME, Sxa PFCP -> SGW-U  (EA default GTP-C target) -
+  sgwc:
+    <<: *open5gs
+    container_name: open5gs-lte-sgwc
+    command: ["/open5gs/install/bin/open5gs-sgwcd", "-c", "/open5gs/conf/sgwc.yaml"]
+    networks:
+      epc:
+        ipv4_address: 10.100.2.11
+    volumes:
+      - ./configs/sgwc.yaml:/open5gs/conf/sgwc.yaml:ro
+
+  # ----- SGW-U: Sxa PFCP from SGW-C, GTP-U relay ------------------------------
+  sgwu:
+    <<: *open5gs
+    container_name: open5gs-lte-sgwu
+    command: ["/open5gs/install/bin/open5gs-sgwud", "-c", "/open5gs/conf/sgwu.yaml"]
+    networks:
+      epc:
+        ipv4_address: 10.100.2.12
+    volumes:
+      - ./configs/sgwu.yaml:/open5gs/conf/sgwu.yaml:ro
+
+  # ----- SMF/PGW-C: S5 GTP-C from SGW-C, Sxb PFCP -> UPF, Gx -> PCRF  (EA NF "PGW-C") -
+  smf:
+    <<: *open5gs
+    container_name: open5gs-lte-smf
+    hostname: smf.localdomain
+    command: ["/open5gs/install/bin/open5gs-smfd", "-c", "/open5gs/conf/smf.yaml"]
+    networks:
+      epc:
+        ipv4_address: 10.100.2.13
+        aliases: [smf.localdomain]
+    volumes:
+      - ./configs/smf.yaml:/open5gs/conf/smf.yaml:ro
+      - ./freeDiameter/smf.conf:/open5gs/conf/smf.conf:ro
+    depends_on: [nrf, pcrf, upf]
+
+  # ----- UPF/PGW-U: Sxb PFCP from SMF, GTP-U (creates ogstun -> needs NET_ADMIN) -
+  upf:
+    <<: *open5gs
+    container_name: open5gs-lte-upf
+    command: ["/open5gs/install/bin/open5gs-upfd", "-c", "/open5gs/conf/upf.yaml"]
+    networks:
+      epc:
+        ipv4_address: 10.100.2.14
+    volumes:
+      - ./configs/upf.yaml:/open5gs/conf/upf.yaml:ro
+    cap_add: [NET_ADMIN]
+    privileged: true
+
+volumes:
+  mongo-data:

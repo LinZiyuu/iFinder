@@ -1,0 +1,83 @@
+{
+  "ie_name": "PDNConnection",
+  "ie_type_id": 109,
+  "is_grouped": true,
+  "sub_ies": [
+    {
+      "name": "AccessPointName",
+      "ie_type_id": 71
+    },
+    {
+      "name": "APNRestriction",
+      "ie_type_id": 127
+    },
+    {
+      "name": "SelectionMode",
+      "ie_type_id": 128
+    },
+    {
+      "name": "IPAddress",
+      "ie_type_id": 74
+    },
+    {
+      "name": "EPSBearerID",
+      "ie_type_id": 73
+    },
+    {
+      "name": "AggregateMaximumBitRate",
+      "ie_type_id": 72
+    },
+    {
+      "name": "ChargingCharacteristics",
+      "ie_type_id": 95
+    },
+    {
+      "name": "ChangeReportingAction",
+      "ie_type_id": 131
+    },
+    {
+      "name": "CSGInformationReportingAction",
+      "ie_type_id": 146
+    },
+    {
+      "name": "HeNBInformationReporting",
+      "ie_type_id": 165
+    },
+    {
+      "name": "Indication",
+      "ie_type_id": 77
+    },
+    {
+      "name": "FullyQualifiedCSID",
+      "ie_type_id": 132
+    },
+    {
+      "name": "FullyQualifiedDomainName",
+      "ie_type_id": 136
+    },
+    {
+      "name": "BearerContext",
+      "ie_type_id": 93
+    },
+    {
+      "name": "AccessPointName",
+      "ie_type_id": 71
+    },
+    {
+      "name": "ChangeToReportFlags",
+      "ie_type_id": 167
+    },
+    {
+      "name": "LocalDistinguishedName",
+      "ie_type_id": 151
+    },
+    {
+      "name": "WLANOffloadabilityIndication",
+      "ie_type_id": 185
+    },
+    {
+      "name": "RemoteUEContext",
+      "ie_type_id": 191
+    }
+  ]
+}

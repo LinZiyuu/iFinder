@@ -1,0 +1,1089 @@
+{
+  "generated_at": "2026-06-03T14:06:29.984889+00:00",
+  "source_ie_dir": "schema/gtpc/raw/IE",
+  "ie_count": 143,
+  "ies": {
+    "APNAndRelativeCapacity": {
+      "ie_name": "APNAndRelativeCapacity",
+      "ie_type_id": 184,
+      "is_grouped": false,
+      "source_file": "APNAndRelativeCapacity.json"
+    },
+    "APNRateControlStatus": {
+      "ie_name": "APNRateControlStatus",
+      "ie_type_id": 204,
+      "is_grouped": false,
+      "source_file": "APNRateControlStatus.json"
+    },
+    "APNRestriction": {
+      "ie_name": "APNRestriction",
+      "ie_type_id": 127,
+      "is_grouped": false,
+      "source_file": "APNRestriction.json"
+    },
+    "AbsoluteTimeofMBMSDataTransfer": {
+      "ie_name": "AbsoluteTimeofMBMSDataTransfer",
+      "ie_type_id": 164,
+      "is_grouped": false,
+      "source_file": "AbsoluteTimeofMBMSDataTransfer.json"
+    },
+    "AccessPointName": {
+      "ie_name": "AccessPointName",
+      "ie_type_id": 71,
+      "is_grouped": false,
+      "source_file": "AccessPointName.json"
+    },
+    "ActionIndication": {
+      "ie_name": "ActionIndication",
+      "ie_type_id": 168,
+      "is_grouped": false,
+      "source_file": "ActionIndication.json"
+    },
+    "AdditionalFlagsForSRVCC": {
+      "ie_name": "AdditionalFlagsForSRVCC",
+      "ie_type_id": 160,
+      "is_grouped": false,
+      "source_file": "AdditionalFlagsForSRVCC.json"
+    },
+    "AdditionalMMContextForSRVCC": {
+      "ie_name": "AdditionalMMContextForSRVCC",
+      "ie_type_id": 159,
+      "is_grouped": false,
+      "source_file": "AdditionalMMContextForSRVCC.json"
+    },
+    "AdditionalProtocolConfigurationOptions": {
+      "ie_name": "AdditionalProtocolConfigurationOptions",
+      "ie_type_id": 163,
+      "is_grouped": false,
+      "source_file": "AdditionalProtocolConfigurationOptions.json"
+    },
+    "AdditionalRRMPolicyIndex": {
+      "ie_name": "AdditionalRRMPolicyIndex",
+      "ie_type_id": 207,
+      "is_grouped": false,
+      "source_file": "AdditionalRRMPolicyIndex.json"
+    },
+    "AggregateMaximumBitRate": {
+      "ie_name": "AggregateMaximumBitRate",
+      "ie_type_id": 72,
+      "is_grouped": false,
+      "source_file": "AggregateMaximumBitRate.json"
+    },
+    "AllocationRetensionPriority": {
+      "ie_name": "AllocationRetensionPriority",
+      "ie_type_id": 155,
+      "is_grouped": false,
+      "source_file": "AllocationRetensionPriority.json"
+    },
+    "BearerContext": {
+      "ie_name": "BearerContext",
+      "ie_type_id": 93,
+      "is_grouped": true,
+      "sub_ies": [
+        {
+          "name": "EPSBearerID",
+          "ie_type_id": 73
+        },
+        {
+          "name": "Cause",
+          "ie_type_id": 2
+        },
+        {
+          "name": "BearerTFT",
+          "ie_type_id": 84
+        },
+        {
+          "name": "FullyQualifiedTEID",
+          "ie_type_id": 87
+        },
+        {
+          "name": "BearerQoS",
+          "ie_type_id": 80
+        },
+        {
+          "name": "ChargingID",
+          "ie_type_id": 94
+        },
+        {
+          "name": "BearerFlags",
+          "ie_type_id": 97
+        },
+        {
+          "name": "ProtocolConfigurationOptions",
+          "ie_type_id": 78
+        },
+        {
+          "name": "ExtendedProtocolConfigurationOptions",
+          "ie_type_id": 197
+        },
+        {
+          "name": "AdditionalProtocolConfigurationOptions",
+          "ie_type_id": 163
+        },
+        {
+          "name": "PacketFlowID",
+          "ie_type_id": 123
+        },
+        {
+          "name": "RANNASCause",
+          "ie_type_id": 172
+        },
+        {
+          "name": "TI",
+          "ie_type_id": 137
+        },
+        {
+          "name": "MaximumPacketLossRate",
+          "ie_type_id": 203
+        },
+        {
+          "name": "FContainer",
+          "ie_type_id": 118
+        }
+      ],
+      "source_file": "BearerContext.json"
+    },
+    "BearerFlags": {
+      "ie_name": "BearerFlags",
+      "ie_type_id": 97,
+      "is_grouped": false,
+      "source_file": "BearerFlags.json"
+    },
+    "BearerQoS": {
+      "ie_name": "BearerQoS",
+      "ie_type_id": 80,
+      "is_grouped": false,
+      "source_file": "BearerQoS.json"
+    },
+    "BearerTFT": {
+      "ie_name": "BearerTFT",
+      "ie_type_id": 84,
+      "is_grouped": false,
+      "source_file": "BearerTFT.json"
+    },
+    "BitRate": {
+      "ie_name": "BitRate",
+      "ie_type_id": 211,
+      "is_grouped": false,
+      "source_file": "BitRate.json"
+    },
+    "CIoTOptimizationsSupportIndication": {
+      "ie_name": "CIoTOptimizationsSupportIndication",
+      "ie_type_id": 194,
+      "is_grouped": false,
+      "source_file": "CIoTOptimizationsSupportIndication.json"
+    },
+    "CNOperatorSelectionEntity": {
+      "ie_name": "CNOperatorSelectionEntity",
+      "ie_type_id": 173,
+      "is_grouped": false,
+      "source_file": "CNOperatorSelectionEntity.json"
+    },
+    "CSGID": {
+      "ie_name": "CSGID",
+      "ie_type_id": 147,
+      "is_grouped": false,
+      "source_file": "CSGID.json"
+    },
+    "CSGInformationReportingAction": {
+      "ie_name": "CSGInformationReportingAction",
+      "ie_type_id": 146,
+      "is_grouped": false,
+      "source_file": "CSGInformationReportingAction.json"
+    },
+    "CSGMembershipIndication": {
+      "ie_name": "CSGMembershipIndication",
+      "ie_type_id": 148,
+      "is_grouped": false,
+      "source_file": "CSGMembershipIndication.json"
+    },
+    "Cause": {
+      "ie_name": "Cause",
+      "ie_type_id": 2,
+      "is_grouped": false,
+      "source_file": "Cause.json"
+    },
+    "ChangeReportingAction": {
+      "ie_name": "ChangeReportingAction",
+      "ie_type_id": 131,
+      "is_grouped": false,
+      "source_file": "ChangeReportingAction.json"
+    },
+    "ChangeToReportFlags": {
+      "ie_name": "ChangeToReportFlags",
+      "ie_type_id": 167,
+      "is_grouped": false,
+      "source_file": "ChangeToReportFlags.json"
+    },
+    "ChannelNeeded": {
+      "ie_name": "ChannelNeeded",
+      "ie_type_id": 133,
+      "is_grouped": false,
+      "source_file": "ChannelNeeded.json"
+    },
+    "ChargingCharacteristics": {
+      "ie_name": "ChargingCharacteristics",
+      "ie_type_id": 95,
+      "is_grouped": false,
+      "source_file": "ChargingCharacteristics.json"
+    },
+    "ChargingID": {
+      "ie_name": "ChargingID",
+      "ie_type_id": 94,
+      "is_grouped": false,
+      "source_file": "ChargingID.json"
+    },
+    "CompleteRequestMessage": {
+      "ie_name": "CompleteRequestMessage",
+      "ie_type_id": 116,
+      "is_grouped": false,
+      "source_file": "CompleteRequestMessage.json"
+    },
+    "Counter": {
+      "ie_name": "Counter",
+      "ie_type_id": 199,
+      "is_grouped": false,
+      "source_file": "Counter.json"
+    },
+    "DelayValue": {
+      "ie_name": "DelayValue",
+      "ie_type_id": 92,
+      "is_grouped": false,
+      "source_file": "DelayValue.json"
+    },
+    "DetachType": {
+      "ie_name": "DetachType",
+      "ie_type_id": 150,
+      "is_grouped": false,
+      "source_file": "DetachType.json"
+    },
+    "ECGIList": {
+      "ie_name": "ECGIList",
+      "ie_type_id": 190,
+      "is_grouped": false,
+      "source_file": "ECGIList.json"
+    },
+    "EMLPPPriority": {
+      "ie_name": "EMLPPPriority",
+      "ie_type_id": 134,
+      "is_grouped": false,
+      "source_file": "EMLPPPriority.json"
+    },
+    "EPCTimer": {
+      "ie_name": "EPCTimer",
+      "ie_type_id": 156,
+      "is_grouped": false,
+      "source_file": "EPCTimer.json"
+    },
+    "EPSBearerID": {
+      "ie_name": "EPSBearerID",
+      "ie_type_id": 73,
+      "is_grouped": false,
+      "source_file": "EPSBearerID.json"
+    },
+    "ExtendedProtocolConfigurationOptions": {
+      "ie_name": "ExtendedProtocolConfigurationOptions",
+      "ie_type_id": 197,
+      "is_grouped": false,
+      "source_file": "ExtendedProtocolConfigurationOptions.json"
+    },
+    "ExtendedTraceInformation": {
+      "ie_name": "ExtendedTraceInformation",
+      "ie_type_id": 205,
+      "is_grouped": false,
+      "source_file": "ExtendedTraceInformation.json"
+    },
+    "FCause": {
+      "ie_name": "FCause",
+      "ie_type_id": 119,
+      "is_grouped": false,
+      "source_file": "FCause.json"
+    },
+    "FContainer": {
+      "ie_name": "FContainer",
+      "ie_type_id": 118,
+      "is_grouped": false,
+      "source_file": "FContainer.json"
+    },
+    "FlowQoS": {
+      "ie_name": "FlowQoS",
+      "ie_type_id": 81,
+      "is_grouped": false,
+      "source_file": "FlowQoS.json"
+    },
+    "FullyQualifiedCSID": {
+      "ie_name": "FullyQualifiedCSID",
+      "ie_type_id": 132,
+      "is_grouped": false,
+      "source_file": "FullyQualifiedCSID.json"
+    },
+    "FullyQualifiedDomainName": {
+      "ie_name": "FullyQualifiedDomainName",
+      "ie_type_id": 136,
+      "is_grouped": false,
+      "source_file": "FullyQualifiedDomainName.json"
+    },
+    "FullyQualifiedTEID": {
+      "ie_name": "FullyQualifiedTEID",
+      "ie_type_id": 87,
+      "is_grouped": false,
+      "source_file": "FullyQualifiedTEID.json"
+    },
+    "GUTI": {
+      "ie_name": "GUTI",
+      "ie_type_id": 117,
+      "is_grouped": false,
+      "source_file": "GUTI.json"
+    },
+    "GlobalCNID": {
+      "ie_name": "GlobalCNID",
+      "ie_type_id": 89,
+      "is_grouped": false,
+      "source_file": "GlobalCNID.json"
+    },
+    "HeNBInformationReporting": {
+      "ie_name": "HeNBInformationReporting",
+      "ie_type_id": 165,
+      "is_grouped": false,
+      "source_file": "HeNBInformationReporting.json"
+    },
+    "HeaderCompressionConfiguration": {
+      "ie_name": "HeaderCompressionConfiguration",
+      "ie_type_id": 196,
+      "is_grouped": false,
+      "source_file": "HeaderCompressionConfiguration.json"
+    },
+    "HopCounter": {
+      "ie_name": "HopCounter",
+      "ie_type_id": 113,
+      "is_grouped": false,
+      "source_file": "HopCounter.json"
+    },
+    "IMSI": {
+      "ie_name": "IMSI",
+      "ie_type_id": 1,
+      "is_grouped": false,
+      "source_file": "IMSI.json"
+    },
+    "IPAddress": {
+      "ie_name": "IPAddress",
+      "ie_type_id": 74,
+      "is_grouped": false,
+      "source_file": "IPAddress.json"
+    },
+    "IPv4ConfigurationParameters": {
+      "ie_name": "IPv4ConfigurationParameters",
+      "ie_type_id": 166,
+      "is_grouped": false,
+      "source_file": "IPv4ConfigurationParameters.json"
+    },
+    "Indication": {
+      "ie_name": "Indication",
+      "ie_type_id": 77,
+      "is_grouped": false,
+      "source_file": "Indication.json"
+    },
+    "IntegerNumber": {
+      "ie_name": "IntegerNumber",
+      "ie_type_id": 187,
+      "is_grouped": false,
+      "source_file": "IntegerNumber.json"
+    },
+    "LoadControlInformation": {
+      "ie_name": "LoadControlInformation",
+      "ie_type_id": 181,
+      "is_grouped": true,
+      "sub_ies": [
+        {
+          "name": "SequenceNumber",
+          "ie_type_id": 183
+        },
+        {
+          "name": "Metric",
+          "ie_type_id": 182
+        },
+        {
+          "name": "APNAndRelativeCapacity",
+          "ie_type_id": 184
+        }
+      ],
+      "source_file": "LoadControlInformation.json"
+    },
+    "LocalDistinguishedName": {
+      "ie_name": "LocalDistinguishedName",
+      "ie_type_id": 151,
+      "is_grouped": false,
+      "source_file": "LocalDistinguishedName.json"
+    },
+    "MBMSDistributionAcknowledge": {
+      "ie_name": "MBMSDistributionAcknowledge",
+      "ie_type_id": 143,
+      "is_grouped": false,
+      "source_file": "MBMSDistributionAcknowledge.json"
+    },
+    "MBMSFlags": {
+      "ie_name": "MBMSFlags",
+      "ie_type_id": 171,
+      "is_grouped": false,
+      "source_file": "MBMSFlags.json"
+    },
+    "MBMSFlowIdentifier": {
+      "ie_name": "MBMSFlowIdentifier",
+      "ie_type_id": 141,
+      "is_grouped": false,
+      "source_file": "MBMSFlowIdentifier.json"
+    },
+    "MBMSIPMulticastDistribution": {
+      "ie_name": "MBMSIPMulticastDistribution",
+      "ie_type_id": 142,
+      "is_grouped": false,
+      "source_file": "MBMSIPMulticastDistribution.json"
+    },
+    "MBMSServiceArea": {
+      "ie_name": "MBMSServiceArea",
+      "ie_type_id": 139,
+      "is_grouped": false,
+      "source_file": "MBMSServiceArea.json"
+    },
+    "MBMSSessionDuration": {
+      "ie_name": "MBMSSessionDuration",
+      "ie_type_id": 138,
+      "is_grouped": false,
+      "source_file": "MBMSSessionDuration.json"
+    },
+    "MBMSSessionIdentifier": {
+      "ie_name": "MBMSSessionIdentifier",
+      "ie_type_id": 140,
+      "is_grouped": false,
+      "source_file": "MBMSSessionIdentifier.json"
+    },
+    "MBMSTimeToDataTransfer": {
+      "ie_name": "MBMSTimeToDataTransfer",
+      "ie_type_id": 153,
+      "is_grouped": false,
+      "source_file": "MBMSTimeToDataTransfer.json"
+    },
+    "MDTConfiguration": {
+      "ie_name": "MDTConfiguration",
+      "ie_type_id": 162,
+      "is_grouped": false,
+      "source_file": "MDTConfiguration.json"
+    },
+    "MMContextEPSSecurityContextQuadrupletsAndQuintuplets": {
+      "ie_name": "MMContextEPSSecurityContextQuadrupletsAndQuintuplets",
+      "ie_type_id": 107,
+      "is_grouped": false,
+      "source_file": "MMContextEPSSecurityContextQuadrupletsAndQuintuplets.json"
+    },
+    "MMContextGSMKeyAndTriplets": {
+      "ie_name": "MMContextGSMKeyAndTriplets",
+      "ie_type_id": 103,
+      "is_grouped": false,
+      "source_file": "MMContextGSMKeyAndTriplets.json"
+    },
+    "MMContextGSMKeyUsedCipherAndQuintuplets": {
+      "ie_name": "MMContextGSMKeyUsedCipherAndQuintuplets",
+      "ie_type_id": 105,
+      "is_grouped": false,
+      "source_file": "MMContextGSMKeyUsedCipherAndQuintuplets.json"
+    },
+    "MMContextUMTSKeyAndQuintuplets": {
+      "ie_name": "MMContextUMTSKeyAndQuintuplets",
+      "ie_type_id": 106,
+      "is_grouped": false,
+      "source_file": "MMContextUMTSKeyAndQuintuplets.json"
+    },
+    "MMContextUMTSKeyQuadrupletsAndQuintuplets": {
+      "ie_name": "MMContextUMTSKeyQuadrupletsAndQuintuplets",
+      "ie_type_id": 108,
+      "is_grouped": false,
+      "source_file": "MMContextUMTSKeyQuadrupletsAndQuintuplets.json"
+    },
+    "MMContextUMTSKeyUsedCipherAndQuintuplets": {
+      "ie_name": "MMContextUMTSKeyUsedCipherAndQuintuplets",
+      "ie_type_id": 104,
+      "is_grouped": false,
+      "source_file": "MMContextUMTSKeyUsedCipherAndQuintuplets.json"
+    },
+    "MSISDN": {
+      "ie_name": "MSISDN",
+      "ie_type_id": 76,
+      "is_grouped": false,
+      "source_file": "MSISDN.json"
+    },
+    "MappedUEUsageType": {
+      "ie_name": "MappedUEUsageType",
+      "ie_type_id": 200,
+      "is_grouped": false,
+      "source_file": "MappedUEUsageType.json"
+    },
+    "MaximumPacketLossRate": {
+      "ie_name": "MaximumPacketLossRate",
+      "ie_type_id": 203,
+      "is_grouped": false,
+      "source_file": "MaximumPacketLossRate.json"
+    },
+    "Metric": {
+      "ie_name": "Metric",
+      "ie_type_id": 182,
+      "is_grouped": false,
+      "source_file": "Metric.json"
+    },
+    "MillisecondTimeStamp": {
+      "ie_name": "MillisecondTimeStamp",
+      "ie_type_id": 188,
+      "is_grouped": false,
+      "source_file": "MillisecondTimeStamp.json"
+    },
+    "MobileEquipmentIdentity": {
+      "ie_name": "MobileEquipmentIdentity",
+      "ie_type_id": 75,
+      "is_grouped": false,
+      "source_file": "MobileEquipmentIdentity.json"
+    },
+    "MonitoringEventExtensionInformation": {
+      "ie_name": "MonitoringEventExtensionInformation",
+      "ie_type_id": 206,
+      "is_grouped": false,
+      "source_file": "MonitoringEventExtensionInformation.json"
+    },
+    "MonitoringEventInformation": {
+      "ie_name": "MonitoringEventInformation",
+      "ie_type_id": 189,
+      "is_grouped": false,
+      "source_file": "MonitoringEventInformation.json"
+    },
+    "NodeFeatures": {
+      "ie_name": "NodeFeatures",
+      "ie_type_id": 152,
+      "is_grouped": false,
+      "source_file": "NodeFeatures.json"
+    },
+    "NodeIdentifier": {
+      "ie_name": "NodeIdentifier",
+      "ie_type_id": 176,
+      "is_grouped": false,
+      "source_file": "NodeIdentifier.json"
+    },
+    "NodeNumber": {
+      "ie_name": "NodeNumber",
+      "ie_type_id": 175,
+      "is_grouped": false,
+      "source_file": "NodeNumber.json"
+    },
+    "NodeType": {
+      "ie_name": "NodeType",
+      "ie_type_id": 135,
+      "is_grouped": false,
+      "source_file": "NodeType.json"
+    },
+    "OverloadControlInformation": {
+      "ie_name": "OverloadControlInformation",
+      "ie_type_id": 180,
+      "is_grouped": true,
+      "sub_ies": [
+        {
+          "name": "SequenceNumber",
+          "ie_type_id": 183
+        },
+        {
+          "name": "Metric",
+          "ie_type_id": 182
+        },
+        {
+          "name": "EPCTimer",
+          "ie_type_id": 156
+        },
+        {
+          "name": "AccessPointName",
+          "ie_type_id": 71
+        }
+      ],
+      "source_file": "OverloadControlInformation.json"
+    },
+    "PC5QoSFlow": {
+      "ie_name": "PC5QoSFlow",
+      "ie_type_id": 212,
+      "is_grouped": false,
+      "source_file": "PC5QoSFlow.json"
+    },
+    "PC5QoSParameters": {
+      "ie_name": "PC5QoSParameters",
+      "ie_type_id": 209,
+      "is_grouped": true,
+      "sub_ies": [
+        {
+          "name": "PC5QoSFlow",
+          "ie_type_id": 212
+        },
+        {
+          "name": "BitRate",
+          "ie_type_id": 211
+        }
+      ],
+      "source_file": "PC5QoSParameters.json"
+    },
+    "PDNAddressAllocation": {
+      "ie_name": "PDNAddressAllocation",
+      "ie_type_id": 79,
+      "is_grouped": false,
+      "source_file": "PDNAddressAllocation.json"
+    },
+    "PDNConnection": {
+      "ie_name": "PDNConnection",
+      "ie_type_id": 109,
+      "is_grouped": true,
+      "sub_ies": [
+        {
+          "name": "AccessPointName",
+          "ie_type_id": 71
+        },
+        {
+          "name": "APNRestriction",
+          "ie_type_id": 127
+        },
+        {
+          "name": "SelectionMode",
+          "ie_type_id": 128
+        },
+        {
+          "name": "IPAddress",
+          "ie_type_id": 74
+        },
+        {
+          "name": "EPSBearerID",
+          "ie_type_id": 73
+        },
+        {
+          "name": "AggregateMaximumBitRate",
+          "ie_type_id": 72
+        },
+        {
+          "name": "ChargingCharacteristics",
+          "ie_type_id": 95
+        },
+        {
+          "name": "ChangeReportingAction",
+          "ie_type_id": 131
+        },
+        {
+          "name": "CSGInformationReportingAction",
+          "ie_type_id": 146
+        },
+        {
+          "name": "HeNBInformationReporting",
+          "ie_type_id": 165
+        },
+        {
+          "name": "Indication",
+          "ie_type_id": 77
+        },
+        {
+          "name": "FullyQualifiedCSID",
+          "ie_type_id": 132
+        },
+        {
+          "name": "FullyQualifiedDomainName",
+          "ie_type_id": 136
+        },
+        {
+          "name": "BearerContext",
+          "ie_type_id": 93
+        },
+        {
+          "name": "AccessPointName",
+          "ie_type_id": 71
+        },
+        {
+          "name": "ChangeToReportFlags",
+          "ie_type_id": 167
+        },
+        {
+          "name": "LocalDistinguishedName",
+          "ie_type_id": 151
+        },
+        {
+          "name": "WLANOffloadabilityIndication",
+          "ie_type_id": 185
+        },
+        {
+          "name": "RemoteUEContext",
+          "ie_type_id": 191
+        }
+      ],
+      "source_file": "PDNConnection.json"
+    },
+    "PDNType": {
+      "ie_name": "PDNType",
+      "ie_type_id": 99,
+      "is_grouped": false,
+      "source_file": "PDNType.json"
+    },
+    "PDUNumbers": {
+      "ie_name": "PDUNumbers",
+      "ie_type_id": 110,
+      "is_grouped": false,
+      "source_file": "PDUNumbers.json"
+    },
+    "PLMNID": {
+      "ie_name": "PLMNID",
+      "ie_type_id": 120,
+      "is_grouped": false,
+      "source_file": "PLMNID.json"
+    },
+    "PTMSISignature": {
+      "ie_name": "PTMSISignature",
+      "ie_type_id": 112,
+      "is_grouped": false,
+      "source_file": "PTMSISignature.json"
+    },
+    "PacketFlowID": {
+      "ie_name": "PacketFlowID",
+      "ie_type_id": 123,
+      "is_grouped": false,
+      "source_file": "PacketFlowID.json"
+    },
+    "PacketTMSI": {
+      "ie_name": "PacketTMSI",
+      "ie_type_id": 111,
+      "is_grouped": false,
+      "source_file": "PacketTMSI.json"
+    },
+    "PagingAndServiceInformation": {
+      "ie_name": "PagingAndServiceInformation",
+      "ie_type_id": 186,
+      "is_grouped": false,
+      "source_file": "PagingAndServiceInformation.json"
+    },
+    "PortNumber": {
+      "ie_name": "PortNumber",
+      "ie_type_id": 126,
+      "is_grouped": false,
+      "source_file": "PortNumber.json"
+    },
+    "PresenceReportingAreaAction": {
+      "ie_name": "PresenceReportingAreaAction",
+      "ie_type_id": 177,
+      "is_grouped": false,
+      "source_file": "PresenceReportingAreaAction.json"
+    },
+    "PresenceReportingAreaInformation": {
+      "ie_name": "PresenceReportingAreaInformation",
+      "ie_type_id": 178,
+      "is_grouped": false,
+      "source_file": "PresenceReportingAreaInformation.json"
+    },
+    "PrivateExtension": {
+      "ie_name": "PrivateExtension",
+      "ie_type_id": 255,
+      "is_grouped": false,
+      "source_file": "PrivateExtension.json"
+    },
+    "ProcedureTransactionID": {
+      "ie_name": "ProcedureTransactionID",
+      "ie_type_id": 100,
+      "is_grouped": false,
+      "source_file": "ProcedureTransactionID.json"
+    },
+    "ProtocolConfigurationOptions": {
+      "ie_name": "ProtocolConfigurationOptions",
+      "ie_type_id": 78,
+      "is_grouped": false,
+      "source_file": "ProtocolConfigurationOptions.json"
+    },
+    "RABContext": {
+      "ie_name": "RABContext",
+      "ie_type_id": 124,
+      "is_grouped": false,
+      "source_file": "RABContext.json"
+    },
+    "RANNASCause": {
+      "ie_name": "RANNASCause",
+      "ie_type_id": 172,
+      "is_grouped": false,
+      "source_file": "RANNASCause.json"
+    },
+    "RATType": {
+      "ie_name": "RATType",
+      "ie_type_id": 82,
+      "is_grouped": false,
+      "source_file": "RATType.json"
+    },
+    "RFSPIndex": {
+      "ie_name": "RFSPIndex",
+      "ie_type_id": 144,
+      "is_grouped": false,
+      "source_file": "RFSPIndex.json"
+    },
+    "Recovery": {
+      "ie_name": "Recovery",
+      "ie_type_id": 3,
+      "is_grouped": false,
+      "source_file": "Recovery.json"
+    },
+    "RemoteUEContext": {
+      "ie_name": "RemoteUEContext",
+      "ie_type_id": 191,
+      "is_grouped": true,
+      "sub_ies": [
+        {
+          "name": "RemoteUserID",
+          "ie_type_id": 192
+        },
+        {
+          "name": "RemoteUEIPinformation",
+          "ie_type_id": 193
+        }
+      ],
+      "source_file": "RemoteUEContext.json"
+    },
+    "RemoteUEIPinformation": {
+      "ie_name": "RemoteUEIPinformation",
+      "ie_type_id": 193,
+      "is_grouped": false,
+      "source_file": "RemoteUEIPinformation.json"
+    },
+    "RemoteUserID": {
+      "ie_name": "RemoteUserID",
+      "ie_type_id": 192,
+      "is_grouped": false,
+      "source_file": "RemoteUserID.json"
+    },
+    "S103PDNDataForwardingInfo": {
+      "ie_name": "S103PDNDataForwardingInfo",
+      "ie_type_id": 90,
+      "is_grouped": false,
+      "source_file": "S103PDNDataForwardingInfo.json"
+    },
+    "S1UDataForwarding": {
+      "ie_name": "S1UDataForwarding",
+      "ie_type_id": 91,
+      "is_grouped": false,
+      "source_file": "S1UDataForwarding.json"
+    },
+    "SCEFPDNConnection": {
+      "ie_name": "SCEFPDNConnection",
+      "ie_type_id": 195,
+      "is_grouped": true,
+      "sub_ies": [
+        {
+          "name": "AccessPointName",
+          "ie_type_id": 71
+        },
+        {
+          "name": "EPSBearerID",
+          "ie_type_id": 73
+        },
+        {
+          "name": "NodeIdentifier",
+          "ie_type_id": 176
+        },
+        {
+          "name": "APNRateControlStatus",
+          "ie_type_id": 204
+        }
+      ],
+      "source_file": "SCEFPDNConnection.json"
+    },
+    "SGiPtPTunnelAddress": {
+      "ie_name": "SGiPtPTunnelAddress",
+      "ie_type_id": 213,
+      "is_grouped": false,
+      "source_file": "SGiPtPTunnelAddress.json"
+    },
+    "STNSR": {
+      "ie_name": "STNSR",
+      "ie_type_id": 51,
+      "is_grouped": false,
+      "source_file": "STNSR.json"
+    },
+    "SecondaryRATUsageDataReport": {
+      "ie_name": "SecondaryRATUsageDataReport",
+      "ie_type_id": 201,
+      "is_grouped": false,
+      "source_file": "SecondaryRATUsageDataReport.json"
+    },
+    "SelectionMode": {
+      "ie_name": "SelectionMode",
+      "ie_type_id": 128,
+      "is_grouped": false,
+      "source_file": "SelectionMode.json"
+    },
+    "SequenceNumber": {
+      "ie_name": "SequenceNumber",
+      "ie_type_id": 183,
+      "is_grouped": false,
+      "source_file": "SequenceNumber.json"
+    },
+    "ServiceIndicator": {
+      "ie_name": "ServiceIndicator",
+      "ie_type_id": 149,
+      "is_grouped": false,
+      "source_file": "ServiceIndicator.json"
+    },
+    "ServicesAuthorized": {
+      "ie_name": "ServicesAuthorized",
+      "ie_type_id": 210,
+      "is_grouped": false,
+      "source_file": "ServicesAuthorized.json"
+    },
+    "ServingNetwork": {
+      "ie_name": "ServingNetwork",
+      "ie_type_id": 83,
+      "is_grouped": false,
+      "source_file": "ServingNetwork.json"
+    },
+    "ServingPLMNRateControl": {
+      "ie_name": "ServingPLMNRateControl",
+      "ie_type_id": 198,
+      "is_grouped": false,
+      "source_file": "ServingPLMNRateControl.json"
+    },
+    "SignallingPriorityIndication": {
+      "ie_name": "SignallingPriorityIndication",
+      "ie_type_id": 157,
+      "is_grouped": false,
+      "source_file": "SignallingPriorityIndication.json"
+    },
+    "SourceIdentification": {
+      "ie_name": "SourceIdentification",
+      "ie_type_id": 129,
+      "is_grouped": false,
+      "source_file": "SourceIdentification.json"
+    },
+    "SourceRNCPDCPContextInfo": {
+      "ie_name": "SourceRNCPDCPContextInfo",
+      "ie_type_id": 125,
+      "is_grouped": false,
+      "source_file": "SourceRNCPDCPContextInfo.json"
+    },
+    "SpecialIETypeForIETypeExtension": {
+      "ie_name": "SpecialIETypeForIETypeExtension",
+      "ie_type_id": 254,
+      "is_grouped": false,
+      "source_file": "SpecialIETypeForIETypeExtension.json"
+    },
+    "TI": {
+      "ie_name": "TI",
+      "ie_type_id": 137,
+      "is_grouped": false,
+      "source_file": "TI.json"
+    },
+    "TMGI": {
+      "ie_name": "TMGI",
+      "ie_type_id": 158,
+      "is_grouped": false,
+      "source_file": "TMGI.json"
+    },
+    "TMSI": {
+      "ie_name": "TMSI",
+      "ie_type_id": 88,
+      "is_grouped": false,
+      "source_file": "TMSI.json"
+    },
+    "TWANIdentifier": {
+      "ie_name": "TWANIdentifier",
+      "ie_type_id": 169,
+      "is_grouped": false,
+      "source_file": "TWANIdentifier.json"
+    },
+    "TWANIdentifierTimestamp": {
+      "ie_name": "TWANIdentifierTimestamp",
+      "ie_type_id": 179,
+      "is_grouped": false,
+      "source_file": "TWANIdentifierTimestamp.json"
+    },
+    "TargetIdentification": {
+      "ie_name": "TargetIdentification",
+      "ie_type_id": 121,
+      "is_grouped": false,
+      "source_file": "TargetIdentification.json"
+    },
+    "Throttling": {
+      "ie_name": "Throttling",
+      "ie_type_id": 154,
+      "is_grouped": false,
+      "source_file": "Throttling.json"
+    },
+    "TraceInformation": {
+      "ie_name": "TraceInformation",
+      "ie_type_id": 96,
+      "is_grouped": false,
+      "source_file": "TraceInformation.json"
+    },
+    "TraceReference": {
+      "ie_name": "TraceReference",
+      "ie_type_id": 115,
+      "is_grouped": false,
+      "source_file": "TraceReference.json"
+    },
+    "TrafficAggregateDescription": {
+      "ie_name": "TrafficAggregateDescription",
+      "ie_type_id": 85,
+      "is_grouped": false,
+      "source_file": "TrafficAggregateDescription.json"
+    },
+    "TrustedWLANModeIndication": {
+      "ie_name": "TrustedWLANModeIndication",
+      "ie_type_id": 174,
+      "is_grouped": false,
+      "source_file": "TrustedWLANModeIndication.json"
+    },
+    "UETimeZone": {
+      "ie_name": "UETimeZone",
+      "ie_type_id": 114,
+      "is_grouped": false,
+      "source_file": "UETimeZone.json"
+    },
+    "ULITimestamp": {
+      "ie_name": "ULITimestamp",
+      "ie_type_id": 170,
+      "is_grouped": false,
+      "source_file": "ULITimestamp.json"
+    },
+    "UPFunctionSelectionIndicationFlags": {
+      "ie_name": "UPFunctionSelectionIndicationFlags",
+      "ie_type_id": 202,
+      "is_grouped": false,
+      "source_file": "UPFunctionSelectionIndicationFlags.json"
+    },
+    "UserCSGInformation": {
+      "ie_name": "UserCSGInformation",
+      "ie_type_id": 145,
+      "is_grouped": false,
+      "source_file": "UserCSGInformation.json"
+    },
+    "UserLocationInformation": {
+      "ie_name": "UserLocationInformation",
+      "ie_type_id": 86,
+      "is_grouped": false,
+      "source_file": "UserLocationInformation.json"
+    },
+    "V2XContext": {
+      "ie_name": "V2XContext",
+      "ie_type_id": 208,
+      "is_grouped": true,
+      "sub_ies": [
+        {
+          "name": "ServicesAuthorized",
+          "ie_type_id": 210
+        },
+        {
+          "name": "BitRate",
+          "ie_type_id": 211
+        },
+        {
+          "name": "PC5QoSParameters",
+          "ie_type_id": 209
+        }
+      ],
+      "source_file": "V2XContext.json"
+    },
+    "WLANOffloadabilityIndication": {
+      "ie_name": "WLANOffloadabilityIndication",
+      "ie_type_id": 185,
+      "is_grouped": false,
+      "source_file": "WLANOffloadabilityIndication.json"
+    }
+  }
+}

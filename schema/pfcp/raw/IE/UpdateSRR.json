@@ -1,0 +1,19 @@
+{
+  "ie_name": "UpdateSRR",
+  "ie_type_id": 213,
+  "is_grouped": true,
+  "sub_ies": [
+    {
+      "name": "SRRID",
+      "ie_type_id": 215
+    },
+    {
+      "name": "AccessAvailabilityControlInformation",
+      "ie_type_id": 216
+    },
+    {
+      "name": "QoSMonitoringPerQoSFlowControlInformation",
+      "ie_type_id": 242
+    }
+  ]
+}

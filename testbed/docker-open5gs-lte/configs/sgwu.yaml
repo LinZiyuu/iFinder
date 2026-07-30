@@ -1,0 +1,13 @@
+# Open5GS SGW-U (4G EPC) — Sxa PFCP from SGW-C, GTP-U (S1-U <-> S5-U relay).
+# Pinned to 10.100.2.12. SGW-C initiates the Sxa PFCP association to this node.
+global:
+  max:
+    ue: 1024
+
+sgwu:
+  pfcp:
+    server:
+      - address: 10.100.2.12
+  gtpu:
+    server:
+      - address: 10.100.2.12

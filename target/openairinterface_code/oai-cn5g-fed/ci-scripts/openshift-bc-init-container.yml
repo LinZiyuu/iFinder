@@ -1,0 +1,19 @@
+# SPDX-License-Identifier: MIT
+# ---------------------------------------------------------------------
+#
+kind: BuildConfig
+apiVersion: build.openshift.io/v1
+metadata:
+  name: "init-build-cfg"
+  namespace: oaicicd-core
+spec:
+    runPolicy: "Serial"
+    source:
+        type: "Binary"
+    strategy:
+        dockerStrategy:
+            dockerfilePath: "ci-scripts/Dockerfile.init.alpine"
+    output:
+        to:
+            kind: "ImageStreamTag"
+            name: "oai-init:latest"

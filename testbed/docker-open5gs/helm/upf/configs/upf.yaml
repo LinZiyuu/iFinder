@@ -1,0 +1,32 @@
+logger:
+  file:
+    path: /var/log/open5gs/upf.log
+
+global:
+
+upf:
+  pfcp:
+    server:
+      - dev: eth0
+        {{- if eq .Values.services.pfcp.type "ClusterIP" }}
+        advertise: {{ include "common.names.fullname" . }}-service-pfcp
+        {{- end }}
+    client:
+      smf:
+        {{- if eq .Release.Name "smf" }}
+        - address: smf-service-pfcp
+        {{- else }}
+        - address: {{ .Release.Name }}-smf-service-pfcp
+        {{- end }}
+  gtpu:
+    server:
+      - dev: eth0
+        {{- if eq .Values.services.gtpu.type "LoadBalancer" }}
+        advertise: {{ .Values.services.gtpu.loadBalancerIP }}
+        {{- end }}
+  session:
+    - subnet: {{ .Values.global.mobileNetwork.dataNetwork.subnet }}
+      gateway: {{ .Values.global.mobileNetwork.dataNetwork.gateway }}
+      {{- if .Values.global.mobileNetwork.dataNetwork.dnn }}
+      dnn: {{ .Values.global.mobileNetwork.dataNetwork.dnn }}
+      {{- end }}

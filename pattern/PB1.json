@@ -1,0 +1,10 @@
+{
+  "pattern_id": "PB1",
+  "pattern_name": "Invalid Value",
+  "validation_class": "semantic",
+  "element": "A syntactically well-formed element whose semantic value may be invalid or out of range (e.g., unsupported enum/spare value, ID outside valid range, conflicting flag combination)",
+  "dangerous_operation": "Directly using the field value (e.g., as an index, lookup key, or control-flow selector)",
+  "missing_validation": "Semantic/range validation of the value (supported enum, in-range ID, non-conflicting flags) before use",
+  "security_impact": "Assertion failure, panic, null pointer dereference, or out-of-bounds access -> DoS or other security impact",
+  "pattern_description": "Protocol messages have syntactically well-formed elements, but the semantic value is invalid or out of range. This includes: (1) unsupported enum values (e.g., spare/reserved values), (2) IDs outside valid range, (3) conflicting flag combinations. The implementation assumes peers send valid values, performs no semantic validation, and directly uses these fields. Crafted messages with invalid values can cause assertion failure, panic, null pointer dereference, or out-of-bounds access, leading to DoS or other security impact."
+}

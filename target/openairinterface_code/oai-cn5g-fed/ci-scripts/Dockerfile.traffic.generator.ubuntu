@@ -1,0 +1,43 @@
+#/*
+# * SPDX-License-Identifier: MIT
+# */
+#---------------------------------------------------------------------
+#
+# Dockerfile for the Open-Air-Interface 5G Traffic Generator
+#   Valid for Ubuntu-20.04 (focal)
+#             Ubuntu-22.04 (jammy)
+#
+#---------------------------------------------------------------------
+
+#---------------------------------------------------------------------
+# TARGET IMAGE
+#---------------------------------------------------------------------
+ARG BASE_IMAGE=ubuntu:jammy
+FROM $BASE_IMAGE as trf-gen-cn5g
+ENV DEBIAN_FRONTEND=noninteractive
+ENV TZ=Europe/Paris
+# We install some debug tools for the moment in addition of mandatory libraries
+RUN apt-get update && \
+    DEBIAN_FRONTEND=noninteractive apt-get upgrade --yes && \
+    DEBIAN_FRONTEND=noninteractive apt-get install --yes \
+      psmisc \
+      net-tools \
+      ethtool \
+      tshark \
+      tzdata \
+      iperf \
+      iproute2 \
+      iputils-ping \
+      iptables \
+      traceroute \
+      tcpdump \
+      iperf3 \
+  && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /tmp
+
+COPY ./ci-scripts/trfgen_entrypoint.sh .
+
+ENTRYPOINT ["/bin/bash","/tmp/trfgen_entrypoint.sh"]
+
+CMD ["sleep", "infinity"]

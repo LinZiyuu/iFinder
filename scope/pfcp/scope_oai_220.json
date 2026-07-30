@@ -1,0 +1,17 @@
+{
+  "scope_name": "oai-pfcp-220",
+  "targets": [
+    {
+      "name": "oai_220",
+      "version": "2.2.0",
+      "target_codebase": "target/openairinterface_code/oai-cn5g-fed",
+      "scan_dirs": [
+        "component/oai-smf/src/pfcp/",
+        "component/oai-smf/src/oai-cn5g-common-src/pfcp/",
+        "component/oai-upf/src/pfcp/",
+        "component/oai-upf/src/common-src/pfcp/"
+      ],
+      "protocol": "pfcp"
+    }
+  ]
+}

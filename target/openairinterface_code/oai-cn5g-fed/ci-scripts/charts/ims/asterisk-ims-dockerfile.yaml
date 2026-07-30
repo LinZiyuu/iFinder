@@ -1,0 +1,32 @@
+# SPDX-License-Identifier: MIT
+#---------------------------------------------------------------------
+#
+
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+    name: asterisk-ims
+spec:
+  lookupPolicy:
+    local: true
+---
+kind: BuildConfig
+apiVersion: build.openshift.io/v1
+metadata:
+  name: "askerisk-ims"
+spec:
+  output:
+    to:
+      kind: ImageStreamTag
+      name: "asterisk-ims:latest"
+  runPolicy: Serial
+  strategy:
+    type: Docker
+  source:
+    dockerfile: |
+       FROM alpine:latest as ims
+       RUN apk add --update --quiet && \
+           asterisk \
+           psmisc \ 
+           iperf3
+       ENTRYPOINT ["asterisk", "-fp"]

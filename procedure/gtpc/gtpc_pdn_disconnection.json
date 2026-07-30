@@ -1,0 +1,41 @@
+{
+  "procedure_id": "GTPC_PDN_Disconnection",
+  "direction": "MME/SGSN <-> SGW <-> PGW",
+  "dependency_procedures": [
+    "GTPC_Create_Session"
+  ],
+  "message_flow": [
+    {
+      "seq": 1,
+      "from": "MME/SGSN",
+      "to": "SGW",
+      "message": "DeleteSessionRequest",
+      "mandatory_ies": []
+    },
+    {
+      "seq": 2,
+      "from": "SGW",
+      "to": "PGW",
+      "message": "DeleteSessionRequest",
+      "mandatory_ies": []
+    },
+    {
+      "seq": 3,
+      "from": "PGW",
+      "to": "SGW",
+      "message": "DeleteSessionResponse",
+      "mandatory_ies": [
+        "Cause"
+      ]
+    },
+    {
+      "seq": 4,
+      "from": "SGW",
+      "to": "MME/SGSN",
+      "message": "DeleteSessionResponse",
+      "mandatory_ies": [
+        "Cause"
+      ]
+    }
+  ]
+}

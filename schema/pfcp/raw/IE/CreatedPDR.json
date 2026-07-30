@@ -1,0 +1,19 @@
+{
+  "ie_name": "CreatedPDR",
+  "ie_type_id": 8,
+  "is_grouped": true,
+  "sub_ies": [
+    {
+      "name": "FTEID",
+      "ie_type_id": 21
+    },
+    {
+      "name": "PDRID",
+      "ie_type_id": 56
+    },
+    {
+      "name": "UEIPAddress",
+      "ie_type_id": 93
+    }
+  ]
+}

@@ -1,0 +1,60 @@
+{
+  "id": "FREE5GC-PFCP-016",
+  "aliases": [
+    "GH-free5gc-482"
+  ],
+  "source": {
+    "paper_ref": null,
+    "issue_url": "https://github.com/free5gc/free5gc/issues/482",
+    "fix_pr_url": null,
+    "cve": null,
+    "disclosure_date": "2023-09-22",
+    "reporter": "Qiang Li (tjbdlq)"
+  },
+  "target": {
+    "project": "free5gc",
+    "nf": "UPF",
+    "interface": "N4/PFCP",
+    "vuln_version": "v3.3.0",
+    "vuln_commit": "v3.3.0",
+    "build": "default Go build; Go runtime slice-bounds check is the oracle",
+    "config": "config/upfcfg.yaml (free5gc UPF default)",
+    "docker_image": null
+  },
+  "classification": {
+    "cwe": "CWE-120",
+    "vuln_type": "slice-bounds-OOB (Go runtime panic, out-of-range IE type)",
+    "ifinder_pattern": "PB1",
+    "impact": "DoS (UPF crash)"
+  },
+  "trigger": {
+    "procedure": "Heartbeat",
+    "message": "PFCP Heartbeat Request whose second IE has type = 0xFFFF (> 0x7FFF reserved range)",
+    "ie_path": "PFCP header + secondary IE (type field)",
+    "field": "IE TYPE field value 0xFFFF \u2014 outside the standard PFCP IE type range (>0x7FFF is reserved/vendor-specific). go-pfcp does not validate the IE type against the supported set and panics with 'slice bounds out of range' while parsing the IE payload. PB1 'Invalid Value' (out-of-range enum / unsupported IE type).",
+    "precondition": "None \u2014 Heartbeat Request processed pre-association."
+  },
+  "ground_truth": {
+    "crash_site": {
+      "file": "github.com/wmnsk/go-pfcp/ie/ie.go",
+      "line": 371,
+      "function": "(*IE).UnmarshalBinary"
+    },
+    "sanitizer": "Go runtime (slice bounds check)",
+    "crash_type": "panic: runtime error: slice bounds out of range",
+    "root_cause": {
+      "file": "github.com/wmnsk/go-pfcp/ie/ie.go",
+      "line": null,
+      "function": "ie.Parse / (*IE).UnmarshalBinary",
+      "note": "DUPLICATE PAYLOAD WITH FREE5GC-PFCP-007 (#496/CVE-2023-47347): exact same 19-byte packet, same crash function. Reporter filed it twice with different field-of-focus framings: #482 emphasises the IE type=0xFFFF (PB1 Invalid Value); #496 emphasises the header seq/spare mutation (PA1 Malformed Field). The two entries are kept distinct to preserve the reporter's semantic distinction and the two pattern classifications, but a tool that crashes the UPF once would match both."
+    },
+    "call_stack": [
+      "(*IE).UnmarshalBinary go-pfcp/ie/ie.go:371",
+      "ie.Parse go-pfcp/ie/ie.go:339",
+      "ie.ParseMultiIEs go-pfcp/ie/ie.go:632",
+      "(*HeartbeatRequest).UnmarshalBinary go-pfcp/message/heartbeat-request.go:101",
+      "message.Parse go-pfcp/message/message.go:117",
+      "(*PfcpServer).main free5gc/NFs/upf/internal/pfcp/pfcp.go:125"
+    ]
+  }
+}

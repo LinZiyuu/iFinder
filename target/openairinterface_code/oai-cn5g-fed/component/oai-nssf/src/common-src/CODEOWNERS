@@ -1,0 +1,41 @@
+# CODEOWNERS  
+COMMON
+ - Lionel Gauthier, Eurecom
+ - Tien Thinh NGUYEN, Eurecom
+
+CONFIG
+ - Stefan SPETTEL, phine.tech
+ - Tien Thinh NGUYEN, Eurecom
+  
+EVENT HANDLING
+ - Robert Schmidt, Oai
+ - Tien Thinh NGUYEN, Eurecom
+
+HTTP
+ - Lukas ROTHENEDER, phine.tech
+ - Tien Thinh NGUYEN, Eurecom
+ - Stefan SPETTEL, phine.tech
+ 
+ LOGGER
+ - Stefan SPETTEL, phine.tech
+ - Tien Thinh NGUYEN, Eurecom
+
+NAS 
+ - Philippe MOREL, Eurecom
+ - Sebastien ROUX, Eurecom
+ - Lionel GAUTHIER, Eurecom
+ - Keliang DU, Bupt
+ - Tien Thinh NGUYEN, Eurecom
+
+NGAP 
+ - Keliang DU, Bupt
+ - Niuxiansheng Niu, Bupt
+ - Tien Thinh NGUYEN, Eurecom
+ 
+UTILS
+ - Philippe MOREL, Eurecom
+ - Sebastien ROUX, Eurecom
+ - Lionel GAUTHIER, Eurecom
+ - Tien Thinh NGUYEN, Eurecom
+ - Keliang DU, Bupt
+ - Stefan SPETTEL, phine.tech

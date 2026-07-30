@@ -1,0 +1,343 @@
+#!/bin/groovy
+/*
+ * SPDX-License-Identifier: LicenseRef-CSSL-1.0
+ */
+
+//-------------------------------------------------------------------------------
+
+// Location of the CN executor node
+ubuntuNode = params.UbuntuBuildNode
+ubuntuBuildResource = params.UbuntuBuildResource
+
+
+// Merge Request Link
+gitlabMergeRequestLink = ''
+gitCommittorEmailAddr  = ''
+
+// Variable to run all stages
+runFullSuite = true
+
+// Label to skip running all stages (for example, changes to README.md only)
+// Example: Documentation labels will skip the builds, etc
+skipBuildAndTestLabel = params.skipBuildAndTestLabel
+
+// Docker Registry for CN
+PrivateRegistryURL="selfix.sboai.cs.eurecom.fr"
+
+// By default, for build with parameters, set as 'PUSH' event
+gitlabTriggerType = env.gitlabActionType ?: 'PUSH'
+
+// For PUSH Events - exception cases
+amf_common_src_commit = params.amf_common_src_commit
+smf_common_src_commit = params.smf_common_src_commit
+udm_common_src_commit = params.udm_common_src_commit
+main_common_src_commit = params.main_common_src_commit
+
+//-------------------------------------------------------------------------------
+
+// Pipeline start
+pipeline {
+  agent {
+    label ubuntuNode
+  }
+  options {
+    disableConcurrentBuilds()
+    timestamps()
+    ansiColor('xterm')
+    gitLabConnection('OAI GitLab')
+    // Minimal checks
+    gitlabBuilds(builds: [
+      "Build Ubuntu Images"
+    ])
+
+  }
+
+  stages {
+    stage('Verify Parameters') {
+      steps {
+        script {
+          JOB_TIMESTAMP = sh(
+            returnStdout: true,
+            script: "date --utc --rfc-3339=seconds | sed -e 's/+00:00//'"
+          ).trim()
+          echo "Current UTC Date/Time: ${JOB_TIMESTAMP}"
+          if (!ubuntuBuildNode) {
+            echo '\u26D4 \u001B[31mNo Node is specified!\u001B[0m'
+            error "Stopping pipeline!"
+          } else {
+            echo "Node: ${ubuntuBuildNode}"
+          }
+        }
+      }
+    }
+
+    stage('Prepare Source Code') {
+      steps {
+        script {
+          if ("MERGE".equals(env.gitlabActionType)) {
+            gitlabMergeRequestLink = sh returnStdout: true, script: "curl --silent 'https://gitlab.eurecom.fr/api/v4/projects/oai%2Fcn5g%2Foai-cn5g-common-src/merge_requests/${env.gitlabMergeRequestIid}' | jq .web_url | sed 's#\"##g'"
+            gitlabMergeRequestLink = gitlabMergeRequestLink.trim()
+            gitCommittorEmailAddr  = env.gitlabUserEmail
+
+            shortenShaOne = sh returnStdout: true, script: 'git log -1 --pretty=format:"%h" --abbrev=8 ' + env.gitlabMergeRequestLastCommit
+            shortenShaOne = shortenShaOne.trim()
+            src_tag       = 'ci-tmp-common-src-' + env.gitlabMergeRequestIid + '-' + shortenShaOne
+            common_src_branch    = env.gitlabSourceBranch
+
+            def mrLabelsData = checkGitLabMergeRequestLabels()
+
+            echo "\uD83D\uDD00 THIS IS A MERGE REQUEST \uD83D\uDD00"
+            echo "Merge Request ID            : ${env.gitlabMergeRequestIid}"
+            echo "Merge Request Link          : ${gitlabMergeRequestLink}"
+            echo "Merge Request Title         : ${env.gitlabMergeRequestTitle}"
+            echo "Merge Request User Email    : ${gitCommittorEmailAddr}"
+            echo "Merge Request Tag           : ${src_tag}"
+            echo "Merge Request Source Branch : ${common_src_branch}"
+
+            (nfList, nfCommitList) = retrieveMergeRequestDescription()
+
+            allRequiredNFs = ["NRF", "AUSF", "UPF", "UDR", "AMF", "UDM", "SMF"]
+            allRequiredNFs.each { reqNF ->
+              if (!nfList.contains(reqNF)) {
+                nfList.add(reqNF)
+                nfCommitList.add("develop")
+              }
+            }
+            echo "Final List of Network Functions: ${nfList}"
+            echo "Branches/Commit SHAs of Network Functions: ${nfCommitList}"
+
+            if (mrLabelsData.count > 0) {
+              echo "Merge Request Labels        : ${mrLabelsData.labels}"
+              echo "Merge Request Labels Count  : ${mrLabelsData.count}"
+            }
+            if (mrLabelsData.labels.toLowerCase().contains(skipBuildAndTestLabel.toLowerCase()) &&
+               !mrLabelsData.labels.toLowerCase().contains('ci') &&
+               !mrLabelsData.labels.toLowerCase().contains('retrigger-ci')) {
+                  echo "Found '${skipBuildAndTestLabel}' label. Skipping full suite as 'CI' and 'RETRIGGER-CI' are missing."
+                  runFullSuite = false
+            }
+          } else {
+            gitCommittorEmailAddr = sh returnStdout: true, script: 'git log -n1 --pretty=format:%ae ${GIT_COMMIT}'
+            gitCommittorEmailAddr = gitCommittorEmailAddr.trim()
+
+            shortenShaOne = sh returnStdout: true, script: 'git log -1 --pretty=format:"%h" --abbrev=8 ' + env.GIT_COMMIT
+            shortenShaOne = shortenShaOne.trim()
+            src_tag       = 'develop-' + shortenShaOne
+            common_src_branch    = env.GIT_BRANCH
+
+            nfList = ["NRF", "AUSF", "UPF", "UDR", "AMF", "UDM", "SMF"]
+            nfCommitList = []
+            commonSrcCommitMap = [:]  // initialize map for push events
+            // For push events (including build with parameters events on the CI)
+            // We will need to ensure to push NFs to 'develop' first
+            nfList.each { nf ->
+              if (nf == "AMF") {
+              nfCommitList.add("develop")
+              commonSrcCommitMap[nf] = shortenShaOne
+              }
+              else {
+                nfCommitList.add("develop")
+                commonSrcCommitMap[nf] = main_common_src_commit
+              }
+            }
+            // Treat AMF, SMF, UDM as exception and override if a different common src commit is provided
+            ["AMF","SMF","UDM"].each { nf ->
+            def paramValue = params["${nf.toLowerCase()}_common_src_commit"]
+            if (paramValue)
+            {
+              if (nf == "AMF")
+              {
+                def gitBranchName = env.GIT_BRANCH?.tokenize('/')?.last()
+                if (gitBranchName != "develop") // if push to develop, AMF uses shortenShaOne
+                commonSrcCommitMap[nf] = paramValue
+              }
+              else {
+                commonSrcCommitMap[nf] = paramValue // SMF and UDM do not currenly build on either main or develop
+              }
+            }
+            }
+            echo "\uD83D\uDE80 THIS IS A PUSH REQUEST \uD83D\uDE80"
+            echo "Git Branch     : ${GIT_BRANCH}"
+            echo "Git Commit     : ${GIT_COMMIT}"
+            echo "CI  User Email : ${gitCommittorEmailAddr}"
+            echo "CI develop Tag : ${src_tag}"
+
+            echo "Final List of Network Functions for PUSH REQUEST: ${nfList}"
+            echo "Branches/Commit SHAs of Network Functions: ${nfCommitList}"
+          }
+          prepareWorkspaceMergeCase()
+        }
+      }
+      post {
+        failure {
+          script {
+            def message = "OAI ${JOB_NAME} build (${BUILD_ID}): Merge Conflicts -- Cannot perform CI"
+            addGitLabMRComment comment: message
+            currentBuild.result = 'FAILURE'
+          }
+        }
+      }
+    }
+
+    stage('Build Ubuntu Images') {
+      when {
+        expression { return runFullSuite }
+      }
+      steps {
+        lock(ubuntuBuildResource) {
+            script {
+              gitlabCommitStatus(name: "Build Ubuntu Images") {
+                withCredentials([
+                    [$class: 'UsernamePasswordMultiBinding', credentialsId: "${params.DockerHubReadOnlyCredentials}", usernameVariable: 'DH_Username', passwordVariable: 'DH_Token']
+                  ]) {
+                    sh "echo ${DH_Token} | docker login --username ${DH_Username} --password-stdin"
+                }
+                sh "docker login -u oaicicd -p oaicicd ${PrivateRegistryURL}"
+                def jsonPairs = []
+                nfList.eachWithIndex { nf, index ->
+                  def commit = nfCommitList[index]
+                  def commonSrc = commonSrcCommitMap.get(nf, shortenShaOne)
+                  jsonPairs << "\"${nf.toLowerCase()}\":{\"nf\":\"${commit}\",\"common-src\":\"${commonSrc}\"}"
+                }
+                def nfJson = "{${jsonPairs.join(',')}}"
+                sh "echo '${nfJson}' > archives/nf_map.json"
+                echo "Common Source Commit: ${shortenShaOne}"
+                sh """
+                bash ./ci-scripts/build_ubuntu_core_images.sh archives/nf_map.json archives
+                """
+              }
+          }
+        }
+      }
+      post {
+        success {
+          sh "echo 'OAI-COMMON-SRC UBUNTU IMAGES BUILD: OK'"
+        }
+        unsuccessful {
+          sh "echo 'OAI-COMMON-SRC UBUNTU IMAGES BUILD: KO'"
+        }
+        cleanup {
+          script {
+            sh "docker logout selfix.sboai.cs.eurecom.fr"
+            sh "docker logout"
+          }
+        }
+      }
+    }
+  } // End of Stages
+  post {
+          success {
+              script {
+                  if ("MERGE".equals(env.gitlabActionType)) {
+                      def message = """
+                      * **Job**                  : ${JOB_NAME}
+                      * **Build ID**             : ${BUILD_ID}
+                      * **Build URL**            : [${BUILD_URL}](${BUILD_URL})
+                      * **Source Branch**        : ${env.gitlabSourceBranch}
+                      * **Status**               : \u2705 Passed
+                      """.stripIndent()
+                      echo "This is a MERGE event"
+                      addGitLabMRComment comment: message
+                  }
+              }
+          }
+          unsuccessful {
+              script {
+                  if ("MERGE".equals(env.gitlabActionType)) {
+                      def message = """
+                      * **Job**                  : ${JOB_NAME}
+                      * **Build ID**             : ${BUILD_ID}
+                      * **Build URL**            : [${BUILD_URL}](${BUILD_URL})
+                      * **Source Branch**        : ${env.gitlabSourceBranch}
+                      * **Status**               : \u274C Failed. Please check the logs.
+                      """.stripIndent()
+                      echo "This is a MERGE event"
+                      addGitLabMRComment comment: message
+                  }
+              }
+          }
+          cleanup {
+              script {
+                  if (fileExists('archives/built_images.list')) {
+                    def imageList = readFile('archives/built_images.list').trim()
+                    echo """
+                    |---------------------------------------------------------
+                    | BUILT IMAGE NAMES WITH TAGS
+                    |---------------------------------------------------------
+                    | ${imageList}
+                    |---------------------------------------------------------
+                    """.stripMargin()
+                  }
+                  // Zipping all archived log files
+                  sh "zip -r -qq cn_common_src_logs.zip archives"
+                  if (fileExists('cn_common_src_logs.zip')) {
+                      archiveArtifacts artifacts: 'cn_common_src_logs.zip'
+                  }
+              }
+          }
+   } // End of post
+} // End of Pipeline
+
+// --- Helper Functions ---
+
+def prepareWorkspaceMergeCase() {
+  echo "\u2692\uFE0F PREPARING WORKSPACE \u2692\uFE0F"
+  sh "git clean -x -d -f > /dev/null 2>&1"
+  if ("MERGE".equals(env.gitlabActionType)) {
+    def targetCommit = sh(script: "git ls-remote origin ${env.gitlabTargetBranch} | awk '{print \$1}'", returnStdout: true).trim()
+    sh "./ci-scripts/doGitLabMerge.sh --src-branch ${env.gitlabSourceBranch} --src-commit ${env.gitlabMergeRequestLastCommit} --target-branch ${env.gitlabTargetBranch} --target-commit ${targetCommit}"
+  }
+  sh "mkdir -p archives"
+}
+
+def checkGitLabMergeRequestLabels() {
+  def labelsJson = sh(
+    script: "curl --silent 'https://gitlab.eurecom.fr/api/v4/projects/oai%2Fcn5g%2Foai-cn5g-common-src/merge_requests/${env.gitlabMergeRequestIid}' | jq -c '.labels' || echo '[]'",
+    returnStdout: true
+  ).trim()
+
+  def labelsCount = sh(
+    script: "echo '${labelsJson}' | jq 'length'",
+    returnStdout: true
+  ).trim().toInteger()
+
+  return [
+    labels: labelsJson,
+    count:  labelsCount
+  ]
+}
+
+def retrieveMergeRequestDescription() {
+  def rawOutput = sh(
+    script: """
+      curl --silent "https://gitlab.eurecom.fr/api/v4/projects/oai%2Fcn5g%2Foai-cn5g-common-src/merge_requests/${env.gitlabMergeRequestIid}" \
+      | jq -r '.description' \
+      | awk '/```json/{flag=1; next} /```/{flag=0} flag' \
+      | sed -n '/^{/,/^}/p'
+    """,
+    returnStdout: true
+  ).trim()
+
+  def nfList = []
+  def nfCommitList = []
+  commonSrcCommitMap = [:]
+
+  if (rawOutput) {
+    rawOutput.split('\n').each { line ->
+      line = line.trim()
+      if (line && line.contains(':')) {
+        def parts = line.split(':', 2)
+        def nf = parts[0].replaceAll(/["{}]/, '').trim()
+        def values = parts[1].replaceAll(/[\[\]"]/,'').trim().split(',')
+        nfList.add(nf)
+        nfCommitList.add(values[0])
+        commonSrcCommitMap[nf] = (values.size() > 1 && values[1]) ? values[1].trim() : shortenShaOne
+      }
+    }
+  }
+
+  echo "Network Functions extracted from MR description: \n \n ${nfList}"
+  echo "Branches/Commit SHAs of Network Functions extracted from MR description: \n \n ${nfCommitList}"
+  echo "Submodule Common-src commits: ${commonSrcCommitMap}"
+  return [nfList, nfCommitList, commonSrcCommitMap]
+}

@@ -1,0 +1,18 @@
+{
+  "message_name": "ForwardAccessContextAcknowledge",
+  "Direction": "Target MME/SGSN/S4-SGSN -> Source MME/SGSN/S4-SGSN (S3/S10/S16)",
+  "ies": [
+    {
+      "name": "Cause",
+      "requirement": "Mandatory",
+      "multiplicity": "Single",
+      "is_grouped": false
+    },
+    {
+      "name": "PrivateExtension",
+      "requirement": "Optional",
+      "multiplicity": "List",
+      "is_grouped": false
+    }
+  ]
+}

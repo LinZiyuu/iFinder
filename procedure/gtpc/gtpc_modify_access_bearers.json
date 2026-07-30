@@ -1,0 +1,25 @@
+{
+  "procedure_id": "GTPC_Modify_Access_Bearers",
+  "direction": "MME <-> SGW",
+  "dependency_procedures": [
+    "GTPC_Create_Session"
+  ],
+  "message_flow": [
+    {
+      "seq": 1,
+      "from": "MME",
+      "to": "SGW",
+      "message": "ModifyAccessBearersRequest",
+      "mandatory_ies": []
+    },
+    {
+      "seq": 2,
+      "from": "SGW",
+      "to": "MME",
+      "message": "ModifyAccessBearersResponse",
+      "mandatory_ies": [
+        "Cause"
+      ]
+    }
+  ]
+}
